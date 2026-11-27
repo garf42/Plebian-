@@ -162,7 +162,9 @@ func (s *SwitchBlobs) Use(b Blobs) { s.mu.Lock(); s.cur = b; s.mu.Unlock() }
 
 func (s *SwitchBlobs) current() Blobs { s.mu.RLock(); defer s.mu.RUnlock(); return s.cur }
 
-func (s *SwitchBlobs) Put(ctx context.Context, b []byte) (string, error) { return s.current().Put(ctx, b) }
+func (s *SwitchBlobs) Put(ctx context.Context, b []byte) (string, error) {
+	return s.current().Put(ctx, b)
+}
 
 func (s *SwitchBlobs) Get(ctx context.Context, sha string) ([]byte, error) {
 	c := s.current()
