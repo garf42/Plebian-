@@ -148,7 +148,16 @@ func (l *Loop) clockNext(ctx context.Context) (clockDue, bool) {
 func (l *Loop) clockTick(ctx context.Context) time.Time {
 	d, ok := l.clockNext(ctx)
 	if !ok {
-		return time.Time{}
+		// Nothing is due on this page day; the next page day can make a window due (a step
+		// that ran today is due tomorrow), so the loop looks again at the next cut.
+		var runs int
+		l.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM step_runs`).Scan(&runs)
+		if runs == 0 {
+			return time.Time{}
+		}
+		loc := l.loc(ctx)
+		today, _ := pageDay(l.Clock.Now(), loc)
+		return dayStart(today, loc).AddDate(0, 0, 1)
 	}
 	if l.Clock.Now().Before(d.at) {
 		return d.at

@@ -117,11 +117,7 @@ func init() {
 			post(h.T, tf.URL("/control/phone_tap"), map[string]any{})
 			post(h.T, tf.URL("/control/inject"), map[string]any{"conversation_id": "c-dale", "message_id": "m1", "sender": "+15550104", "text": "running late, there by 10", "ts_ms": now.Add(-5 * time.Minute).UnixMilli()})
 			h.Advance(2 * time.Minute) // past the texts feed's retry after the unpaired first look
-			rowsOf := func() []HeardRow {
-				var p struct{ Heard []HeardRow }
-				h.Do("GET", "/v1/days/"+PageDate(now), nil, &p, true)
-				return p.Heard
-			}
+			rowsOf := func() []HeardRow { return h.HeardBetween(now.Add(-50*time.Minute), now.Add(90*time.Minute)) }
 			Until(90*time.Second, func() bool {
 				seen := map[string]int{}
 				for _, r := range rowsOf() {

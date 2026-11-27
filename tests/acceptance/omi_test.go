@@ -170,12 +170,38 @@ func PageDate(t time.Time) string {
 	return t.In(loc).Add(-4 * time.Hour).Format("2006-01-02")
 }
 
-// Heard reads the talk rows on the page holding t.
-func (h *H) Heard(t time.Time) []HeardRow {
-	var p struct{ Heard []HeardRow }
-	h.Do("GET", "/v1/days/"+PageDate(t), nil, &p, true)
+// PagesBetween are the page dates from the one holding a to the one holding b: rows
+// made around a 4 am cut fall on either side of it, whenever the run happens to start.
+func PagesBetween(a, b time.Time) []string {
+	if b.Before(a) {
+		a, b = b, a
+	}
+	var out []string
+	for d := PageDate(a); ; {
+		out = append(out, d)
+		if d >= PageDate(b) {
+			return out
+		}
+		t, _ := time.Parse("2006-01-02", d)
+		d = t.AddDate(0, 0, 1).Format("2006-01-02")
+	}
+}
+
+// HeardBetween reads the heard rows on every page from a's to b's.
+func (h *H) HeardBetween(a, b time.Time) []HeardRow {
 	var out []HeardRow
-	for _, r := range p.Heard {
+	for _, d := range PagesBetween(a, b) {
+		var p struct{ Heard []HeardRow }
+		h.Do("GET", "/v1/days/"+d, nil, &p, true)
+		out = append(out, p.Heard...)
+	}
+	return out
+}
+
+// Heard reads the talk rows made from t until now, on whichever pages they fell.
+func (h *H) Heard(t time.Time) []HeardRow {
+	var out []HeardRow
+	for _, r := range h.HeardBetween(t, h.Now()) {
 		if r.Source == "talk" {
 			out = append(out, r)
 		}
