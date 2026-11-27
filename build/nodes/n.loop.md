@@ -51,9 +51,9 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
   negative_check: seen red — --- FAIL: TestStandingSignedOnly (keep raised standing)
   status: killed
 - D4: an interrupted send is retried after restart
-  kill_test: tests/acceptance/a16_crash_safety
-  negative_check: pending
-  status: live
+  kill_test: tests/loop/interrupt_test.go TestInterruptedNotRerun (and A16 in acceptance)
+  negative_check: seen red — TestInterruptedNotRerun: the interrupted call ran 2 times (recovery re-ran it)
+  status: killed
 - D5: a draft is re-composed from the latest context when approved
   kill_test: tests/feeds/d2_test.go TestSMTPOnlyOnApprovedDraft (the sent bytes are the shown draft's, Message-ID included)
   negative_check: seen red — TestSMTPOnlyOnApprovedDraft: shown bytes sent: false (approval re-composed the mail from the call: a new Message-ID)

@@ -45,13 +45,13 @@ fixtures: `tests/underlay/` scripted moments (two spoken answers, an overheard g
   negative_check: seen red — --- FAIL: TestHeardClosesNothing (a heard answer closed the question)
   status: killed
 - D4: lookup puts an attachment where a call that didn't ask for the outside folder can read it
-  kill_test: tests/underlay/test_attachments_land_outside_only
-  negative_check: pending
-  status: live
+  kill_test: tests/underlay/putout_test.go TestAttachmentsLandOutsideOnly
+  negative_check: seen red — TestAttachmentsLandOutsideOnly: an attachment landed outside the outside folder (put into the workspace)
+  status: killed
 - D5: lookup puts out the whole message, so a `read` copies its heard body into the stack
-  kill_test: tests/underlay/test_body_never_put_out
-  negative_check: pending
-  status: live
+  kill_test: tests/underlay/putout_test.go TestAttachmentsLandOutsideOnly
+  negative_check: seen red — TestAttachmentsLandOutsideOnly: the message body was put out (body written beside the attachment)
+  status: killed
 
 ## clauses
 (none yet)

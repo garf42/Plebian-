@@ -127,6 +127,16 @@ func New(t testing.TB, format string, script model.Script, extra ...tools.Tool) 
 	return k
 }
 
+// Restart is the server coming back on the same store: a new loop with the same parts,
+// initialized from what the store holds.
+func (k *Kit) Restart() {
+	old := k.L
+	k.L = &loop.Loop{S: old.S, Clock: old.Clock, P: old.P, Tools: old.Tools, Counter: old.Counter, Secrets: old.Secrets, Index: old.Index, A: old.A, R: old.R}
+	if err := k.L.Init(context.Background()); err != nil {
+		k.T.Fatal(err)
+	}
+}
+
 // Say sends an owner message and runs the loop until it is idle.
 func (k *Kit) Say(text string) {
 	k.n++

@@ -84,7 +84,7 @@ jobs:
           PLEBIAN_SPEECH_MODELS: ${{ runner.temp }}/speech
         run: |
           go vet ./...
-          PLEBIAN_CHROME=$(ls "$RUNNER_TEMP"/browser/chromium/*/chrome | head -1) PLEBIAN_RESTIC=$RUNNER_TEMP/restic go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
+          PLEBIAN_BROWSER_FROM=$RUNNER_TEMP/browser PLEBIAN_CHROME=$(ls "$RUNNER_TEMP"/browser/chromium/*/chrome | head -1) PLEBIAN_RESTIC=$RUNNER_TEMP/restic go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
       - name: Fixtures
         run: |
           mkdir -p dist

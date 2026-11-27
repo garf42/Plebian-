@@ -46,9 +46,9 @@ fixtures: `tests/tools/` (sandbox escapes, secret in stdout and stderr, an unann
   negative_check: pending
   status: live
 - D4: Playwright MCP's own tool definitions land in the main tool band
-  kill_test: tests/tools/test_main_band_excludes_browser_defs
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/band_test.go TestMainBandExcludesBrowserDefs
+  negative_check: seen red — TestMainBandExcludesBrowserDefs: a main request carries Playwright MCP's tool definitions (folded into browse's description)
+  status: killed
 - D5: a networked run saves a page into the workspace outside the outside folder, and a later turn's `read` returns its words unflagged
   kill_test: tests/tools/test_outside_bytes_keep_mark
   negative_check: seen red — --- FAIL: TestOutsideBytesKeepMark (a networked run wrote into the workspace)
