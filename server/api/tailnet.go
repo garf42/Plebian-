@@ -14,8 +14,9 @@ import (
 )
 
 // Tailnet joins the owner's tailnet as its own device (tsnet; state under the root) and
-// serves h there. Its WireGuard port is one the OS finds free (Port 0); the API port on
-// the tailnet is the same number as the localhost one, already found free.
+// serves h there. Its WireGuard port is one the OS finds free (Port 0); the API listens
+// on the port its caller names on tsnet's own network stack (serve uses HTTP's 80, so a
+// paired address survives restarts).
 type Tailnet struct {
 	Dir        string
 	Hostname   string

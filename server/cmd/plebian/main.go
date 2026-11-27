@@ -1,5 +1,6 @@
-// Command plebian is the one program: install, update, uninstall, serve, pair, backup,
-// restore, replay, and the tools user's runner.
+// Command plebian is the one program: install, uninstall, serve, pair, restore, replay,
+// the tools user's runner, the install-time access check and the deploy helper. Backups
+// and updates run inside serve (the Backups card, a signed deploy).
 package main
 
 import (

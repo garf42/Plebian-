@@ -321,10 +321,14 @@ func init() {
 			Until(3*time.Minute, func() bool { return len(h.Heard(at)) == 2 })
 			Until(90*time.Second, func() bool { return len(AgentMessages(h.Today())) > 0 })
 			re := regexp.MustCompile(`has no name: voice (\d+)`)
+			asked := map[string]bool{} // one asking is one question block; a retried request repeats it
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
-				if m := re.FindStringSubmatch(r.Opened("question")); m != nil {
-					s7.asked++
-					fmt.Sscan(string(m[1]), &s7.voice)
+				if q := r.Opened("question"); !asked[q] {
+					if m := re.FindStringSubmatch(q); m != nil {
+						asked[q] = true
+						s7.asked++
+						fmt.Sscan(string(m[1]), &s7.voice)
+					}
 				}
 			}
 			var open struct {

@@ -5,14 +5,12 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 ## Counts
 
 - **Nodes:** 17.
-- **Ledger:** 48 entries (L0001–L0048).
-  - By node: n.browser 5, n.proof 5, n.app 5, n.app_device 5, n.ops 4, n.loop 4, n.recall 3, n.grammar 3, n.tools 3, n.audio 2, n.assemble 2, n.store 2, n.feeds 2, n.models 1, n.underlay 1, n.api 1.
-- **Gaps:** 44 opened (G001–G044), 0 closed.
-- **Seams:** 30 driven, 5 pending.
-  - n.app→n.api and n.api→n.app: the app's tests run against fixture JSON, not the installed server.
-  - n.app→n.proof: the emulator job has not yet passed.
-  - n.firmware→n.proof: firmware not built.
-  - n.browser→n.feeds: G027.
+- **Ledger:** 49 entries (L0001–L0049).
+  - By node: n.browser 5, n.proof 5, n.app 5, n.app_device 5, n.ops 4, n.loop 4, n.recall 3, n.grammar 3, n.tools 3, n.audio 2, n.assemble 2, n.store 2, n.feeds 2, n.models 1, n.underlay 2, n.api 1.
+- **Gaps:** 49 opened (G001–G049), 0 closed. G045–G049 record unbuilt clauses the final audit found.
+- **Seams:** 26 driven, 9 pending.
+  - The final audit set four back to pending because their acceptance driver is red: n.underlay→n.assemble (A09), n.loop→n.audio (A07), n.underlay→n.loop (A08), n.browser→n.tools (A12).
+  - Also pending: n.app↔n.api (G049), n.app→n.proof, n.firmware→n.proof, n.browser→n.feeds (G027).
 - **Demons:** 65 killed, each with the red line seen in its node's `negative_check`.
   - Where each was seen:
     - 46: node tests, re-run 2026-11-27.
@@ -23,8 +21,12 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 - **Prefabs:** 13 rows, 7 probed.
   - Blocked on a precondition: model provider key, libgm, Omi over BLE, universal_ble, biometric_signature, and the Flutter packages' platform halves.
   - G035 lists the server dependencies in use without a row.
-- **Tests:** 108 Go test functions, 80 Flutter tests, and 20 acceptance scenarios run twice per arch.
-- **Scenarios:** SCENARIO_STATUS
+- **Tests:** 109 Go test functions, 80 Flutter tests, and 20 acceptance scenarios run twice per arch.
+- **Scenarios** (server run 45983583848, commit 835583c, identical on amd64 and arm64, both runs agreeing):
+  - Pass: A01, A02, A03, A04, A05, A06, A10, A11, A14, A15, A17, A18, A20, Manifest, NonVacuity (under the every-assertion-red rule), VersionIsCommitUnderTest.
+  - A05 and A06 count their server halves only; the app halves have not run on the emulator (G049).
+  - Fail: A07 (asked 3 times), A08 (no woken turn), A09 (no reply), A12 (Chromium crash handler), A13 (entry not held), A16 (asked 9 times).
+  - Blocked: A19.
 - **TP tests:** TP-T1…T15 have tests; TP-T16 and TP-T17 are not built (G036).
 
 ## Rediscovery rate
@@ -54,6 +56,19 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
   - Every killed demon was reinstalled and its kill test re-run. The 46 lines were rewritten from the observed output and marked "re-run 2026-11-27".
   - L0031's cause was wrong and is corrected by L0048.
 
+## Final audit
+
+- 40 findings: 15 violations, 22 suspect, 3 clean.
+- Acted on: docstrings in main.go and tailnet.go, the NOTICE bubblewrap claim, A08's prohibitions conditioned on the woken turn, five seams set back to pending (four red-driven, plus the device seam's emulator citation), gaps G045–G049, and Flutter pinned to 3.50.1.
+- Open:
+  - first_red per assertion is not recorded (n.proof guarantee).
+  - Seven assertions are evaluated only inside branches no demon or undriven run has reached.
+  - A14's drafted_with_outside_words can be satisfied by an earlier draft.
+  - A20 repackages the same artifact, so a swap that changes nothing would also pass.
+  - A15 reads spend per model, not B per model.
+  - The prefab rows for the app packages, biometric_signature and the Go speech binding are unprobed.
+  - 7 of the 8 app demon lines rest on the app agent's report (n.app_device D2 was reproduced).
+
 ## What held
 
 - Structure over behaviour, wherever it was built in:
@@ -67,11 +82,10 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 
 ## What to change, ranked by damage still possible
 
-1. **A08 and A09 fail with no diagnosis.**
-   - A08: a mail answering an open question woke no turn.
-   - A09: a heard fact asked by text drew no reply.
-   - The same wake passes at the node level with the same lines and background (`tests/underlay/wake_test.go`), so the gap is in the installed path.
-   - Failing scenarios now print the server's journal; the next run shows where it stops.
+1. **A08 and A09.**
+   - A09's likely cause, words split across a stretch's lines, is fixed in L0049, not yet through CI.
+   - A08's woken turn is still undiagnosed. The node-level wake passes with the same lines (`tests/underlay/wake_test.go`).
+   - The journal now prints for each failing scenario, but `compare_runs` keeps only `file.go:N` lines, so the journal body is in the raw job log only.
 2. **The browser is not fetched by install (G032).** On the owner's box, `browse`, the live view and the texts sign-in are absent until a browser directory is supplied.
 3. **Tailnet reach is untested in CI** (CI runs `--no-tailnet`).
    - L0036 fixed a paired address that changed on every restart; no unit or acceptance test would have caught it.

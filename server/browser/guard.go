@@ -40,7 +40,14 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 	if os.Geteuid() == 0 {
 		args = append(args, "--no-sandbox") // Chromium refuses root with its sandbox; the server's own account keeps it
 	}
+	// Chromium resolves its config, cache and crash paths from the environment; a service
+	// account's is sparse, so all of them are named under the profile and made first.
+	crashes := filepath.Join(profile, "crashes")
+	if err := os.MkdirAll(crashes, 0o700); err != nil {
+		return nil, fmt.Errorf("chromium crash directory: %w", err)
+	}
 	cmd := exec.CommandContext(ctx, bin, append(args, "about:blank")...)
+	cmd.Env = append(os.Environ(), "HOME="+profile, "XDG_CONFIG_HOME="+filepath.Join(profile, "config"), "XDG_CACHE_HOME="+filepath.Join(profile, "cache"), "BREAKPAD_DUMP_LOCATION="+crashes)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // its renderers and helpers stop with it
 	said := &tail{}
 	cmd.Stderr = said

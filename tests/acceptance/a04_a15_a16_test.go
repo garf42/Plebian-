@@ -255,8 +255,11 @@ func init() {
 			})
 			h.Advance(30 * time.Minute) // a longer quiet asks no second time
 			time.Sleep(5 * time.Second)
+			// One asking is one question block (its time and words); a retried request repeats it.
+			asked := map[string]bool{}
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
-				if strings.Contains(r.Opened("question"), "feed omi has been quiet since") {
+				if q := r.Opened("question"); strings.Contains(q, "feed omi has been quiet since") && !asked[q] {
+					asked[q] = true
 					st16.quietAsks++
 				}
 			}

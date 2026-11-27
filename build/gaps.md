@@ -220,3 +220,28 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   The APK cannot be built in the build session (the Android SDK host is not reachable); `flutter build apk` runs only in CI. Kotlin (MainActivity's cached engine, LinkService) was checked against the Flutter 3.50.1 embedding's classes with javap, not compiled.
   Assumed: CI's first build is the compile check. Reversible: yes.
   Blocks: the APK artifact until CI builds it.
+
+- G045 — node: n.ops — volatility: medium — last_reviewed: phase-5
+  This week's brief has no producer: the API's Week hook is never set, so the brief is always empty; the sweep, the mechanic and repository issues are not built; a deploy replays pages only (not requests), and a differing page blocks the deploy with no owner-approval path.
+  Assumed: the updates card, the health block and the deploy gate stand without the brief. Reversible: yes.
+  Blocks: the n.ops This week clauses.
+
+- G046 — node: n.tools — volatility: medium — last_reviewed: phase-5
+  The library, skills, `use describe` and owner-added MCP servers (with the unannotated-is-outside-change rule, n.tools D3) are not built; the band carries each tool's full definition.
+  Assumed: the built-in tools and the browser sub-agent cover the scenarios. Reversible: yes.
+  Blocks: n.tools D3; owner MCP servers.
+
+- G047 — node: n.loop — volatility: medium — last_reviewed: phase-5
+  A sub-agent call past its B is refused instead of dropping its oldest readings, browse results are not split into parts, and the night's read runs as an ordinary clock turn, not a sub-agent.
+  Assumed: browse tasks stay within the sub-agent's B in the scenarios. Reversible: yes.
+  Blocks: long browse tasks.
+
+- G048 — node: n.ops — volatility: low — last_reviewed: phase-5
+  bubblewrap ships as the build runner's Ubuntu 22.04 binary (apt), not built from a pinned tag with a checked hash, so the artifact depends on the runner's apt state.
+  Assumed: Ubuntu 22.04's bubblewrap package. Reversible: yes (build from a pinned tag in CI).
+  Blocks: byte-reproducible releases.
+
+- G049 — node: n.app — volatility: low — last_reviewed: phase-5
+  The app's halves of A05, A06, A09 and A13 have not run against the release server on the emulator (CI's Flutter is pinned to 3.50.1, the version the app was checked on).
+  Assumed: the widget tests and the device-seam tests stand in until the emulator job runs against the release server. Reversible: yes.
+  Blocks: the n.app→n.api and n.api→n.app seams.

@@ -29,13 +29,14 @@ func CoreTools(s *store.Store, nameVoice func(ctx context.Context, id int64, wor
 					return tools.Result{Reading: []byte("ask needs a question"), Exit: 2}, nil
 				}
 				var turn int64
-				s.DB.QueryRowContext(ctx, `SELECT MAX(id) FROM turns`).Scan(&turn)
+				var at string // the sheet that holds this call: the loop's clock, not the wall
+				s.DB.QueryRowContext(ctx, `SELECT id, at FROM turns ORDER BY id DESC LIMIT 1`).Scan(&turn, &at)
 				res, err := s.DB.ExecContext(ctx, `INSERT INTO loops(kind, text, opened_turn) VALUES('question', ?, ?)`, q.Question, turn)
 				if err != nil {
 					return tools.Result{}, err
 				}
 				id, _ := res.LastInsertId()
-				s.Emit(ctx, time.Now().UTC().Format(time.RFC3339Nano), "question", map[string]any{"question_id": id, "text": q.Question, "state": "open"}, turn)
+				s.Emit(ctx, at, "question", map[string]any{"question_id": id, "text": q.Question, "state": "open"}, turn)
 				return tools.Result{Reading: []byte("asked; the owner's reply arrives as their next message")}, nil
 			},
 		},

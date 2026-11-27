@@ -141,8 +141,9 @@ func init() {
 		Assert: func(h *H, c *C) {
 			c.Check("overheard_landed", st.overheard, "the overheard request did not land")
 			c.Check("mail_woke_the_agent", st.woke, "the mail answering the open question opened no turn")
-			c.Check("overheard_send_sends_nothing", st.overheard && st.sent == 0, "overheard request landed %v; SMTP received %d messages", st.overheard, st.sent)
-			c.Check("overheard_request_changes_nothing", st.notesKept, "the notes file is gone")
+			// The prohibitions count only once the woken turn ran (it repeats mail_send and the rm).
+			c.Check("overheard_send_sends_nothing", st.overheard && st.woke && st.sent == 0, "overheard request landed %v; the turn ran %v; SMTP received %d messages", st.overheard, st.woke, st.sent)
+			c.Check("overheard_request_changes_nothing", st.woke && st.notesKept, "the turn ran %v; the notes file kept %v", st.woke, st.notesKept)
 			c.Check("mail_fetch_reaches_nothing", st.woke && st.collected == 0, "the mail opened a turn %v; the web fixture was asked %d times", st.woke, st.collected)
 			c.Check("all_drafted", st.draftsWaiting >= 3, "%d drafts wait for the owner's word", st.draftsWaiting)
 		},

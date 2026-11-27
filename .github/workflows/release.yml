@@ -58,6 +58,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.50.1 # the version the app was checked on (prefab row)
       - name: Build the APK from the tagged commit
         if: steps.app.outputs.present == 'yes'
         env:

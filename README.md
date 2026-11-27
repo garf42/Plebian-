@@ -11,9 +11,30 @@ An agent you own. One ongoing conversation with an AI that works for you, rememb
 
 ## Status
 
-| Scenario | State |
-|---|---|
-| A01–A20 | not built yet — see `build/constitution.md` |
+From CI run 45983583848 (commit 835583c), the same on amd64 and arm64, each scenario run twice:
+
+| Scenario | What it proves | State |
+|---|---|---|
+| A01 | install leaves nothing outside its root; uninstall removes all | pass |
+| A02 | pairing; an unpaired client reads nothing | pass |
+| A03 | a message gets a reply; every sealed turn rebuilds byte-exact | pass |
+| A04 | a failed step becomes a redline, its repeat held once | pass |
+| A05 | live Omi audio lands as heard rows with speakers | pass (server half; the app half has not run on the emulator) |
+| A06 | offline audio lands at its true wall time | pass (server half; the app half has not run on the emulator) |
+| A07 | an unnamed voice opens one question | fail |
+| A08 | overheard words never act; a mail wakes the agent | fail |
+| A09 | a heard fact is answered with who and when | fail |
+| A10 | mail, calendar and texts land; a PDF is read as outside words | pass |
+| A11 | research answered with its URLs | pass |
+| A12 | a browser order is held and drafted | fail |
+| A13 | the clock opens the night's entry | fail |
+| A14 | standing needs a signature and waits the owner's usual time | pass |
+| A15 | both wire formats; fallback; per-model budget | pass |
+| A16 | kill -9 mid-turn loses nothing; a silent feed asks once | fail |
+| A17 | a backup restores byte-identical | pass |
+| A18 | A05 with an S3 bucket | pass |
+| A19 | one real exchange on the owner's provider | blocked (no live key) |
+| A20 | an update replays, deploys and rolls back | pass |
 
 ## Install
 
