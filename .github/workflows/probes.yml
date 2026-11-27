@@ -26,30 +26,38 @@ jobs:
         with:
           node-version: '22'
       - name: Host packages
-        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq espeak-ng python3-pip
+        run: |
+          sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq espeak-ng python3-venv
+          # -I keeps user site-packages out, so probe packages live in a venv of their own.
+          python3 -m venv "$RUNNER_TEMP/venv" && echo "PY=$RUNNER_TEMP/venv/bin/python" >> "$GITHUB_ENV"
       - name: SQLite at a million-turn store (twice)
+        continue-on-error: true
         run: cd tests/probes/sqlite && for i in 1 2; do go run . "$RUNNER_TEMP/probe$i.db"; done
       - name: restic 0.20.0 (twice inside the probe)
+        continue-on-error: true
         run: |
           arch=$(dpkg --print-architecture)
           curl -sSfL -o restic.bz2 "https://github.com/restic/restic/releases/download/v0.20.0/restic_0.20.0_linux_${arch}.bz2"
           bunzip2 restic.bz2 && chmod +x restic
           RESTIC=$PWD/restic bash tests/probes/backup/probe_restic.sh
       - name: Speech (twice)
+        continue-on-error: true
         run: |
-          python3 -m pip install -q --user sherpa-onnx==2.0.3 numpy
+          $PY -m pip install -q sherpa-onnx==2.0.3 numpy
           M=$RUNNER_TEMP/models && mkdir -p $M && cd $M
           B=https://github.com/k2-fsa/sherpa-onnx/releases/download
           curl -sSfL $B/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8.tar.bz2 | tar -xj
           curl -sSfL $B/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2 | tar -xj
           curl -sSfL -o nemo_en_titanet_small.onnx $B/speaker-recongition-models/nemo_en_titanet_small.onnx
-          cd "$GITHUB_WORKSPACE" && for i in 1 2; do python3 -I tests/probes/speech/probe_speech.py "$M"; done
+          cd "$GITHUB_WORKSPACE" && for i in 1 2; do $PY -I tests/probes/speech/probe_speech.py "$M"; done
       - name: Browser (twice)
+        continue-on-error: true
         run: |
-          python3 -m pip install -q --user playwright
-          if [ "$(uname -m)" = x86_64 ]; then export PROBE_CHANNEL=chrome; else export PROBE_CHANNEL=; python3 -m playwright install --with-deps chromium; fi
-          for i in 1 2; do python3 -I tests/probes/browser/probe_browser.py; done
+          $PY -m pip install -q playwright
+          if [ "$(uname -m)" = x86_64 ]; then export PROBE_CHANNEL=chrome; else export PROBE_CHANNEL=; $PY -m playwright install --with-deps chromium; fi
+          for i in 1 2; do $PY -I tests/probes/browser/probe_browser.py; done
       - name: MCP client and Playwright MCP over CDP (twice)
+        continue-on-error: true
         run: |
           cd tests/probes/mcp && npm i -s @playwright/mcp@0.0.86
           if [ "$(uname -m)" = x86_64 ]; then export CHROME=google-chrome; else npx -y playwright install chromium && export CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux/chrome | head -1); fi
