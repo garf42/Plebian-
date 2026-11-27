@@ -1,6 +1,8 @@
 package acceptance
 
 import (
+	"os/exec"
+	"os/user"
 	"strings"
 	"testing"
 )
@@ -32,6 +34,12 @@ func Run(t *testing.T, id string) {
 	}
 	s.Assert(h, c)
 	if len(c.Errors) > 0 {
+		// The server's own account of the run: what it logged while the scenario drove it.
+		if u, err := user.Lookup("plebian"); err == nil {
+			if out, err := exec.Command("sudo", "-n", "journalctl", "_UID="+u.Uid, "--since", h.Started.Format("2006-01-02 15:04:05"), "--no-pager", "-o", "cat").Output(); err == nil {
+				t.Logf("%s server journal since setup:\n%s", id, strings.TrimSpace(string(out)))
+			}
+		}
 		t.Fatalf("%s failed:\n  %s", id, strings.Join(c.Errors, "\n  "))
 	}
 	if len(c.Passed) == 0 {

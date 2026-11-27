@@ -58,6 +58,7 @@ type H struct {
 	Clock    *Fixture
 	PairCode string
 	LastBody []byte
+	Started  time.Time // wall time the install began: the journal is read from here
 	http     *http.Client
 }
 
@@ -140,7 +141,7 @@ func InstallSpeech(t testing.TB, extra ...string) *H {
 
 func install(t testing.TB, speech string, extra ...string) *H {
 	bin := Artifact(t)
-	h := &H{T: t, Fixtures: map[string]*Fixture{}, http: &http.Client{Timeout: 60 * time.Second}}
+	h := &H{T: t, Fixtures: map[string]*Fixture{}, http: &http.Client{Timeout: 60 * time.Second}, Started: time.Now()}
 	h.Clock = StartFixture(t, "time")
 	h.Root = filepath.Join("/opt", fmt.Sprintf("plebian-acc-%d", time.Now().UnixNano()))
 	args := []string{bin, "install", "--root", h.Root, "--no-tailnet", "--tz", "America/Chicago", "--clock-source", h.Clock.URL("/now")}
