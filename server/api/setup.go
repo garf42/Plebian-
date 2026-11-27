@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"plebian/server/config"
@@ -109,6 +110,21 @@ func (m *ModelSetup) Handle(w http.ResponseWriter, r *http.Request) bool {
 		if m.A.Hooks.Wake != nil {
 			m.A.Hooks.Wake()
 		}
+		writeJSON(w, map[string]bool{"ok": true})
+	case "search":
+		// The results page search reads; empty returns to the keyless default.
+		var req struct {
+			URL string `json:"url"`
+		}
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBody)).Decode(&req); err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return true
+		}
+		if req.URL != "" && !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
+			http.Error(w, "the results URL must be http(s)", http.StatusBadRequest)
+			return true
+		}
+		m.A.S.SetSetting(ctx, "search_url", req.URL)
 		writeJSON(w, map[string]bool{"ok": true})
 	default:
 		return false
