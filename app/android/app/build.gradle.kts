@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "org.plebian.plebian"
+    namespace = "org.plebian.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,11 +15,11 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "org.plebian.plebian"
+        applicationId = "org.plebian.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Android 10: the first to run a foreground service of type connectedDevice.
+        minSdk = 29
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
@@ -29,11 +29,22 @@ android {
         versionName = flutter.versionName
     }
 
+    // G008: a release keystore from the repository secrets when present, else debug-signed.
+    val keystore = System.getenv("PLEBIAN_APK_KEYSTORE_FILE")
+    signingConfigs {
+        if (keystore != null) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("PLEBIAN_APK_KEY_PASSWORD")
+                keyAlias = System.getenv("PLEBIAN_APK_KEY_ALIAS") ?: "plebian"
+                keyPassword = System.getenv("PLEBIAN_APK_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (keystore != null) "release" else "debug")
         }
     }
 }

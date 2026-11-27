@@ -1,6 +1,6 @@
 // Pieces several screens share: loading a projection, the header, pushed
 // pages, and the lines of the thread, the entry and the heard day.
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../api.dart';
 import '../model.dart';
@@ -37,13 +37,21 @@ class _LoadedState extends State<Loaded> {
   @override
   void didUpdateWidget(Loaded old) {
     super.didUpdateWidget(old);
-    if (old.path != widget.path || old.query?.toString() != widget.query?.toString()) _fetch(AppModel.of(context));
+    if (old.path != widget.path || old.query?.toString() != widget.query?.toString()) {
+      _data = null; // another projection: never build it from the last one's data
+      _fetch(AppModel.of(context));
+    }
   }
 
   Future<void> _fetch(AppModel m) async {
     try {
       final d = await m.api.get(widget.path, widget.query) as Json;
-      if (mounted) setState(() => (_data, _failed) = (d, false));
+      if (mounted) {
+        setState(() {
+          _data = d;
+          _failed = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _failed = true);
     }
@@ -64,8 +72,8 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = AppModel.of(context);
-    final state = m.omiState?['state'] as String?;
+    final m = AppModel.maybeOf(context);
+    final state = m?.omiState?['state'] as String?;
     final status = switch (state) { 'live' => S.live, 'syncing' => S.syncing, 'out_of_range' => S.outOfRange, _ => null };
     return DecoratedBox(
       decoration: const BoxDecoration(gradient: C.ground),
@@ -78,16 +86,19 @@ class Header extends StatelessWidget {
             if (title == null)
               Semantics(label: S.plebian, image: true, child: Image.asset('assets/brand/wordmark.png', height: 23, excludeFromSemantics: true))
             else ...[
-              Act(label: S.back, onTap: () => Navigator.of(context).pop(), child: const _Round(Icons.chevron_left)),
-              const SizedBox(width: 8),
+              if (Navigator.of(context).canPop()) ...[
+                Act(label: S.back, onTap: () => Navigator.of(context).pop(), child: const _Round(Icons.chevron_left)),
+                const SizedBox(width: 8),
+              ],
               Flexible(child: Text(title!, style: T.title.copyWith(color: Colors.white), overflow: TextOverflow.ellipsis)),
             ],
             const Spacer(),
-            Act(
-              label: status == null ? S.omi : '${S.omi}${S.dot}$status',
-              onTap: () => Navigator.of(context).push(lay(const OmiPage())),
-              child: _OmiChip(status: status, syncing: state == 'syncing'),
-            ),
+            if (m != null)
+              Act(
+                label: status == null ? S.omi : '${S.omi}${S.dot}$status',
+                onTap: () => Navigator.of(context).push(lay(const OmiPage())),
+                child: _OmiChip(status: status, syncing: state == 'syncing'),
+              ),
             if (title == null) ...[
               const SizedBox(width: 8),
               Act(label: S.week, onTap: () => Navigator.of(context).push(lay(const WeekPage())), child: const _Round(Icons.tune)),

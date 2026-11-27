@@ -190,3 +190,33 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   The simulator's DIS serial and starting battery level are per unit, and the firmware source fixes neither.
   Assumed: serial 5045424C49414E31 (16 uppercase hex, the unit_id.h shape) and 100 percent, both flags of `fixture omi`. Reversible: yes.
   Blocks: none.
+
+- G039 — node: n.app_device — volatility: medium — last_reviewed: phase-0
+  Omi's app drives BLE through its own native Pigeon bridge, not a pub plugin; the usual plugin (flutter_blue_plus) carries a non-OSI license. Porting Omi's native Kotlin would be the closer match.
+  Assumed: universal_ble 3.3.0 (BSD-3-Clause) behind DeviceTransport; reconnects use Android autoConnect after the first link. Reversible: yes (one class behind the seam).
+  Blocks: nothing in CI (the simulator stands in); first contact with a real Omi (PL-08 probe).
+
+- G040 — node: n.app_device — volatility: medium — last_reviewed: phase-0
+  Offline files on the wire: the server as built takes u16 LE length + Opus frame per element and X-Omi-File-Timestamp in device ms (server/api/API.md states device milliseconds, as the code does). A stored read is split into runs at a device-clock step over 60 s (Omi ringRecordGapBreakSeconds), one POST per run; a record whose timestamp carries the uptime flag joins the current run; a run with no known time starts at the file's listed time, else now minus its frame count at the codec's frame rate.
+  Assumed: the server code at 7f8ad53 is the contract. Reversible: yes (app/lib/device/omi_device.dart packRuns).
+  Blocks: A06 if the server moves to per-packet timestamps.
+
+- G041 — node: n.app — volatility: low — last_reviewed: phase-0
+  Choices the API does not settle: kept orders are quoted as kind `line` (the quote kinds have no order); Deploy shows on a brief item whose state is `ready` (/v1/week lists no candidates); entry lines carry no time, so they quote but do not long-press into taps; the browser live view sends typed text as `text`, Enter on submit and Backspace from its own control (no Tab or Escape control); a notification is raised for every `notify: true` message even with Today on screen; the paired device's name is the OS name and host name.
+  Assumed: as listed. Reversible: yes.
+  Blocks: nothing.
+
+- G042 — node: n.app — volatility: low — last_reviewed: phase-0
+  Live audio has no per-frame acknowledgement: frames handed to a socket that then fails count as sent (at most the socket's buffer is lost on a drop; everything before is on disk in the spool until sent).
+  Assumed: acceptable until the API acks frames. Reversible: yes.
+  Blocks: nothing.
+
+- G043 — node: n.app — volatility: low — last_reviewed: phase-0
+  The app talks plain HTTP to the server's tailnet address (WireGuard encrypts the path), so the manifest allows cleartext traffic.
+  Assumed: tailnet-only reach, as PL-07 specifies. Reversible: yes (a network security config scoped to 100.64.0.0/10 and the tailnet's DNS names).
+  Blocks: nothing.
+
+- G044 — node: n.app — volatility: medium — last_reviewed: phase-0
+  The APK cannot be built in the build session (the Android SDK host is not reachable); `flutter build apk` runs only in CI. Kotlin (MainActivity's cached engine, LinkService) was checked against the Flutter 3.50.1 embedding's classes with javap, not compiled.
+  Assumed: CI's first build is the compile check. Reversible: yes.
+  Blocks: the APK artifact until CI builds it.

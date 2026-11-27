@@ -115,6 +115,7 @@ abstract final class S {
   static const take = 'Take';
   static const give = 'Give';
   static const keys = 'Keys';
+  static const backspace = 'Backspace';
 
   static const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   static const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -131,6 +132,6 @@ abstract final class S {
     tokensOut, cached, setup, required, server, pair, model, mail, calendar, texts, storage, backups,
     updates, check, connect, code, scan, commit, version, endpoint, key, imap, smtp, user, password, url,
     bucket, secret, region, secondDisk, offsite, githubToken, mechanic, backupKey, emoji, roleMain, roleSub,
-    roleStandIn, roleFallback, take, give, keys, ...weekdays, ...months, am, pm, dot,
+    roleStandIn, roleFallback, take, give, keys, backspace, ...weekdays, ...months, am, pm, dot,
   ];
 }

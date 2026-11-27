@@ -1,122 +1,131 @@
+// Plebian on the phone. The engine running this outlives the screen: the
+// Android foreground service keeps it (and the Omi and server links) alive
+// with the app closed.
+import 'dart:async';
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'api.dart';
+import 'device/transport.dart';
+import 'link.dart';
+import 'model.dart';
+import 'services.dart';
+import 'strings.dart';
+import 'ui/admin.dart';
+import 'ui/kit.dart';
+import 'ui/shell.dart';
+
+/// Set by the build to drive the Omi simulator instead of the radio.
+const omiSim = String.fromEnvironment('OMI_SIM');
+
+/// Everything the app takes from the phone; tests pass stand-ins.
+class Boot {
+  Boot({
+    required this.vault,
+    required this.signer,
+    required this.dir,
+    required this.notifier,
+    required this.player,
+    this.apiFor = _http,
+    this.sim,
+    this.scan,
+    this.radio,
+    this.service = LinkService.start,
+  });
+  final Vault vault;
+  final Signer signer;
+  final Future<Directory> Function() dir;
+  final Notifier notifier;
+  final Player player;
+  final Api Function(Uri base, String token) apiFor;
+  final Uri? sim;
+  final Stream<(String, String)> Function()? scan;
+  final DeviceTransport Function(String id)? radio;
+  final Future<void> Function() service;
+
+  static Api _http(Uri base, String token) => HttpApi(base, token);
+
+  /// The paired app: the links started, the Omi resumed, the service up.
+  Future<AppModel?> open() async {
+    final server = await vault.read('server'), token = await vault.read('token');
+    if (server == null || token == null) return null;
+    final api = apiFor(Uri.parse(server), token);
+    final link = Link(api: api, dir: await dir(), notifier: notifier);
+    final omi = OmiPairing(link, vault, sim: sim, scan: scan, radio: radio);
+    final m = AppModel(api: api, link: link, signer: signer, omi: omi, player: player, vault: vault);
+    await m.load();
+    await link.start();
+    unawaited(omi.resume());
+    await service();
+    return m;
+  }
+}
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  late final PhoneNotifier notifier;
+  AppModel? model;
+  notifier = PhoneNotifier((id) => model?.openAt(id));
+  runApp(PlebianApp(
+    boot: Boot(
+      vault: SecureVault(),
+      signer: KeystoreSigner(),
+      dir: getApplicationSupportDirectory,
+      notifier: notifier,
+      player: PhonePlayer(),
+      sim: omiSim.isEmpty ? null : Uri.parse(omiSim),
+    ),
+    onOpen: (m) async {
+      model = m;
+      await notifier.init();
+    },
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class PlebianApp extends StatefulWidget {
+  const PlebianApp({super.key, required this.boot, this.onOpen});
+  final Boot boot;
+  final Future<void> Function(AppModel)? onOpen;
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  State<PlebianApp> createState() => _PlebianAppState();
+}
+
+class _PlebianAppState extends State<PlebianApp> {
+  AppModel? _model;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
+  Future<void> _start() async {
+    AppModel? m;
+    try {
+      m = await widget.boot.open();
+    } catch (_) {}
+    if (!mounted) return;
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _model = m;
+      _ready = true;
     });
+    if (m != null) await widget.onOpen?.call(m);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    final m = _model;
+    return MaterialApp(
+      title: S.plebian,
+      theme: theme(),
+      home: m != null
+          ? Scope(model: m, child: const Shell())
+          : !_ready
+              ? const Ground(child: SizedBox.expand())
+              : Pairing(vault: widget.boot.vault, signer: widget.boot.signer, child: PairPage(onPaired: (_) => _start())),
     );
   }
 }

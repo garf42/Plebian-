@@ -20,14 +20,17 @@ class Quote {
 /// Pairs and reconnects the Omi; the simulator stands in for the radio when
 /// the build sets OMI_SIM.
 class OmiPairing {
-  OmiPairing(this.link, this.vault, {this.sim, Stream<(String, String)> Function()? scan, DeviceTransport Function(String id)? radio})
+  OmiPairing(this.link, this.vault,
+      {this.sim, Stream<(String, String)> Function()? scan, DeviceTransport Function(String id)? radio, Future<void> Function()? stopScan})
       : scan = scan ?? (() => BleTransport.scan().map((d) => (d.deviceId, d.name ?? d.deviceId))),
-        radio = radio ?? BleTransport.new;
+        radio = radio ?? BleTransport.new,
+        stopScan = stopScan ?? BleTransport.stopScan;
   final Link link;
   final Vault vault;
   final Uri? sim;
   final Stream<(String, String)> Function() scan;
   final DeviceTransport Function(String id) radio;
+  final Future<void> Function() stopScan;
 
   Future<void> resume() async {
     final id = await vault.read('omi');
@@ -38,7 +41,7 @@ class OmiPairing {
   Future<void> attachSim() => _attach(SimTransport(sim!));
 
   Future<void> choose(String id) async {
-    await BleTransport.stopScan().catchError((_) {});
+    await stopScan().catchError((_) {});
     await vault.write('omi', id);
     await _attach(radio(id));
   }
@@ -74,7 +77,8 @@ class AppModel extends ChangeNotifier {
   String? focus;
   final _subs = <StreamSubscription>[];
 
-  static AppModel of(BuildContext c) => c.dependOnInheritedWidgetOfExactType<Scope>()!.notifier!;
+  static AppModel of(BuildContext c) => maybeOf(c)!;
+  static AppModel? maybeOf(BuildContext c) => c.dependOnInheritedWidgetOfExactType<Scope>()?.notifier;
 
   Future<void> load() async {
     _subs
@@ -121,7 +125,7 @@ class AppModel extends ChangeNotifier {
       case 'message' || 'draft' || 'question' || 'step':
         _upsert(e);
         if (e['type'] == 'message' && e['from'] == 'owner') {
-          _awaiting.removeWhere((a) => a['id'] == e['id'] || a['text'] == e['text']);
+          _awaiting.removeWhere((a) => a['client_msg_id'] == e['client_msg_id']);
         }
       case 'tap':
         freshTaps.add(e['at'] as String);

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
 import 'package:universal_ble/universal_ble.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -20,33 +21,39 @@ abstract class DeviceTransport {
   /// true on connect, false on loss.
   Stream<bool> get connection;
 
-  /// Subscribes and yields every notification's raw bytes.
-  Stream<List<int>> notifications(String service, String characteristic);
+  /// The CCC write: notifications on [characteristic] start once this completes.
+  Future<void> subscribe(String service, String characteristic);
+
+  /// Every notification's raw bytes on [characteristic].
+  Stream<List<int>> notifications(String characteristic);
   Future<List<int>> read(String service, String characteristic);
   Future<void> write(String service, String characteristic, List<int> value);
   Future<void> requestMtu(int mtu);
 }
 
-/// The Omi simulator fixture over WebSocket: JSON text frames carrying raw
-/// characteristic bytes as base64.
+/// The Omi simulator (tests/fixtures/omi, `fixture omi`) standing in for the
+/// radio: GET /phone/events is a WebSocket whose opening connects and whose
+/// frames carry connected, disconnected and notify; reads, writes, CCC
+/// subscriptions and the MTU exchange are POSTs. Values are raw bytes as
+/// base64, so every byte above this transport is the phone's own code.
 class SimTransport implements DeviceTransport {
-  SimTransport(this.uri);
-  final Uri uri;
+  SimTransport(this.base, [http.Client? client]) : _c = client ?? http.Client();
+  final Uri base;
+  final http.Client _c;
   WebSocketChannel? _ws;
   final _state = StreamController<bool>.broadcast();
   final _notify = StreamController<(String, List<int>)>.broadcast();
-  final _reads = <int, Completer<List<int>>>{};
-  int _id = 0;
+  Completer<void>? _up;
 
   @override
   Stream<bool> get connection => _state.stream;
 
   @override
   Future<void> connect() async {
-    final ws = WebSocketChannel.connect(uri);
+    if (_ws != null) return _up!.future;
+    final up = _up = Completer<void>();
+    final ws = _ws = WebSocketChannel.connect(base.replace(scheme: base.scheme == 'https' ? 'wss' : 'ws', path: '/phone/events'));
     await ws.ready;
-    _ws = ws;
-    final up = Completer<void>();
     ws.stream.listen((raw) {
       final m = jsonDecode(raw as String) as Map<String, dynamic>;
       switch (m['op']) {
@@ -57,46 +64,45 @@ class SimTransport implements DeviceTransport {
           _state.add(false);
         case 'notify':
           _notify.add(((m['char'] as String).toLowerCase(), base64Decode(m['value'] as String)));
-        case 'read_result':
-          _reads.remove(m['id'])?.complete(base64Decode(m['value'] as String));
       }
     }, onDone: () {
+      _ws = null;
       _state.add(false);
-      for (final c in _reads.values) {
-        c.completeError(StateError('closed'));
-      }
-      _reads.clear();
     });
-    await up.future;
+    return up.future;
   }
 
   @override
-  Future<void> disconnect() async => _ws?.sink.close();
+  Future<void> disconnect() async {
+    await _ws?.sink.close();
+    _ws = null;
+  }
 
-  void _send(Map<String, Object> m) => _ws!.sink.add(jsonEncode(m));
+  Future<Map<String, dynamic>> _post(String path, Map<String, Object> body) async {
+    final r = await _c.post(base.replace(path: path), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body));
+    if (r.statusCode != 200) throw StateError('${r.statusCode} ${r.body}');
+    return jsonDecode(r.body) as Map<String, dynamic>;
+  }
 
   @override
-  Stream<List<int>> notifications(String service, String characteristic) {
+  Future<void> subscribe(String service, String characteristic) => _post('/phone/subscribe', {'char': characteristic.toLowerCase()});
+
+  @override
+  Stream<List<int>> notifications(String characteristic) {
     final c = characteristic.toLowerCase();
-    _send({'op': 'subscribe', 'char': c});
     return _notify.stream.where((n) => n.$1 == c).map((n) => n.$2);
   }
 
   @override
-  Future<List<int>> read(String service, String characteristic) {
-    final id = ++_id;
-    final c = Completer<List<int>>();
-    _reads[id] = c;
-    _send({'op': 'read', 'id': id, 'char': characteristic.toLowerCase()});
-    return c.future;
-  }
+  Future<List<int>> read(String service, String characteristic) async =>
+      base64Decode((await _post('/phone/read', {'char': characteristic.toLowerCase()}))['value'] as String? ?? '');
 
   @override
-  Future<void> write(String service, String characteristic, List<int> value) async =>
-      _send({'op': 'write', 'char': characteristic.toLowerCase(), 'value': base64Encode(value)});
+  Future<void> write(String service, String characteristic, List<int> value) =>
+      _post('/phone/write', {'char': characteristic.toLowerCase(), 'value': base64Encode(value)});
 
   @override
-  Future<void> requestMtu(int mtu) async => _send({'op': 'mtu', 'value': mtu});
+  Future<void> requestMtu(int mtu) => _post('/phone/mtu', {'mtu': mtu});
 }
 
 /// The Omi over Bluetooth LE on the phone.
@@ -116,9 +122,13 @@ class BleTransport implements DeviceTransport {
   @override
   Stream<bool> get connection => UniversalBle.connectionStream(deviceId);
 
+  bool _known = false;
+
+  /// After the first link, Android's autoConnect waits for the Omi to come back in range.
   @override
   Future<void> connect() async {
-    await UniversalBle.connect(deviceId);
+    await UniversalBle.connect(deviceId, autoConnect: _known);
+    _known = true;
     await UniversalBle.discoverServices(deviceId);
   }
 
@@ -126,10 +136,11 @@ class BleTransport implements DeviceTransport {
   Future<void> disconnect() => UniversalBle.disconnect(deviceId);
 
   @override
-  Stream<List<int>> notifications(String service, String characteristic) {
-    UniversalBle.subscribeNotifications(deviceId, service, characteristic);
-    return UniversalBle.characteristicValueStream(deviceId, characteristic);
-  }
+  Future<void> subscribe(String service, String characteristic) =>
+      UniversalBle.subscribeNotifications(deviceId, service, characteristic);
+
+  @override
+  Stream<List<int>> notifications(String characteristic) => UniversalBle.characteristicValueStream(deviceId, characteristic);
 
   @override
   Future<List<int>> read(String service, String characteristic) =>

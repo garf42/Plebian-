@@ -266,10 +266,23 @@ class Link {
   /// Connects the Omi through [t] and keeps it streaming to the server.
   Future<OmiDevice> attachOmi(DeviceTransport t) async {
     final d = omi = OmiDevice(t);
-    t.connection.listen((up) {
+    var lost = false;
+    t.connection.listen((up) async {
       omiConnected = up;
-      unawaited(postOmiState());
-      if (up) unawaited(d.syncTime());
+      if (!up && !lost) {
+        lost = true;
+        unawaited(postOmiState());
+        unawaited(_reconnect(t));
+      } else if (up && lost) {
+        // A new link: MTU, subscriptions and the clock again, then what was recorded meanwhile.
+        lost = false;
+        await d.link();
+        uplink
+          ..offsetMs = d.clockOffsetMs
+          ..restart();
+        await postOmiState();
+        unawaited(syncStorage(d));
+      }
     });
     await d.start();
     omiConnected = true;
@@ -287,6 +300,19 @@ class Link {
     await postOmiState();
     unawaited(syncStorage(d));
     return d;
+  }
+
+  /// Asks the transport for the link again until the Omi is back in range.
+  Future<void> _reconnect(DeviceTransport t) async {
+    final backoff = Backoff();
+    while (!omiConnected && !_closed) {
+      try {
+        await t.connect();
+        return;
+      } catch (_) {
+        await Future<void>.delayed(backoff.next());
+      }
+    }
   }
 
   Future<void> postOmiState() async {
@@ -318,15 +344,19 @@ class Link {
         if (files.isEmpty) return;
         for (final f in files) {
           final r = await d.read(f);
-          final res = await api.send('POST', '/v1/audio/files', raw: r.body, headers: {
-            'X-Omi-File-Index': '${f.index}',
-            'X-Omi-File-Timestamp': '${r.timestamp}',
-            'X-Omi-Clock-Offset-Ms': '${d.clockOffsetMs}',
-            'X-Omi-Codec': '${d.codec}',
-            'X-Omi-Storage': r.layout,
-          });
-          final sha = (res as Json?)?['sha256'];
-          if (sha is! String || !await d.delete(r, sha)) return;
+          final acks = <String>[];
+          for (final run in r.runs) {
+            final res = await api.send('POST', '/v1/audio/files', raw: run.body, headers: {
+              'X-Omi-File-Index': '${f.index}',
+              'X-Omi-File-Timestamp': '${run.deviceMs}',
+              'X-Omi-Clock-Offset-Ms': '${d.clockOffsetMs}',
+              'X-Omi-Codec': '${d.codec}',
+            });
+            final sha = (res as Json?)?['sha256'];
+            if (sha is! String) return;
+            acks.add(sha);
+          }
+          if (!await d.delete(r, acks)) return;
         }
       }
     } catch (_) {

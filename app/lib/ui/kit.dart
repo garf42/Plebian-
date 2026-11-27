@@ -3,7 +3,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../api.dart';
 import '../strings.dart';
@@ -176,6 +176,7 @@ class TapDot extends StatelessWidget {
   const TapDot({super.key});
   @override
   Widget build(BuildContext context) => Semantics(
+        container: true,
         label: S.tapped,
         child: Container(width: 7, height: 7, decoration: const BoxDecoration(color: C.ore, shape: BoxShape.circle)),
       );
@@ -351,7 +352,7 @@ class Strike extends StatelessWidget {
 // --- Routes ---------------------------------------------------------------------------
 
 /// Lay: a new page is laid over the last, the way trace goes down on a drawing.
-Route<T> lay<T>(Widget page) => PageRouteBuilder<T>(
+Route<R> lay<R>(Widget page) => PageRouteBuilder<R>(
       transitionDuration: M.lay,
       reverseTransitionDuration: M.out,
       pageBuilder: (_, _, _) => page,

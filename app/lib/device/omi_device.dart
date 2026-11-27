@@ -27,17 +27,50 @@ import 'transport.dart';
 const _answerWait = Duration(seconds: 5);
 const _stallWait = Duration(seconds: 15);
 
-/// One stored stretch as read from the Omi: every data notification in order,
-/// each prefixed by its length (u16 LE), so the server sees exactly the bytes
-/// the Omi sent. [layout] names the firmware's storage layout.
+/// A recording run inside a stored read: the Opus frames as the Omi stored
+/// them, each prefixed by its length (u16 LE) — the body /v1/audio/files
+/// takes — and the device time (ms) of its first frame.
+class StoredRun {
+  StoredRun(this.deviceMs, this.body);
+  final int deviceMs;
+  final Uint8List body;
+  late final String sha256Hex = sha256.convert(body).toString();
+}
+
+/// One stored stretch as read from the Omi, split into runs wherever the
+/// device clock steps more than [ringGapBreakS] between blocks.
 class StoredRead {
-  StoredRead(this.file, this.layout, this.body, this.timestamp, this.next);
+  StoredRead(this.file, this.layout, this.runs, this.next);
   final StoredFile file;
   final String layout; // legacy | files | ring
-  final Uint8List body;
-  final int timestamp; // device unix seconds
+  final List<StoredRun> runs;
   final int next; // ring: the sequence after this read
-  late final String sha256Hex = sha256.convert(body).toString();
+}
+
+/// A device-clock step between consecutive stored blocks above this is a real
+/// recording gap (Omi ring_storage_sync.dart ringRecordGapBreakSeconds).
+const ringGapBreakS = 60;
+
+/// Frames per second by codec (Omi bt_device.dart getFramesPerSecond).
+int framesPerSecond(int codec) => codec == codecOpusFS320 ? 50 : 100;
+
+/// Packs blocks `(device seconds or 0 when unknown, frames)` into runs.
+List<StoredRun> packRuns(List<(int, List<List<int>>)> blocks, {required int fallbackS, required int codec}) {
+  final runs = <(int, BytesBuilder)>[];
+  var last = 0;
+  for (final (ts, frames) in blocks) {
+    if (frames.isEmpty) continue;
+    if (runs.isEmpty || (ts != 0 && last != 0 && (ts - last).abs() > ringGapBreakS)) {
+      runs.add((ts != 0 ? ts : fallbackS, BytesBuilder()));
+    }
+    if (ts != 0) last = ts;
+    for (final f in frames) {
+      runs.last.$2
+        ..add([f.length & 0xFF, f.length >> 8])
+        ..add(f);
+    }
+  }
+  return [for (final (s, b) in runs) StoredRun(s * 1000, b.takeBytes())];
 }
 
 class OmiDevice {
@@ -61,22 +94,33 @@ class OmiDevice {
 
   Future<void> start() async {
     await t.connect();
-    await t.requestMtu(maxMtu);
     firmware = utf8.decode(await _tryRead(infoService, firmwareRevision), allowMalformed: true).replaceAll('\u0000', '').trim();
     final c = await _tryRead(omiService, audioCodec);
     if (c.isNotEmpty) codec = c[0];
     final b = await _tryRead(batteryService, batteryLevel);
     if (b.isNotEmpty) battery = b[0];
-    await syncTime();
     final assembler = FrameAssembler(_frames.add);
     _subs
-      ..add(t.notifications(omiService, audioData).listen((v) => assembler.add(v, nowMs())))
-      ..add(t.notifications(buttonService, buttonTrigger).listen((v) => _buttons.add(parseButton(v))))
-      ..add(t.notifications(batteryService, batteryLevel).listen((v) {
+      ..add(t.notifications(audioData).listen((v) => assembler.add(v, nowMs())))
+      ..add(t.notifications(buttonTrigger).listen((v) => _buttons.add(parseButton(v))))
+      ..add(t.notifications(batteryLevel).listen((v) {
         if (v.isNotEmpty) _battery.add(battery = v[0]);
       }));
-    _storage = t.notifications(storageService, storageData).asBroadcastStream();
+    _storage = t.notifications(storageData).asBroadcastStream();
     _subs.add(_storage.listen((_) {}));
+    await link();
+  }
+
+  /// What every new link needs: the MTU exchange, the CCC writes (a link
+  /// forgets both) and the time sync.
+  Future<void> link() async {
+    await t.requestMtu(maxMtu);
+    for (final (s, c) in const [(omiService, audioData), (buttonService, buttonTrigger), (batteryService, batteryLevel), (storageService, storageData)]) {
+      try {
+        await t.subscribe(s, c);
+      } catch (_) {}
+    }
+    await syncTime();
   }
 
   Future<void> stop() async {
@@ -136,7 +180,8 @@ class OmiDevice {
         _legacyList = parseStorageList(await _tryRead(storageService, storageControl));
         if (_legacyList.isEmpty || _legacyList[0] <= 0) return [];
         final offset = _legacyList.length < 2 || _legacyList[1] > _legacyList[0] ? 0 : _legacyList[1];
-        return [StoredFile(1, 0, _legacyList[0] - offset)];
+        // Field 2, where firmware 3.0.16+ lists it, is the recording's start (sdcard_wal_sync.dart).
+        return [StoredFile(1, _legacyList.length >= 3 ? _legacyList[2] : 0, _legacyList[0] - offset)];
     }
   }
 
@@ -160,9 +205,10 @@ class OmiDevice {
   /// Reads one stored stretch; throws when the read stalls or the Omi refuses it.
   Future<StoredRead> read(StoredFile f) async {
     final lay = await layout();
-    final body = BytesBuilder();
+    final blocks = <(int, List<List<int>>)>[];
+    final ring = BytesBuilder();
     final done = Completer<int>(); // completes with the ring's next sequence, or 0
-    var received = 0, timestamp = f.timestamp;
+    var received = 0;
     Timer? stall;
     void arm() {
       stall?.cancel();
@@ -171,19 +217,19 @@ class OmiDevice {
       });
     }
 
-    void keep(List<int> v) {
-      body.add([v.length & 0xFF, v.length >> 8]);
-      body.add(v);
-    }
-
     final sub = _storage.listen((v) {
       if (done.isCompleted || v.isEmpty) return;
       arm();
       if (lay == 'ring') {
         if (v[0] == notifyData) {
-          if (received == 0 && v.length >= 5) timestamp = ringRecordTimestamp(v.sublist(1));
-          received += v.length - 1;
-          keep(v);
+          ring.add(v.sublist(1)); // DATA is not aligned to records
+          final all = ring.takeBytes();
+          var i = 0;
+          for (; i + ringRecord <= all.length; i += ringRecord) {
+            final r = all.sublist(i, i + ringRecord);
+            blocks.add((ringRecordTimestamp(r), parseBlock(r.sublist(4))));
+          }
+          ring.add(all.sublist(i));
         } else if (parseRingDone(v) case (final status, final next)) {
           status == 0 ? done.complete(next) : done.completeError(StateError('ring status $status'));
         }
@@ -194,10 +240,17 @@ class OmiDevice {
         if (v[0] == statusEmpty || v[0] == statusEnd) return done.complete(0);
         return done.completeError(StateError('storage status ${v[0]}'));
       }
-      if (lay == 'files' && v.length <= 4) return;
-      keep(v);
-      received += lay == 'files' ? v.length - 4 : v.length;
-      if (lay == 'files' && received >= f.size) done.complete(0);
+      if (lay == 'files') {
+        if (v.length <= 4) return;
+        blocks.add((readU32be(v), parseBlock(v.sublist(4))));
+        received += v.length - 4;
+        if (received >= f.size) done.complete(0);
+      } else if (v.length == legacyPacket) {
+        final n = v[3];
+        if (n > 0 && 4 + n <= v.length) blocks.add((0, [v.sublist(4, 4 + n)]));
+      } else {
+        blocks.add((0, parseBlock(v)));
+      }
     });
     try {
       arm();
@@ -207,7 +260,9 @@ class OmiDevice {
         _ => storageCommand(0, f.index, _legacyList.length < 2 ? 0 : _legacyList[1]),
       });
       final next = await done.future;
-      return StoredRead(f, lay, body.takeBytes(), timestamp, next);
+      final frames = blocks.fold<int>(0, (a, b) => a + b.$2.length);
+      final start = f.timestamp != 0 ? f.timestamp : nowMs() ~/ 1000 - frames ~/ framesPerSecond(codec);
+      return StoredRead(f, lay, packRuns(blocks, fallbackS: start, codec: codec), next);
     } catch (e) {
       await t.write(storageService, storageData, [cmdStop]);
       rethrow;
@@ -217,10 +272,14 @@ class OmiDevice {
     }
   }
 
-  /// Deletes a stored read from the Omi. [serverSha256] is the server's answer
-  /// for exactly [r.body]; anything else refuses the delete.
-  Future<bool> delete(StoredRead r, String serverSha256) async {
-    if (serverSha256 != r.sha256Hex) throw StateError('server hash does not match the bytes read');
+  /// Deletes a stored read from the Omi. [serverSha256] are the server's
+  /// answers, one per run, for exactly the bytes of each run; anything else
+  /// (a missing answer, a different hash, a read with no audio) refuses it.
+  Future<bool> delete(StoredRead r, List<String> serverSha256) async {
+    if (r.runs.isEmpty || serverSha256.length != r.runs.length) return false;
+    for (var i = 0; i < r.runs.length; i++) {
+      if (serverSha256[i] != r.runs[i].sha256Hex) throw StateError('server hash does not match the bytes read');
+    }
     switch (r.layout) {
       case 'ring':
         final ring = _ring;

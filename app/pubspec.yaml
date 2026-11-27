@@ -5,7 +5,7 @@ version: 0.0.1+1
 
 environment:
   sdk: ^3.14.0
-  flutter: 3.50.1
+  flutter: '>=3.50.1'
 
 # Versions are pinned exactly; each was published at least two weeks before it was chosen.
 dependencies:
@@ -17,6 +17,7 @@ dependencies:
   flutter_secure_storage: 11.2.0
   http: 1.6.0
   just_audio: 0.10.6
+  material_ui: 1.11.0
   mobile_scanner: 7.5.0
   path_provider: 2.1.6
   universal_ble: 3.3.0

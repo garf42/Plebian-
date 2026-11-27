@@ -1,5 +1,5 @@
 // The root: header, Today · Journal · Open, and Today's thread and composer.
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../api.dart';
 import '../model.dart';

@@ -5,7 +5,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:biometric_signature/biometric_signature.dart';
 import 'package:flutter/services.dart';
@@ -191,12 +190,15 @@ class PhonePlayer implements Player {
   Future<void> pause() async => _p?.pause();
 }
 
+// ignore: experimental_member_use
 class _Bytes extends StreamAudioSource {
   _Bytes(this.b);
   final Uint8List b;
   @override
+  // ignore: experimental_member_use
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     final s = start ?? 0, e = end ?? b.length;
+    // ignore: experimental_member_use
     return StreamAudioResponse(
         sourceLength: b.length, contentLength: e - s, offset: s, stream: Stream.value(b.sublist(s, e)), contentType: 'audio/ogg');
   }

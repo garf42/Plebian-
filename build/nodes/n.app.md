@@ -35,25 +35,25 @@ fixtures: Flutter integration tests on an emulator against the server under test
 
 ## demons
 - D1: a screen whose buttons do nothing (a record button that captures no audio)
-  kill_test: tests/app/test_every_control_has_effect
-  negative_check: pending
-  status: live
+  kill_test: app/test/app/test_every_control_has_effect_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Tap: control "Save" changed nothing
+  status: killed
 - D2: a draft card with a Send button that posts fixed words
-  kill_test: tests/app/test_no_canned_replies
-  negative_check: pending
-  status: live
+  kill_test: app/test/app/test_no_canned_replies_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Today: "Send" sent a message the owner did not type
+  status: killed
 - D3: heard lines styled like settled lines
-  kill_test: tests/app/test_heard_styling
-  negative_check: pending
-  status: live
+  kill_test: app/test/app/test_heard_styling_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Expected: Color:<Color(alpha: 1.0000, red: 0.2784, green: 0.3333, blue: 0.3529, ... / Actual: Color:<Color(alpha: 1.0000, red: 0.1176, green: 0.1647, blue: 0.1765, ...
+  status: killed
 - D4: a message the agent starts waits silently in the thread while the app is closed
-  kill_test: tests/app/test_notification_with_app_closed
-  negative_check: pending
-  status: live
+  kill_test: app/test/app/test_notification_with_app_closed_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Expected: ['42'] / Actual: MappedListIterable<Map<String, dynamic>, dynamic>:[]
+  status: killed
 - D5: an empty screen or section shows a sentence about what will appear there, or a hint about how to use it
-  kill_test: tests/app/test_no_explanatory_strings
-  negative_check: pending
-  status: live
+  kill_test: app/test/app/test_no_explanatory_strings_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Actual: ['lib/ui/journal.dart: "Nothing waits on you yet."']
+  status: killed
 
 ## clauses
 (none yet)

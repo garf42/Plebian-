@@ -109,6 +109,30 @@ int _u32be(List<int> v, int i) => ((v[i] << 24) | (v[i + 1] << 16) | (v[i + 2] <
 
 Uint8List u32le(int x) => (ByteData(4)..setUint32(0, x, Endian.little)).buffer.asUint8List();
 int readU32le(List<int> v) => v.length < 4 ? 0 : _u32le(v, 0);
+int readU32be(List<int> v) => v.length < 4 ? 0 : _u32be(v, 0);
+
+/// A stored 440-byte block packs `[size u8][frame]...` with zero padding
+/// (ring_protocol.dart parseAudioPayload). At the boundary the firmware writes
+/// a trailing size byte without its frame; the bytes after it are stale.
+List<List<int>> parseBlock(List<int> a) {
+  final frames = <List<int>>[];
+  var o = 0;
+  while (o < a.length - 1) {
+    final n = a[o];
+    if (n == 0) {
+      o++;
+      continue;
+    }
+    if (o + 1 + n >= a.length) break;
+    frames.add(a.sublist(o + 1, o + 1 + n));
+    o += n + 1;
+  }
+  return frames;
+}
+
+/// Legacy firmware's per-packet layout `[index u16][internal u8][size u8][frame]`
+/// is 83 bytes (sdcard_wal_sync.dart parseLegacyPacketFrame).
+const legacyPacket = 83;
 
 // --- Legacy storage: a list of u32 LE on the control characteristic -------
 

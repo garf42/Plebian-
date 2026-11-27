@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../api.dart';
@@ -222,7 +222,10 @@ class _SetupFormState extends State<SetupForm> {
     final body = widget.id == 'storage' ? {'bucket': v.values.every((x) => x.isEmpty) ? null : v} : v;
     try {
       final r = await m.api.send('POST', _form.$1, json: body);
-      setState(() => (_res, _status) = (r is Json ? r : null, null));
+      setState(() {
+        _res = r is Json ? r : null;
+        _status = null;
+      });
     } on ApiError catch (e) {
       setState(() => _status = '${S.refused} ${e.status}');
     } catch (_) {
@@ -448,7 +451,10 @@ class _BrowserPageState extends State<BrowserPage> {
     s.messages.listen((f) {
       if (f is List<int> && mounted) {
         final b = Uint8List.fromList(f);
-        setState(() => (_frame, _size) = (b, jpegSize(b) ?? _size));
+        setState(() {
+          _frame = b;
+          _size = jpegSize(b) ?? _size;
+        });
       }
     }, onError: (_) {});
   }
@@ -519,8 +525,14 @@ class _BrowserPageState extends State<BrowserPage> {
                     if (v.isNotEmpty) _send({'type': 'key', 'text': v});
                     _keys.clear();
                   },
-                  onSubmitted: (_) => _send({'type': 'key', 'text': '\n'}),
+                  onSubmitted: (_) => _send({'type': 'key', 'key': 'Enter'}),
                 ),
+              ),
+              const SizedBox(width: 6),
+              Act(
+                label: S.backspace,
+                onTap: () => _send({'type': 'key', 'key': 'Backspace'}),
+                child: const Padding(padding: EdgeInsets.all(6), child: Icon(Icons.backspace_outlined, size: 20, color: C.ink2)),
               ),
             ]),
           ),

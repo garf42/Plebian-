@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../api.dart';
 import '../model.dart';
@@ -27,6 +27,12 @@ class _JournalViewState extends State<JournalView> {
     _search.dispose();
     super.dispose();
   }
+
+  void _show({required bool taps}) => setState(() {
+        _taps = taps;
+        _q = '';
+        _search.clear();
+      });
 
   Widget _seg(String label, bool on, VoidCallback tap) => Expanded(
         child: Act(
@@ -55,8 +61,8 @@ class _JournalViewState extends State<JournalView> {
         decoration: BoxDecoration(
             color: const Color.fromRGBO(255, 255, 255, .65), border: Border.all(color: const Color.fromRGBO(0, 0, 0, .06)), borderRadius: BorderRadius.circular(10)),
         child: Row(children: [
-          _seg(S.days, !_taps && _q.isEmpty, () => setState(() => (_taps, _q) = (false, ''))),
-          _seg(S.taps, _taps && _q.isEmpty, () => setState(() => (_taps, _q) = (true, ''))),
+          _seg(S.days, !_taps && _q.isEmpty, () => _show(taps: false)),
+          _seg(S.taps, _taps && _q.isEmpty, () => _show(taps: true)),
         ]),
       ),
       const SizedBox(height: 10),
@@ -421,7 +427,12 @@ class _StretchPlayerState extends State<StretchPlayer> {
     final m = AppModel.of(context);
     _sub ??= m.player.progress.listen((v) => mounted ? setState(() => _at = v) : null);
     m.api.bytes('/v1/blobs/${widget.sha}').then((b) {
-      if (mounted) setState(() => (_ogg, _sizes) = (b, oggPacketSizes(b)));
+      if (mounted) {
+        setState(() {
+          _ogg = b;
+          _sizes = oggPacketSizes(b);
+        });
+      }
     }, onError: (_) {});
   }
 
