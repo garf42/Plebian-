@@ -1,0 +1,25 @@
+{
+  "predicate": "build/constitution.md#intent-predicate",
+  "scenarios": [
+    {"id": "A01", "runner": "go test ./tests/acceptance -run '^TestA01$'"},
+    {"id": "A02", "runner": "go test ./tests/acceptance -run '^TestA02$'"},
+    {"id": "A03", "runner": "go test ./tests/acceptance -run '^TestA03$'"},
+    {"id": "A04", "runner": "go test ./tests/acceptance -run '^TestA04$'"},
+    {"id": "A05", "runner": "app/integration_test (emulator) + go test ./tests/acceptance -run '^TestA05$'"},
+    {"id": "A06", "runner": "app/integration_test (emulator) + go test ./tests/acceptance -run '^TestA06$'"},
+    {"id": "A07", "runner": "go test ./tests/acceptance -run '^TestA07$'"},
+    {"id": "A08", "runner": "go test ./tests/acceptance -run '^TestA08$'"},
+    {"id": "A09", "runner": "go test ./tests/acceptance -run '^TestA09$'"},
+    {"id": "A10", "runner": "go test ./tests/acceptance -run '^TestA10$'"},
+    {"id": "A11", "runner": "go test ./tests/acceptance -run '^TestA11$'"},
+    {"id": "A12", "runner": "go test ./tests/acceptance -run '^TestA12$'"},
+    {"id": "A13", "runner": "go test ./tests/acceptance -run '^TestA13$'"},
+    {"id": "A14", "runner": "go test ./tests/acceptance -run '^TestA14$'"},
+    {"id": "A15", "runner": "go test ./tests/acceptance -run '^TestA15$'"},
+    {"id": "A16", "runner": "go test ./tests/acceptance -run '^TestA16$'"},
+    {"id": "A17", "runner": "go test ./tests/acceptance -run '^TestA17$'"},
+    {"id": "A18", "runner": "go test ./tests/acceptance -run '^TestA18$'"},
+    {"id": "A19", "runner": "go test ./tests/acceptance -run '^TestA19$'", "needs": "secret PLEBIAN_LIVE_KEY"},
+    {"id": "A20", "runner": "go test ./tests/acceptance -run '^TestA20$'"}
+  ]
+}

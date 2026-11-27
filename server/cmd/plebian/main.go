@@ -58,6 +58,8 @@ func main() {
 		err = pair(args)
 	case "runner":
 		err = runner(args)
+	case "replay":
+		err = replay(args)
 	default:
 		usage()
 	}
@@ -242,4 +244,40 @@ func runner(args []string) error {
 		}
 		c.Close()
 	}
+}
+
+// replay --verify rebuilds every sealed turn and heard row from its spelling and checks
+// each against the hash fixed at seal (TP-T14).
+func replay(args []string) error {
+	fs := flag.NewFlagSet("replay", flag.ExitOnError)
+	verify := fs.Bool("verify", false, "rebuild every sealed turn and heard row and check its hash")
+	path := fs.String("store", "", "a store file other than the root's (a restored copy)")
+	fs.Parse(args)
+	r, err := ops.FromExecutable()
+	if err != nil {
+		return err
+	}
+	p := r.Store()
+	if *path != "" {
+		p = *path
+	}
+	s, err := store.Open(p, store.DirBlobs{Dir: r.Blobs()})
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+	if !*verify {
+		return fmt.Errorf("replay: say what to replay (--verify)")
+	}
+	t, h, verr := s.Verify(context.Background())
+	out := map[string]any{"turns": t, "heard": h, "ok": verr == nil}
+	if verr != nil {
+		out["error"] = verr.Error()
+	}
+	b, _ := json.Marshal(out)
+	fmt.Println(string(b))
+	if verr != nil {
+		return verr
+	}
+	return nil
 }

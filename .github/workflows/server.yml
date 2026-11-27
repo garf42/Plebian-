@@ -1,0 +1,91 @@
+name: server
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+    outputs:
+      ok:
+        value: ${{ jobs.server.result }}
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 -I build/scripts/check.py build/
+
+  server:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/fixtures/go.sum
+            tests/acceptance/go.sum
+      - name: Host packages (fixtures and sandbox)
+        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config
+      - name: Arch
+        id: arch
+        run: echo "arch=$(go env GOARCH)" >> "$GITHUB_OUTPUT"
+      - name: Unit and node tests
+        run: |
+          go vet ./...
+          go test -count=1 ./... 2>&1 | tee unit.log
+      - name: Fixtures
+        run: |
+          if [ -f tests/fixtures/go.mod ]; then
+            cd tests/fixtures && go vet ./... && go test -count=1 ./... && go build -o "$RUNNER_TEMP/fixture" ./cmd/fixture
+          fi
+      - name: Release artifact (built from this commit)
+        run: |
+          mkdir -p dist/plebian/bin dist/plebian/lib
+          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME}" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp LICENSE NOTICE.md dist/plebian/
+          tar -C dist -czf "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" plebian
+          sha256sum "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" > "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz.sha256"
+      - name: Acceptance, run 1
+        id: run1
+        continue-on-error: true
+        env:
+          PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz
+          PLEBIAN_COMMIT: ${{ github.sha }}
+          FIXTURE_BIN: ${{ runner.temp }}/fixture
+          PLEBIAN_LIVE_KEY: ${{ secrets.PLEBIAN_LIVE_KEY }}
+          PLEBIAN_LIVE_BASE_URL: ${{ secrets.PLEBIAN_LIVE_BASE_URL }}
+        run: cd tests/acceptance && go test -count=1 -v -timeout 80m ./... 2>&1 | tee ../../run1.log; exit ${PIPESTATUS[0]}
+      - name: Acceptance, run 2 (a separate process)
+        id: run2
+        continue-on-error: true
+        env:
+          PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz
+          PLEBIAN_COMMIT: ${{ github.sha }}
+          FIXTURE_BIN: ${{ runner.temp }}/fixture
+          PLEBIAN_LIVE_KEY: ${{ secrets.PLEBIAN_LIVE_KEY }}
+          PLEBIAN_LIVE_BASE_URL: ${{ secrets.PLEBIAN_LIVE_BASE_URL }}
+        run: cd tests/acceptance && go test -count=1 -v -timeout 80m ./... 2>&1 | tee ../../run2.log; exit ${PIPESTATUS[0]}
+      - name: Both runs agree per assertion
+        run: python3 -I tests/acceptance/compare_runs.py run1.log run2.log | tee results.txt
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: server-${{ steps.arch.outputs.arch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+            unit.log
+            run1.log
+            run2.log
+            results.txt
