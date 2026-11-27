@@ -256,7 +256,7 @@ func init() {
 			h.Advance(30 * time.Minute) // a longer quiet asks no second time
 			time.Sleep(5 * time.Second)
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
-				if bytes.Contains(r.Body, []byte("feed omi has been quiet since")) {
+				if strings.Contains(r.Opened("question"), "feed omi has been quiet since") {
 					st16.quietAsks++
 				}
 			}

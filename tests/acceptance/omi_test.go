@@ -322,7 +322,7 @@ func init() {
 			Until(90*time.Second, func() bool { return len(AgentMessages(h.Today())) > 0 })
 			re := regexp.MustCompile(`has no name: voice (\d+)`)
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
-				if m := re.FindSubmatch(r.Body); m != nil {
+				if m := re.FindStringSubmatch(r.Opened("question")); m != nil {
 					s7.asked++
 					fmt.Sscan(string(m[1]), &s7.voice)
 				}

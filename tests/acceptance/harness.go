@@ -307,6 +307,33 @@ func Requests(t testing.TB, f *Fixture) []Req {
 	return r
 }
 
+// Opened is the text of the harness inbound of this kind ("question", "clock", ...) that
+// opened the request's exchange, or "": it sits in the last message of the exchange's
+// first request. Earlier turns ride along in every later request, so a count of what
+// opened exchanges reads this, not the whole body.
+func (r Req) Opened(kind string) string {
+	var b struct {
+		Messages []struct {
+			Content json.RawMessage `json:"content"`
+		} `json:"messages"`
+	}
+	if json.Unmarshal(r.Body, &b) != nil || len(b.Messages) == 0 {
+		return ""
+	}
+	var blocks []struct{ Text string }
+	if json.Unmarshal(b.Messages[len(b.Messages)-1].Content, &blocks) != nil {
+		var s string
+		json.Unmarshal(b.Messages[len(b.Messages)-1].Content, &s)
+		blocks = append(blocks, struct{ Text string }{s})
+	}
+	for _, bl := range blocks {
+		if strings.HasPrefix(bl.Text, `<harness kind="`+kind+`"`) {
+			return bl.Text
+		}
+	}
+	return ""
+}
+
 // Say sends an owner message and lets the owner's pause pass, so the loop takes it.
 func (h *H) Say(text string) {
 	id := fmt.Sprint(time.Now().UnixNano())

@@ -31,8 +31,12 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 		return nil, fmt.Errorf("chromium profile: %w", err)
 	}
 	os.Remove(filepath.Join(profile, "DevToolsActivePort"))
+	// The crash reporter's handler needs a database directory; under a service account
+	// with no desktop session Chromium finds none and exits ("--database is required"),
+	// so crash dumps go to the profile and nothing is reported anywhere.
 	args := []string{"--headless=new", "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0",
-		"--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check", "--disable-background-networking"}
+		"--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check", "--disable-background-networking",
+		"--disable-crash-reporter", "--crash-dumps-dir=" + filepath.Join(profile, "crashes")}
 	if os.Geteuid() == 0 {
 		args = append(args, "--no-sandbox") // Chromium refuses root with its sandbox; the server's own account keeps it
 	}
