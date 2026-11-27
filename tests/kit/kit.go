@@ -25,21 +25,44 @@ import (
 	"plebian/tests/fixtures/model"
 )
 
-// Clock is a manual clock.
+// Clock is a manual clock: timers fire when Advance reaches them.
 type Clock struct {
-	mu  sync.Mutex
-	now time.Time
+	mu      sync.Mutex
+	now     time.Time
+	waiters []waiter
+}
+
+type waiter struct {
+	at time.Time
+	ch chan time.Time
 }
 
 func (c *Clock) Now() time.Time { c.mu.Lock(); defer c.mu.Unlock(); return c.now }
 func (c *Clock) After(t time.Time) <-chan time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	ch := make(chan time.Time, 1)
-	if !c.Now().Before(t) {
-		ch <- c.Now()
+	if !c.now.Before(t) {
+		ch <- c.now
+		return ch
 	}
+	c.waiters = append(c.waiters, waiter{t, ch})
 	return ch
 }
-func (c *Clock) Advance(d time.Duration) { c.mu.Lock(); c.now = c.now.Add(d); c.mu.Unlock() }
+func (c *Clock) Advance(d time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.now = c.now.Add(d)
+	keep := c.waiters[:0]
+	for _, w := range c.waiters {
+		if !c.now.Before(w.at) {
+			w.ch <- c.now
+		} else {
+			keep = append(keep, w)
+		}
+	}
+	c.waiters = keep
+}
 
 type Kit struct {
 	T      testing.TB

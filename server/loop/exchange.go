@@ -431,7 +431,11 @@ func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, o
 	case tools.Local:
 		draft = v.someone()
 	default:
-		draft = !(l.hasStanding(ctx, name) && !v.someone())
+		// An outside change runs on standing only with nothing someone else wrote in view.
+		if l.hasStandingFor(ctx, name, c.Text) && !v.someone() {
+			return l.standingRun(ctx, turn, id, name, class, c.Text)
+		}
+		draft = true
 	}
 	if draft {
 		return l.makeDraft(ctx, turn, id, name, class, c.Text)
@@ -538,12 +542,6 @@ func (l *Loop) record(ctx context.Context, st string) map[string]int {
 	var a, c, t int
 	l.S.DB.QueryRowContext(ctx, `SELECT as_drafted, changed, turned_down FROM standing WHERE step=?`, st).Scan(&a, &c, &t)
 	return map[string]int{"as_drafted": a, "changed": c, "turned_down": t}
-}
-
-func (l *Loop) hasStanding(ctx context.Context, name string) bool {
-	var n int
-	l.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM standing WHERE has_standing=1 AND (step=? OR step LIKE ?)`, name, name+" %").Scan(&n)
-	return n > 0
 }
 
 var _ = time.Second

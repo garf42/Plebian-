@@ -267,6 +267,20 @@ func serve(args []string) error {
 	srv := &api.Server{S: s, Clock: clk, Log: logger}
 	ms := &api.ModelSetup{A: srv, Secrets: secrets}
 	srv.Hooks.Wake = lp.Wake
+	srv.Hooks.Admin = func(ctx context.Context, dev, action string, body []byte) error {
+		var a struct {
+			Step  string `json:"step"`
+			Nonce string `json:"nonce"`
+		}
+		if err := json.Unmarshal(body, &a); err != nil {
+			return err
+		}
+		switch action {
+		case "grant":
+			return lp.Grant(ctx, a.Step, dev+":"+a.Nonce)
+		}
+		return fmt.Errorf("unknown admin action %q", action)
+	}
 	srv.Hooks.AudioLive = an.LiveHandler
 	srv.Hooks.AudioFile = an.FileHandler
 	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }

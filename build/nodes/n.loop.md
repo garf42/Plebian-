@@ -48,8 +48,8 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
   status: killed
 - D3: an agent tool can write the standing table
   kill_test: tests/loop/test_standing_signed_only
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestStandingSignedOnly (keep raised standing)
+  status: killed
 - D4: an interrupted send is retried after restart
   kill_test: tests/acceptance/a16_crash_safety
   negative_check: pending
