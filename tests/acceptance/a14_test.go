@@ -36,8 +36,12 @@ func init() {
 			w := StartFixture(t, "web")
 			h.Fixtures["web"] = w
 			post := map[string]any{"command": "curl -s -X POST " + w.URL("/store/order") + " -d qty=2", "network": true}
+			// Before the grant the same step is drafted. Its bytes differ from the later call:
+			// the owner's word repeated over a waiting draft's exact bytes runs that draft (D6),
+			// and standing is for the step, not for one draft.
+			first := map[string]any{"command": "curl -s -X POST " + w.URL("/store/order") + " -d qty=1", "network": true}
 			h.Model("anthropic", []map[string]any{
-				{"match": "post the weekly order", "reply": map[string]any{"tool_calls": []map[string]any{{"name": "run", "input": post}}}},
+				{"match": "post the weekly order", "reply": map[string]any{"tool_calls": []map[string]any{{"name": "run", "input": first}}}},
 				{"match": "drafted", "reply": map[string]any{"text": "Drafted; it waits for your word."}},
 				{"match": "post the weekly order", "reply": map[string]any{"tool_calls": []map[string]any{{"name": "run", "input": post}}}},
 				{"match": "qty|order", "reply": map[string]any{"text": "Posted the weekly order."}},
