@@ -17,7 +17,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"plebian/server/clock"
@@ -44,10 +47,11 @@ type Hooks struct {
 }
 
 type Server struct {
-	S     *store.Store
-	Clock clock.Clock
-	Hooks Hooks
-	Log   *log.Logger
+	DataDir string // the data drive's directory, for space and days left
+	S       *store.Store
+	Clock   clock.Clock
+	Hooks   Hooks
+	Log     *log.Logger
 }
 
 const maxBody = 1 << 20
@@ -302,7 +306,7 @@ func (a *Server) omiState(w http.ResponseWriter, r *http.Request, dev string) {
 
 func (a *Server) week(w http.ResponseWriter, r *http.Request, _ string) {
 	if a.Hooks.Week == nil {
-		writeJSON(w, map[string]any{"brief": []any{}, "health": map[string]any{}, "spend": a.spend(r.Context())})
+		writeJSON(w, map[string]any{"brief": []any{}, "health": a.health(r.Context()), "spend": a.spend(r.Context())})
 		return
 	}
 	v, err := a.Hooks.Week(r.Context())
@@ -311,6 +315,45 @@ func (a *Server) week(w http.ResponseWriter, r *http.Request, _ string) {
 		return
 	}
 	writeJSON(w, v)
+}
+
+// health is This week's health: each feed's last landing, the model's last answer and
+// last failure, disk space and days left at the last week's rate, and the last backup.
+func (a *Server) health(ctx context.Context) map[string]any {
+	feeds := []map[string]any{}
+	if rows, err := a.S.DB.QueryContext(ctx, `SELECT feed, COALESCE(last_landing,'') FROM feeds ORDER BY feed`); err == nil {
+		for rows.Next() {
+			var f, l string
+			rows.Scan(&f, &l)
+			feeds = append(feeds, map[string]any{"feed": f, "last_landing": l})
+		}
+		rows.Close()
+	}
+	var lastReply, lastFail, failWhy string
+	a.S.DB.QueryRowContext(ctx, `SELECT COALESCE(MAX(at),'') FROM turns`).Scan(&lastReply)
+	a.S.DB.QueryRowContext(ctx, `SELECT at, body FROM events WHERE type='step' AND json_extract(body,'$.tool')='model' AND json_extract(body,'$.state')='failed' ORDER BY id DESC LIMIT 1`).Scan(&lastFail, &failWhy)
+	out := map[string]any{"feeds": feeds, "model": map[string]any{"last_answer": lastReply, "last_failure": lastFail},
+		"backup": a.S.Setting(ctx, "backups_status"), "restore_drill": a.S.Setting(ctx, "restore_drill")}
+	if a.DataDir != "" {
+		var fs syscall.Statfs_t
+		if syscall.Statfs(a.DataDir, &fs) == nil {
+			free := int64(fs.Bavail) * int64(fs.Bsize)
+			week := a.Clock.Now().Add(-7 * 24 * time.Hour)
+			var grew int64
+			filepath.Walk(a.DataDir, func(_ string, fi os.FileInfo, err error) error {
+				if err == nil && !fi.IsDir() && fi.ModTime().After(week) {
+					grew += fi.Size()
+				}
+				return nil
+			})
+			disk := map[string]any{"free_bytes": free, "written_last_7_days": grew}
+			if grew > 0 {
+				disk["days_left"] = free / (grew/7 + 1)
+			}
+			out["disk"] = disk
+		}
+	}
+	return out
 }
 
 func (a *Server) spend(ctx context.Context) []map[string]any {

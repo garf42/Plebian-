@@ -17,6 +17,7 @@ import (
 
 	"plebian/server/clock"
 	"plebian/server/config"
+	"plebian/server/grammar"
 	"plebian/server/store"
 )
 
@@ -134,7 +135,43 @@ func (b *Backup) Once(ctx context.Context) error {
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "; "))
 	}
+	b.drill(ctx, c)
 	return nil
+}
+
+// drill restores the newest snapshot to scratch space and rebuilds every sealed turn
+// from it, so the backup is proven, not assumed.
+func (b *Backup) drill(ctx context.Context, c BackupConfig) {
+	scratch := Root(b.Root.P("run", "drill"))
+	os.RemoveAll(string(scratch))
+	defer os.RemoveAll(string(scratch))
+	os.MkdirAll(scratch.P("bin"), 0o700)
+	os.MkdirAll(scratch.P("data"), 0o700)
+	os.Symlink(b.restic(), scratch.P("bin", "restic"))
+	now := b.Clock.Now().UTC().Format(time.RFC3339)
+	fail := func(err error) { b.S.SetSetting(ctx, "restore_drill", "failed "+now+": "+err.Error()) }
+	if err := RestoreFiles(scratch, c.Repos[0], c.Key, os.Getuid(), os.Getgid()); err != nil {
+		fail(err)
+		return
+	}
+	s, err := store.Open(scratch.Store(), store.DirBlobs{Dir: scratch.Blobs()})
+	if err != nil {
+		fail(err)
+		return
+	}
+	defer s.Close()
+	g, err := grammar.Open(ctx, s)
+	if err != nil {
+		fail(err)
+		return
+	}
+	s.SetSpeller(g)
+	turns, heard, err := s.Verify(ctx)
+	if err != nil {
+		fail(err)
+		return
+	}
+	b.S.SetSetting(ctx, "restore_drill", fmt.Sprintf("ok %s: %d turns and %d heard rows rebuilt byte-exact from the backup", now, turns, heard))
 }
 
 // Run backs up each night at the page cut (4 am), when the day is whole.

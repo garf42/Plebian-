@@ -343,7 +343,7 @@ func serve(args []string) error {
 	fs := &feeds.Setup{Mail: mailFeed, Cal: calFeed, Texts: textsFeed}
 	bk := &ops.Backup{S: s, Root: r, Secrets: secrets, Clock: clk, Log: logger, Loc: func(ctx context.Context) *time.Location { return api.Location(ctx, s) }}
 	go bk.Run(ctx)
-	srv := &api.Server{S: s, Clock: clk, Log: logger}
+	srv := &api.Server{S: s, Clock: clk, Log: logger, DataDir: r.P("data")}
 	ms := &api.ModelSetup{A: srv, Secrets: secrets}
 	srv.Hooks.Wake = lp.Wake
 	srv.Hooks.Admin = func(ctx context.Context, dev, action string, body []byte) error {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,6 +74,9 @@ func TestRestoreHoldsEveryTurn(t *testing.T) {
 	key, err := b.Setup(ctx, repo, "")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if d := s.Setting(ctx, "restore_drill"); !strings.HasPrefix(d, "ok ") {
+		t.Fatalf("the restore drill after the backup: %q", d)
 	}
 	fresh := root(t, restic)
 	if err := ops.RestoreFiles(fresh, repo, key, os.Getuid(), os.Getgid()); err != nil {
