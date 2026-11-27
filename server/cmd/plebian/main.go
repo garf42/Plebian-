@@ -499,7 +499,9 @@ func serve(args []string) error {
 			OnLogin: func(u string) { writeAPI("login", u) },
 			OnUp:    func(a string) { writeAPI("login", ""); writeAPI("tailnet", a) }}
 		go func() {
-			if err := tn.Serve(ctx, ln.Addr().(*net.TCPAddr).Port, srv.Handler()); err != nil && ctx.Err() == nil {
+			// HTTP's default port (RFC 9110 §4.2.1) on the tailnet's own netstack: the
+			// address the phone paired with stays the same across restarts and updates.
+			if err := tn.Serve(ctx, 80, srv.Handler()); err != nil && ctx.Err() == nil {
 				logger.Printf("tailnet: %v", err)
 			}
 		}()
