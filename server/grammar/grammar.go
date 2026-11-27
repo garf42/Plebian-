@@ -394,3 +394,15 @@ func (g *G) Terminal(tok string) (int64, bool) {
 	id, ok := g.term[tok]
 	return id, ok
 }
+
+// Node is a symbol's structure: its two parts for a label (0, 0 for a terminal), and
+// whether it is a word (letters or digits).
+func (g *G) Node(id int64) (left, right int64, word bool) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	sy, ok := g.syms[id]
+	if !ok {
+		return 0, 0, false
+	}
+	return sy.left, sy.right, sy.left == 0 && IsWord(sy.exp)
+}

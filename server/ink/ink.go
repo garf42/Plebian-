@@ -1,66 +1,99 @@
 // Package ink is S, the trace a label's uses leave (TP-01): each use fades as
 // (turns since)^−d with d = k × (the label's ink at that moment) + α (Pavlik & Anderson's
-// spacing model). Ink is computed in time independent of how many uses a label has: the
-// most recent use exact, the older ones folded into one aggregate (Petrov 2006), so a
-// lookup costs the same at a thousand turns and at a million (ledger L0001).
+// spacing model). Ink is computed without a sum over every use (ledger L0001): uses are
+// folded into time buckets, and two neighbouring buckets merge only while the merged
+// bucket's width stays within the deadband of its age, so the fold's error stays inside
+// the tolerance ranking already allows. A bucket is integrated as uses spread evenly
+// across it (Petrov 2006). The bucket count grows with the logarithm of the history.
 package ink
 
 import "math"
 
-// State is one label's use history, folded.
-type State struct {
-	N      int     `json:"n"`      // uses so far
-	First  float64 `json:"first"`  // clock of the first use
-	Last   float64 `json:"last"`   // clock of the most recent use
-	LastD  float64 `json:"last_d"` // d of the most recent use
-	SumD   float64 `json:"sum_d"`  // Σ d over the older uses (all but the last)
-	Second float64 `json:"second"` // clock of the second most recent use
+// Bucket is a run of uses folded together.
+type Bucket struct {
+	T0, T1     float64 // clock of its first and last use
+	N          int
+	SumD       float64
+	DMin, DMax float64
 }
 
-// Ink is Σ_j (now − t_j)^−d_j: exact for the latest use; for the n−1 older uses,
-// Petrov's approximation with their mean d, spread evenly from the first use to the
-// second most recent (integral of t^−d over that span, times their density).
-func (s State) Ink(now float64) float64 {
-	if s.N == 0 {
-		return 0
-	}
-	age := func(t float64) float64 {
-		a := now - t
-		if a < 1 {
-			a = 1 // a use in the current turn counts as one turn old
-		}
-		return a
-	}
-	v := math.Pow(age(s.Last), -s.LastD)
-	k := s.N - 1
-	if k == 0 {
-		return v
-	}
-	d := s.SumD / float64(k)
-	if k == 1 || s.Second <= s.First {
-		return v + float64(k)*math.Pow(age(s.Second), -d)
-	}
-	tn, t1 := age(s.First), age(s.Second) // tn: oldest age, t1: youngest of the older uses
-	if math.Abs(1-d) < 1e-9 {
-		return v + float64(k)*(math.Log(tn)-math.Log(t1))/(tn-t1)
-	}
-	return v + float64(k)*(math.Pow(tn, 1-d)-math.Pow(t1, 1-d))/((1-d)*(tn-t1))
+// State is one label's use history, folded.
+type State struct {
+	N int      `json:"n"`
+	B []Bucket `json:"b"`
 }
+
+func age(now, t float64) float64 {
+	a := now - t
+	if a < 1 {
+		a = 1 // a use in the current turn counts as one turn old
+	}
+	return a
+}
+
+// term is Σ over a bucket's uses of age^−d, its uses taken as evenly spaced from its
+// first to its last with their mean d: the integral over the span at that spacing plus
+// half of each end (Euler–Maclaurin), exact for one use or two.
+func term(b Bucket, now float64) float64 {
+	d := b.SumD / float64(b.N)
+	hi, lo := age(now, b.T0), age(now, b.T1)
+	if b.N == 1 || b.T1 <= b.T0 {
+		return float64(b.N) * math.Pow(lo, -d)
+	}
+	ends := (math.Pow(lo, -d) + math.Pow(hi, -d)) / 2
+	if b.N == 2 {
+		return 2 * ends
+	}
+	h := (hi - lo) / float64(b.N-1)
+	var integral float64
+	if math.Abs(1-d) < 1e-9 {
+		integral = math.Log(hi) - math.Log(lo)
+	} else {
+		integral = (math.Pow(hi, 1-d) - math.Pow(lo, 1-d)) / (1 - d)
+	}
+	return integral/h + ends
+}
+
+// Ink is Σ_j (now − t_j)^−d_j over the folded history.
+func (s State) Ink(now float64) float64 {
+	var v float64
+	for _, b := range s.B {
+		v += term(b, now)
+	}
+	return v
+}
+
+// Deadband is the fold's tolerance: the Parameter schedule's deadband (5%, gap G001).
+var Deadband = 0.05
 
 // Use records a use at now and returns the d fixed for it.
 func (s *State) Use(now, k, alpha float64) float64 {
 	d := k*s.Ink(now) + alpha
-	if s.N > 0 {
-		s.SumD += s.LastD
-		s.Second = s.Last
-	} else {
-		s.First = now
-	}
 	s.N++
-	s.Last, s.LastD = now, d
-	if s.N == 1 {
-		s.First = now
+	s.B = append(s.B, Bucket{T0: now, T1: now, N: 1, SumD: d, DMin: d, DMax: d})
+	// Merge neighbours, oldest first, while the merged bucket's worst-case error stays
+	// within the deadband: spreading its uses evenly misplaces at most its width, and
+	// a^−d moves by about d × (width / age), so width ≤ (deadband / d) × age; one mean d
+	// stands for its uses' own, and a^−d moves by (spread of d) × ln a, so that product
+	// stays within the deadband too.
+	out := s.B[:0]
+	for _, b := range s.B {
+		if n := len(out); n > 0 {
+			p := out[n-1]
+			md := (p.SumD + b.SumD) / float64(p.N+b.N)
+			if md <= 0 {
+				md = 1
+			}
+			lo, hi := math.Min(p.DMin, b.DMin), math.Max(p.DMax, b.DMax)
+			young := age(now, b.T1)
+			if b.T1-p.T0 <= Deadband/md*young && (hi-lo)*math.Log(age(now, p.T0)) <= Deadband {
+				out[n-1] = Bucket{T0: p.T0, T1: b.T1, N: p.N + b.N, SumD: p.SumD + b.SumD, DMin: lo, DMax: hi}
+				continue
+			}
+		}
+		out = append(out, b)
 	}
+	s.B = out
 	return d
 }
 
@@ -68,11 +101,7 @@ func (s *State) Use(now, k, alpha float64) float64 {
 func Exact(now float64, times, ds []float64) float64 {
 	var v float64
 	for i, t := range times {
-		a := now - t
-		if a < 1 {
-			a = 1
-		}
-		v += math.Pow(a, -ds[i])
+		v += math.Pow(age(now, t), -ds[i])
 	}
 	return v
 }

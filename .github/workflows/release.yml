@@ -1,0 +1,87 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  server:
+    strategy:
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config
+      - name: Build from the tagged commit
+        run: |
+          arch=$(go env GOARCH)
+          mkdir -p dist/plebian/bin dist/plebian/lib
+          CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
+          chmod 644 dist/plebian/lib/*.so
+          cp LICENSE NOTICE.md dist/plebian/
+          dist/plebian/bin/plebian version
+          tar -C dist -czf "dist/plebian-linux-${arch}.tar.gz" plebian
+          (cd dist && sha256sum "plebian-linux-${arch}.tar.gz" > "plebian-linux-${arch}.tar.gz.sha256")
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server-${{ matrix.runner }}
+          path: dist/plebian-linux-*
+
+  apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - id: app
+        run: echo "present=$([ -f app/pubspec.yaml ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - if: steps.app.outputs.present == 'yes'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Build the APK from the tagged commit
+        if: steps.app.outputs.present == 'yes'
+        env:
+          PLEBIAN_APK_KEYSTORE: ${{ secrets.PLEBIAN_APK_KEYSTORE }}
+          PLEBIAN_APK_KEY_PASSWORD: ${{ secrets.PLEBIAN_APK_KEY_PASSWORD }}
+        run: |
+          cd app
+          if [ -n "$PLEBIAN_APK_KEYSTORE" ]; then echo "$PLEBIAN_APK_KEYSTORE" | base64 -d > android/app/release.jks; fi
+          flutter pub get
+          flutter build apk --release --build-name="${GITHUB_REF_NAME#v}" --dart-define=PLEBIAN_COMMIT="${GITHUB_SHA}"
+          mkdir -p ../dist && cp build/app/outputs/flutter-apk/app-release.apk ../dist/plebian.apk
+          (cd ../dist && sha256sum plebian.apk > plebian.apk.sha256)
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/upload-artifact@v7
+        with:
+          name: apk
+          path: dist/plebian.apk*
+
+  publish:
+    needs: [server, apk]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la dist
+          pre=""
+          case "$GITHUB_REF_NAME" in v0.0.*) pre="--prerelease";; esac
+          gh release create "$GITHUB_REF_NAME" $pre --title "$GITHUB_REF_NAME" --notes-file <(git tag -l --format='%(contents)' "$GITHUB_REF_NAME") dist/*
