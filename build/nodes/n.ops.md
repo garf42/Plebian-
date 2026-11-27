@@ -32,17 +32,17 @@ fixtures: scenarios A01, A17, A18, A20; probe `tests/probes/backup`
 
 ## demons
 - D1: installs a system-level unit file outside the root
-  kill_test: tests/acceptance/a01_install_isolation
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A01 (tests/demons/n.ops-D1.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — writes_only_root_accounts_linger: install wrote outside its root: [/etc/systemd/system/plebian.service]
+  status: killed
 - D2: backs up the store file without its write-ahead log, so a restore loses the last turns
   kill_test: tests/ops/backup_test.go TestRestoreHoldsEveryTurn (and A17 in acceptance)
   negative_check: seen red (re-run 2026-11-27) — backup_test.go:92: the restored store holds 0 of 30 sealed turns
   status: killed
 - D3: deploys without replaying
-  kill_test: tests/acceptance/a20_update_replay
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A20 (tests/demons/n.ops-D3.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — replayed_before_deploy: updates card "deployed 65e8f60… at 2026-11-27T10:30:19Z: replayed 0 pages identical"
+  status: killed
 
 ## clauses
 - [ADVISORY] origin: derived — probe: restic 0.20.0 restored 280 MiB (store + audio) byte-identical on two runs; repository 154 MB for random data (prefab: restic 0.20.0)

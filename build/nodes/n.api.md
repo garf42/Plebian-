@@ -36,9 +36,9 @@ fixtures: `tests/api/`; scenarios A02, A03, A14
   negative_check: seen red (2026-11-27) — grant_test.go:66: a grant with a bearer token alone answered 200 and ran [grant]
   status: killed
 - D2: listens on every interface
-  kill_test: tests/acceptance/a01_install_isolation
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A01 (tests/demons/n.api-D2.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — listens_localhost_only: listens on *:44049
+  status: killed
 - D3: a projection reads the wall clock, so replay differs
   kill_test: tests/api/projection_test.go TestPageReadsNoClock
   negative_check: seen red (re-run 2026-11-27) — projection_test.go:31: the page changed with the clock:
