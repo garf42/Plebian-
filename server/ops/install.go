@@ -311,8 +311,19 @@ func Install(o InstallOptions) (err error) {
 	if o.BrowserFrom != "" {
 		read, write = append(read, r.Browser()), append(write, r.P("browser", "profile"))
 	}
-	if err := run("runuser", "-u", ServerUser, "--", "env", "LD_LIBRARY_PATH="+r.P("lib"), r.Bin(), "access", "--read", strings.Join(read, ","), "--write", strings.Join(write, ",")); err != nil {
-		return err
+	for _, a := range []struct {
+		user        string
+		read, write []string
+	}{
+		{ServerUser, read, write},
+		{ToolsUser, []string{r.Bin(), r.P("lib")}, []string{r.Workspace(), r.Outside(), r.P("run", "runner")}},
+	} {
+		if _, err := os.Stat(r.P("bin", "bwrap")); err == nil && a.user == ToolsUser {
+			a.read = append(a.read, r.P("bin", "bwrap"))
+		}
+		if err := run("runuser", "-u", a.user, "--", "env", "LD_LIBRARY_PATH="+r.P("lib"), r.Bin(), "access", "--read", strings.Join(a.read, ","), "--write", strings.Join(a.write, ",")); err != nil {
+			return err
+		}
 	}
 	for _, u := range []string{ServerUser, ToolsUser} {
 		if err := run("loginctl", "enable-linger", u); err != nil {
