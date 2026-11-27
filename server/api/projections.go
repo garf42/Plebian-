@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -278,7 +279,20 @@ func (a *Server) entry(ctx context.Context, start, end time.Time) ([]map[string]
 		rows.Scan(&id, &body)
 		var lines []map[string]any
 		json.Unmarshal([]byte(body), &lines)
-		out = append(out, lines...)
+		for i, l := range lines {
+			l["id"] = fmt.Sprintf("%d.%d", id, i)
+			if _, ok := l["heard_by"]; !ok {
+				l["heard_by"] = nil
+			}
+			out = append(out, l)
+		}
+	}
+	rows.Close()
+	// A line is held until the owner answers it: a message quoting it settles it.
+	for _, l := range out {
+		var n int
+		a.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM owner_messages WHERE quote != '' AND json_extract(quote, '$.kind')='line' AND json_extract(quote, '$.id')=?`, l["id"]).Scan(&n)
+		l["held"] = n == 0
 	}
 	return out, nil
 }

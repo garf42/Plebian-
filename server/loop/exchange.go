@@ -420,7 +420,9 @@ func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, o
 	// A repeat of a draft, word for word, in an exchange an owner message opened after it was shown, runs the stored bytes.
 	if d, ok := l.matchingDraft(ctx, name, c.Text); ok {
 		if opener == core.ByOwner && ownerEvent > d.event {
-			return l.runDraft(ctx, turn, id, name, class, d)
+			rd := l.runDraft(ctx, turn, id, name, class, d)
+			l.ranStep(ctx, turn, opener, name, c.Text, rd)
+			return rd
 		}
 	}
 	reaches := l.Tools.ReachesOut(name, c.Text)
@@ -440,7 +442,9 @@ func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, o
 	if draft {
 		return l.makeDraft(ctx, turn, id, name, class, c.Text)
 	}
-	return l.run(ctx, turn, id, name, class, c.Text)
+	rd := l.run(ctx, turn, id, name, class, c.Text)
+	l.ranStep(ctx, turn, opener, name, c.Text, rd)
+	return rd
 }
 
 func (l *Loop) run(ctx context.Context, turn int64, id, name string, class tools.Class, input []byte) core.Part {

@@ -55,9 +55,9 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
   negative_check: pending
   status: live
 - D5: a draft is re-composed from the latest context when approved
-  kill_test: tests/loop/test_draft_runs_as_shown
-  negative_check: pending
-  status: live
+  kill_test: tests/feeds/d2_test.go TestSMTPOnlyOnApprovedDraft (the sent bytes are the shown draft's, Message-ID included)
+  negative_check: seen red — TestSMTPOnlyOnApprovedDraft: shown bytes sent: false (approval re-composed the mail from the call: a new Message-ID)
+  status: killed
 - D6: a draft runs when the agent repeats it with no owner message since it was shown
   kill_test: tests/loop/test_draft_needs_owner_message
   negative_check: seen red — --- FAIL: TestDraftNeedsOwnerMessage (a repeated draft ran with no owner message since it was shown)

@@ -149,6 +149,11 @@ CREATE TABLE near_matches(id INTEGER PRIMARY KEY, body TEXT NOT NULL, writer TEX
 	// "an owner message after the draft was shown" is the event log's own order.
 	`ALTER TABLE drafts ADD COLUMN event INTEGER;
 ALTER TABLE owner_messages ADD COLUMN event INTEGER;`,
+	// 7: steps the owner asked for (or a clock turn ran and the owner answered), for the
+	// clock's rule of succession, and the windows the clock has opened.
+	`CREATE TABLE step_runs(id INTEGER PRIMARY KEY, step TEXT NOT NULL, tool TEXT NOT NULL, at TEXT NOT NULL, opener TEXT NOT NULL, turn INTEGER NOT NULL);
+CREATE INDEX step_runs_step ON step_runs(step, at);
+CREATE TABLE clock_opened(step TEXT NOT NULL, day TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY(step, day));`,
 }
 
 func (s *Store) migrate() error {

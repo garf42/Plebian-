@@ -93,6 +93,7 @@ func CoreTools(s *store.Store, nameVoice func(ctx context.Context, id int64, wor
 			},
 		},
 		lookup(s, putOut),
+		entry(s),
 	}
 }
 
@@ -143,6 +144,48 @@ func lookup(s *store.Store, putOut func(ctx context.Context, row int64) ([]strin
 				fmt.Fprintf(&b, "%d\n", id)
 			}
 			return tools.Result{Reading: []byte(b.String())}, nil
+		},
+	}
+}
+
+// entry is the night's read written down: the day's lines, each held (at ½, covering
+// nothing) until the owner answers it; a line naming a tap becomes that tap's title.
+func entry(s *store.Store) tools.Tool {
+	return tools.Func{
+		D: models.Tool{Name: "entry", Description: "Write the day's entry: short lines on what the day's talk and mail answered or set off, what the owner committed to, and what needs the owner's word; a line may name the tap it reports.",
+			Schema: tools.Schema([]string{"lines"}, map[string][2]string{
+				"lines": {"array", "the lines, each {\"text\": ..., \"tap\": <tap id, if it reports one>, \"heard_by\": <speaker, if a heard line>}"},
+			})},
+		C: tools.Read, // it writes only the owner's page, held until the owner answers
+		RunFunc: func(ctx context.Context, in json.RawMessage) (tools.Result, error) {
+			var e struct {
+				Lines []struct {
+					Text    string `json:"text"`
+					Tap     string `json:"tap,omitempty"`
+					HeardBy string `json:"heard_by,omitempty"`
+				} `json:"lines"`
+			}
+			if err := json.Unmarshal(in, &e); err != nil || len(e.Lines) == 0 {
+				return tools.Result{Reading: []byte("entry needs lines"), Exit: 2}, nil
+			}
+			for _, l := range e.Lines {
+				if strings.TrimSpace(l.Text) == "" {
+					return tools.Result{Reading: []byte("an entry line is empty"), Exit: 2}, nil
+				}
+			}
+			// The entry is stamped at the sheet that holds this call (the loop's clock).
+			var turn int64
+			var now string
+			s.DB.QueryRowContext(ctx, `SELECT id, at FROM turns ORDER BY id DESC LIMIT 1`).Scan(&turn, &now)
+			if _, err := s.Emit(ctx, now, "entry", e.Lines, turn); err != nil {
+				return tools.Result{}, err
+			}
+			for _, l := range e.Lines {
+				if l.Tap != "" {
+					s.DB.ExecContext(ctx, `UPDATE taps SET title=? WHERE id=?`, l.Text, l.Tap)
+				}
+			}
+			return tools.Result{Reading: []byte(fmt.Sprintf("entry: %d lines on the page, held until the owner answers them", len(e.Lines)))}, nil
 		},
 	}
 }

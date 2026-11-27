@@ -107,6 +107,9 @@ func (l *Loop) Run(ctx context.Context) {
 		if err != nil {
 			l.Log.Printf("loop: %v", err)
 		}
+		if c := l.clockTick(ctx); !c.IsZero() && (next.IsZero() || c.Before(next)) {
+			next = c
+		}
 		l.maybeSleep(ctx)
 		var timer <-chan time.Time
 		if !next.IsZero() {
@@ -153,6 +156,7 @@ func (l *Loop) maybeSleep(ctx context.Context) {
 
 // Step runs one step now (tests drive the loop this way).
 func (l *Loop) Step(ctx context.Context) error {
+	l.clockTick(ctx)
 	_, err := l.step(ctx)
 	return err
 }
