@@ -36,9 +36,9 @@ fixtures: the manifest itself; CI history of `first_red`
   negative_check: pending
   status: live
 - D3: a flaky scenario passes on retry
-  kill_test: tests/acceptance/test_two_runs_both_pass
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance/test_compare_runs.py (the gate's compare_runs.py)
+  negative_check: seen red (2026-11-27) — test_compare_runs.py: a scenario that passed in one run of two came out 'pass' (exit 0)
+  status: killed
 
 ## clauses
 - [BINDING] origin: derived — synthetic speech fixtures are generated with espeak-ng at test time (two distinct voices); the sherpa-onnx 2.0.3 pip wheel's Piper voices failed with no espeak frontend (ledger: L0005) (kill_test: tests/fixtures/test_speech_fixture_deterministic)

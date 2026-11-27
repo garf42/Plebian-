@@ -30,6 +30,7 @@ jobs:
           - {demon: n.audio-D2, scenario: TestA07}
           - {demon: n.audio-D3, scenario: TestA05}
           - {demon: n.proof-D2, scenario: TestNonVacuity/A10}
+          - {demon: n.proof-D1, scenario: TestVersionIsCommitUnderTest}
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     steps:
