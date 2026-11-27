@@ -48,6 +48,7 @@ jobs:
       - name: The Omi simulator, on the host the emulator reaches as 10.0.2.2
         if: steps.app.outputs.present == 'yes' && hashFiles('app/integration_test/**') != ''
         run: |
+          sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config
           cd tests/fixtures && go build -o "$RUNNER_TEMP/fixture" ./cmd/fixture
           "$RUNNER_TEMP/fixture" omi -addr 0.0.0.0:0 > "$RUNNER_TEMP/omi.json" &
           for i in $(seq 1 50); do [ -s "$RUNNER_TEMP/omi.json" ] && break; sleep 0.2; done
