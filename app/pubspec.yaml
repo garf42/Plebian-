@@ -1,0 +1,46 @@
+name: plebian
+description: Plebian on the phone — the Omi link, the server link and the app.
+publish_to: 'none'
+version: 0.0.1+1
+
+environment:
+  sdk: ^3.14.0
+  flutter: 3.50.1
+
+# Versions are pinned exactly; each was published at least two weeks before it was chosen.
+dependencies:
+  flutter:
+    sdk: flutter
+  biometric_signature: 13.3.0
+  crypto: 3.0.8
+  flutter_local_notifications: 23.0.1
+  flutter_secure_storage: 11.2.0
+  http: 1.6.0
+  just_audio: 0.10.6
+  mobile_scanner: 7.5.0
+  path_provider: 2.1.6
+  universal_ble: 3.3.0
+  web_socket_channel: 3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/wordmark.png
+  fonts:
+    - family: Vollkorn
+      fonts:
+        - asset: assets/fonts/vollkorn/Vollkorn-Italic.ttf
+          style: italic
+    - family: Atkinson Hyperlegible Next
+      fonts:
+        - asset: assets/fonts/atkinson_hyperlegible_next/AtkinsonHyperlegibleNext.ttf
+    - family: Atkinson Hyperlegible Mono
+      fonts:
+        - asset: assets/fonts/atkinson_hyperlegible_mono/AtkinsonHyperlegibleMono.ttf
