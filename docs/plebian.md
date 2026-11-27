@@ -89,30 +89,31 @@ Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gra
 - Two ways to mark, both writing one row: double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it, and an optional note.
 - A double-tap reaches the phone at once, so the mark is on the day's ribbon right away. Short buzz: saved. Long buzz: the phone was out of range — the audio still syncs, and long-pressing the line later marks it. The two buzzes are the Omi's own shortest and longest (100 and 500 ms).
 - The night's read reports every mark; that line becomes the mark's title, so search finds a mark by what was said.
-- Three ways back to a mark: Journal → Marks, newest first; the pick on each day's ribbon; or search.
+- Three ways back to a mark: Journal → Marks, newest first; its dot on each day's ribbon; or search.
 - A mark says the moment mattered, not that the words were heard right. Heard words still wait until the owner has said something about them.
-- **Mark screen:** the pick, day and time, "tapped on the Omi" or "pressed in the app", the line, a player for the stretch with waveform and playhead, the verbatim talk around the mark (the marked line highlighted). Tapping the mark's line quotes it into the thread; the owner asks in their own words. A note is typed by the owner and rides on the mark.
+- **Mark screen:** the dot, day and time, "tapped on the Omi" or "pressed in the app", the line, a player for the stretch with waveform and playhead, the verbatim talk around the mark (the marked line highlighted). Tapping the mark's line quotes it into the thread; the owner asks in their own words. A note is typed by the owner and rides on the mark.
 
 ---
 
 ## PL-05 · Look and motion
 
-Taken from the wordmark (`docs/design/wordmark.png`: *Plebian* in a working italic serif whose *n* ends in a pick). Tokens: `docs/design/tokens.json`. Visual reference with a working phone mockup: `docs/design/mockup.html`.
+Taken from the wordmark (`docs/design/wordmark.png`: *Plebian* in Monarcha SemiBold Italic, its *n* ending in a pick). Tokens: `docs/design/tokens.json`. Visual reference with a working phone mockup: `docs/design/mockup.html`.
 
 - The ground is the logo's gradient, five stops from dawn slate to forest. **Ore** is the one warm color and belongs to marks, so a mark stands out on any page.
+- A mark is an ore dot and nothing more: on the ribbon at its minute, beside its line, in its row.
 - Pages are tracing paper laid on that ground: soft white cards, 14 px radius, a light double shadow.
 - Heard text sits a shade lighter on a dashed rule until settled; settling inks the rule solid.
-- Type: **Alegreya** italic for names and dates (close to the wordmark's hand); **Alegreya Sans** for reading; **IBM Plex Mono** for times and counts. All three under the SIL Open Font License, bundled with the app.
+- Type: **Vollkorn** SemiBold Italic for names and dates (rounded, low-contrast and warm like the wordmark's Monarcha); **Atkinson Hyperlegible Next** for reading, made to be read at a glance, in sun or by tired eyes; **Atkinson Hyperlegible Mono** for times and counts. All under the SIL Open Font License, bundled with the app. Monarcha is commercial, so it appears only in the wordmark image.
 - The agent's messages are plain text on the page; the owner's sit in steel bubbles. The agent's stamp reads "Plebian · time".
 - Every animation stands for something that happened:
   - **Lay** — a new page is laid over the last, the way trace goes down on a drawing (screen transitions).
-  - **Strike** — a mark lands: the pick taps the ribbon at its minute, chips fly.
+  - **Strike** — a mark lands: an ore dot drops onto the ribbon at its minute.
   - **Live** — the ribbon's bars grow as the day is heard.
   - **Peek** — lift the page to see the heard day beneath.
   - **Presence** — while the agent works, the gradient drifts along the composer's top edge.
   - **Settle** — once the owner has answered a heard line, its dashed rule inks solid.
 - Touch feedback runs 180–320 ms. The night's read moves at the pace of the real work. With reduced motion on, each animation becomes a short fade.
-- Accessibility: every control reachable by TalkBack with a spoken label; text scales with the system font size; color is never the only carrier of meaning (heard lines also carry "heard · speaker").
+- Accessibility: every control reachable by TalkBack with a spoken label; text scales with the system font size; heard lines also carry "heard · speaker", and a mark's dot is read aloud as "marked".
 
 ---
 

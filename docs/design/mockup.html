@@ -4,14 +4,14 @@
 <title>Plebian</title>
 <meta name="description" content="Plebian: an agent you own, and your days read back, fed by the Omi you wear and by your mail, texts and calendar.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400;1,700&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vollkorn:ital,wght@1,600&family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap">
 <style>:root{
   --dawn:#848DB3; --slate:#5D739B; --steel:#49637C; --teal:#3B555A; --forest:#2D4839;
   --grad:linear-gradient(125deg,#848DB3 0%,#5D739B 30%,#49637C 55%,#3B555A 78%,#2D4839 100%);
   --ink:#1E2A2D; --ink-2:#47555A; --ink-3:#7C878A; --ink-4:#A9B1B2;
   --paper:#FBFAF6; --paper-2:#F3F1EA; --paper-3:#E9E6DD; --rule:#DCD8CD; --rule-2:#C9C4B6;
   --ore:#B9772E; --ore-2:#E7C9A2; --ok:#3E7A55; --warn:#A4552F;
-  --display:"Alegreya",Georgia,serif; --sans:"Alegreya Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --display:"Vollkorn",Georgia,serif; --sans:"Atkinson Hyperlegible Next",system-ui,sans-serif; --mono:"Atkinson Hyperlegible Mono",ui-monospace,monospace;
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box}
@@ -23,7 +23,7 @@ a{color:var(--steel)}
 .sheet{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:26px 26px 28px;display:flex;flex-direction:column;gap:16px;min-width:0;box-shadow:0 1px 0 rgba(0,0,0,.02)}
 .sheet-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:10px;flex-wrap:wrap}
 .sno{font:500 11px/1 var(--mono);letter-spacing:.06em;color:#fff;background:var(--steel);padding:5px 7px;border-radius:3px}
-.sheet-head h2{margin:0;font:700 italic 27px/1.1 var(--display);color:var(--ink);letter-spacing:-.005em}
+.sheet-head h2{margin:0;font:600 italic 27px/1.1 var(--display);color:var(--ink);letter-spacing:-.005em}
 .scale{margin-left:auto;font:400 11.5px/1.3 var(--mono);color:var(--ink-3)}
 .lead{font-size:17.5px;line-height:1.55;color:var(--ink);margin:0;max-width:64ch}
 ul.pts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;max-width:68ch}
@@ -74,14 +74,14 @@ ol.flow .step b{font-weight:700}
 ol.flow .step .mk{color:var(--ore)}
 .chain{display:grid;grid-template-columns:repeat(5,minmax(0,1fr) auto) minmax(0,1fr);gap:8px;align-items:stretch}
 .chain .c{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:8px 11px;font-size:14.5px;line-height:1.3}
-.chain .c b{display:block;font:700 italic 16px/1.2 var(--display);margin-bottom:2px}
+.chain .c b{display:block;font:600 italic 16px/1.2 var(--display);margin-bottom:2px}
 .chain .ar{color:var(--ink-3);font:400 16px/1 var(--mono);align-self:center}
 
 /* diagrams */
 svg.dia{width:100%;height:auto;display:block;max-width:560px}
 svg.dia .lbl{font:500 11px var(--mono);fill:var(--ink-2);letter-spacing:.04em}
 svg.dia .lbl-s{font:400 10.5px var(--mono);fill:var(--ink-3)}
-svg.dia .t{font:700 italic 15px var(--display);fill:var(--ink)}
+svg.dia .t{font:600 italic 15px var(--display);fill:var(--ink)}
 svg.dia .ts{font:400 12.5px var(--sans);fill:var(--ink-2)}
 svg.dia .tw{font:600 12.5px var(--sans);fill:#fff}
 
@@ -91,11 +91,11 @@ svg.dia .tw{font:600 12.5px var(--sans);fill:#fff}
 .sw{border:1px solid var(--rule);border-radius:4px;overflow:hidden;background:#fff}
 .sw .chip{height:54px}
 .sw .cap{padding:7px 9px;font:400 12px/1.35 var(--mono);color:var(--ink-2)}
-.sw .cap b{display:block;font:700 italic 15px/1.2 var(--display);color:var(--ink)}
+.sw .cap b{display:block;font:600 italic 15px/1.2 var(--display);color:var(--ink)}
 .sw.wide{grid-column:span 4}
 @media (max-width:560px){.sw.wide{grid-column:span 2}}
 .specimen{display:flex;flex-direction:column;gap:10px;border:1px solid var(--rule);border-radius:4px;padding:14px 16px;background:#fff}
-.specimen .d{font:700 italic 30px/1.1 var(--display)}
+.specimen .d{font:600 italic 30px/1.1 var(--display)}
 .specimen .s{font:400 16px/1.45 var(--sans)}
 .specimen .m{font:400 12.5px/1.3 var(--mono);color:var(--ink-3)}
 .specimen .h{font:400 15px/1.45 var(--sans);color:var(--ink-2);background-image:linear-gradient(90deg,var(--ink-4) 50%,transparent 50%);background-size:6px 1px;background-repeat:repeat-x;background-position:0 100%;display:inline;padding-bottom:1px}
@@ -106,7 +106,7 @@ svg.dia .tw{font:600 12.5px var(--sans);fill:#fff}
 .tile{border:1px solid var(--rule);border-radius:6px;background:#fff;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit}
 .tile .stage{height:112px;background:linear-gradient(160deg,#E7EAF0,#E6ECE8);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .tile .cap{padding:8px 10px 10px;font-size:13.5px;line-height:1.35;color:var(--ink-2)}
-.tile .cap b{display:block;font:700 italic 16px/1.2 var(--display);color:var(--ink)}
+.tile .cap b{display:block;font:600 italic 16px/1.2 var(--display);color:var(--ink)}
 .tile:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
 .replay{position:absolute;right:8px;top:7px;font:500 10px/1 var(--mono);color:var(--ink-3);letter-spacing:.08em}
 
@@ -126,7 +126,7 @@ ol.src a{color:var(--steel)}
 .ahead{flex:none;height:50px;display:flex;align-items:center;gap:8px;padding:0 12px 0 14px;background:var(--grad);background-size:100% 400%;background-position:0 9%;color:#fff;position:relative;z-index:3}
 .ahead .wm{height:23px;width:auto;display:block}
 .ahead .back{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.14);border:0;cursor:pointer;flex:none}
-.ahead .title{font:700 italic 19px/1 var(--display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ahead .title{font:600 italic 19px/1 var(--display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rchip{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:99px;padding:4px 9px 4px 7px;font:500 11px/1 var(--sans);cursor:pointer;white-space:nowrap}
 .rchip .dot{width:7px;height:7px;border-radius:50%;background:#CFE3D2;box-shadow:0 0 0 2px rgba(207,227,210,.25)}
 .rchip.docked .dot{background:#F2D49B;box-shadow:0 0 0 2px rgba(242,212,155,.3);animation:pulse 1.3s var(--ease) infinite}
@@ -153,7 +153,7 @@ ol.src a{color:var(--steel)}
 .card{background:rgba(252,251,248,.9);border:1px solid rgba(255,255,255,.7);border-radius:14px;box-shadow:0 1px 2px rgba(30,42,45,.06),0 6px 18px rgba(30,42,45,.06);padding:12px 12px 12px;position:relative}
 .card.tight{padding:10px 12px}
 .cap-row{display:flex;align-items:baseline;gap:8px}
-.dname{font:700 italic 21px/1.1 var(--display);color:var(--ink)}
+.dname{font:600 italic 21px/1.1 var(--display);color:var(--ink)}
 .dmeta{font:400 10.5px/1.3 var(--mono);color:var(--ink-3);letter-spacing:.02em}
 .kick{font:500 9.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
 .lines{display:flex;flex-direction:column;gap:9px;margin-top:8px}
@@ -188,13 +188,10 @@ ol.src a{color:var(--steel)}
 .ribbon .base{stroke:var(--rule-2);stroke-width:1}
 .ribbon .hr{font:400 8.5px var(--mono);fill:var(--ink-3)}
 .ribbon .empty{fill:none;stroke:var(--ink-4);stroke-dasharray:2 3}
-.pick{color:var(--ore)}
-.pick-g{transform-box:fill-box;transform-origin:70% 80%}
-.pick-g.strike{animation:strike .62s var(--ease) both}
-@keyframes strike{0%{opacity:0;transform:translateY(-9px) rotate(-38deg)}55%{opacity:1;transform:translateY(0) rotate(9deg)}72%{transform:rotate(-4deg)}100%{opacity:1;transform:none}}
-.chipdot{fill:var(--ore);opacity:0}
-.chipdot.fly{animation:fly .5s ease-out both}
-@keyframes fly{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+.mkdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ore);flex:none;vertical-align:1px;margin-right:6px}
+.ribbon .mk{fill:var(--ore);transform-box:fill-box}
+.ribbon .mk.strike{animation:strike .62s var(--ease) both}
+@keyframes strike{0%{opacity:0;transform:translateY(-9px)}100%{opacity:1;transform:none}}
 
 /* thread */
 .msg{max-width:86%;font-size:14px;line-height:1.45}
@@ -203,7 +200,6 @@ ol.src a{color:var(--steel)}
 .msg .when{display:block;font:400 9.5px/1.2 var(--mono);color:var(--ink-3);margin-top:3px}
 .msg.me .when{color:rgba(255,255,255,.7)}
 .mchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;border:1px solid var(--ore-2);background:#FBF3E8;color:#7A4E1E;border-radius:99px;padding:3px 8px 3px 6px;font:600 11px/1 var(--sans);cursor:pointer}
-.mchip svg{width:12px;height:12px}
 .stream span{opacity:0;animation:fadein .18s ease forwards}
 @keyframes fadein{to{opacity:1}}
 .compose{flex:none;padding:8px 10px 10px;background:rgba(251,250,246,.94);border-top:1px solid rgba(0,0,0,.05);position:relative}
@@ -226,6 +222,7 @@ ol.src a{color:var(--steel)}
 .tag{font:500 10px/1 var(--mono);color:var(--ink-2);background:var(--paper-3);border-radius:99px;padding:4px 7px}
 .tag.ore{background:#F6E6D2;color:#7A4E1E}
 .mrow{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;cursor:pointer}
+.mrow .mkdot{justify-self:center;margin:4px 0 0}
 .mrow .t{font:400 10.5px/1.3 var(--mono);color:var(--ink-3)}
 .mrow .x{font-size:13.5px;line-height:1.4}
 .pending{color:var(--ink-3);font-size:13px}
@@ -281,7 +278,7 @@ ol.src a{color:var(--steel)}
 .legend span{font:500 11px/1 var(--mono);color:var(--ink);display:inline-block;min-width:66px}
 
 /* admin */
-.lane-h{display:flex;align-items:center;gap:6px;font:700 italic 15px/1.2 var(--display);margin-top:4px}
+.lane-h{display:flex;align-items:center;gap:6px;font:600 italic 15px/1.2 var(--display);margin-top:4px}
 .lane-h .n{font:500 10px/1 var(--mono);color:var(--ink-3)}
 .ai{border-top:1px solid var(--rule);padding:8px 0;display:flex;flex-direction:column;gap:5px;font-size:13px;line-height:1.4}
 .ai .why{color:var(--ink-3);font-size:12px}
@@ -299,7 +296,7 @@ ol.src a{color:var(--steel)}
 .wristrig{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;width:min(330px,100%)}
 .wristrig svg{width:74px;height:48px;flex:none}
 .wristrig .s{font-size:13px;line-height:1.35;color:var(--ink-2)}
-.wristrig .s b{display:block;font:700 italic 15px/1.2 var(--display);color:var(--ink)}
+.wristrig .s b{display:block;font:600 italic 15px/1.2 var(--display);color:var(--ink)}
 .buzz{animation:buzz .11s linear 4}
 @keyframes buzz{25%{transform:translateX(-1.6px)}75%{transform:translateX(1.6px)}}
 .demos{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;width:min(360px,100%)}
@@ -320,7 +317,7 @@ ol.src a{color:var(--steel)}
   table.map tr{display:block;padding:10px 0;border-bottom:1px solid var(--rule)}
   table.map tr:last-child{border-bottom:0}
   table.map td{display:block;border:0!important;padding:2px 0}
-  table.map td:first-child{font:700 italic 16px/1.3 var(--display);white-space:normal;margin-bottom:2px}
+  table.map td:first-child{font:600 italic 16px/1.3 var(--display);white-space:normal;margin-bottom:2px}
   table.map td[data-label]::before{content:attr(data-label) " \00B7  ";font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 }
 
@@ -428,9 +425,9 @@ ol.src a{color:var(--steel)}
       <polygon points="36,96 346,96 322,148 12,148" fill="#FBFAF6" fill-opacity=".92" stroke="#B5AE9C"/>
       <text class="t" x="40" y="118">With Plebian</text><text class="ts" x="36" y="137">your messages and its replies that day</text>
       <polygon points="36,172 346,172 322,224 12,224" fill="#FBF3E8" fill-opacity=".95" stroke="#D9B98E"/>
-      <text class="t" x="40" y="194">Marks</text><text class="ts" x="36" y="213">pins at the moments you marked</text>
-      <g fill="#B9772E" transform="translate(262 180)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g>
-      <g fill="#B9772E" transform="translate(290 188)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g>
+      <text class="t" x="40" y="194">Marks</text><text class="ts" x="36" y="213">a dot at each moment you marked</text>
+      <circle cx="270" cy="188" r="4" fill="#B9772E"/>
+      <circle cx="298" cy="196" r="4" fill="#B9772E"/>
       <polygon points="36,248 346,248 322,300 12,300" fill="#E6ECEA" stroke="#9AA7A4" stroke-dasharray="4 3"/>
       <text class="t" x="40" y="270" style="fill:#3B555A">Heard</text><text class="ts" x="36" y="289">the day verbatim, peeked, never mixed in</text>
     </svg>
@@ -457,7 +454,7 @@ ol.src a{color:var(--steel)}
       <li>There are two ways to mark, and both write one row. Double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it and an optional note.</li>
       <li>A double-tap reaches the phone at once, so the mark is on the day&rsquo;s ribbon right away. A short buzz means it&rsquo;s saved. A long buzz means the phone was out of range: the audio still syncs, and long-pressing the line later marks it. The two are the Omi&rsquo;s own shortest and longest buzzes, 100 and 500 ms.</li>
       <li>The night&rsquo;s read reports every mark. That line becomes the mark&rsquo;s title, so search finds a mark by what was said.</li>
-      <li>There are three ways back to a mark: Journal &rarr; Marks, newest first; the pick on each day&rsquo;s ribbon; or search with Marks on.</li>
+      <li>There are three ways back to a mark: Journal &rarr; Marks, newest first; the ore dot on each day&rsquo;s ribbon; or search with Marks on.</li>
       <li>A mark says the moment mattered, not that the words were heard right. Heard words still wait until you&rsquo;ve said something about them.</li>
     </ul>
     <svg class="dia" viewBox="0 0 360 262" role="img" aria-label="Double-tap on the Omi and long-press in the app both write one mark row. Marks land on the day's ribbon; each opens to its line and the verbatim talk.">
@@ -471,9 +468,8 @@ ol.src a{color:var(--steel)}
       <g fill="#49637C" opacity=".5">
         <rect x="22" y="180" width="3.5" height="6"/><rect x="34" y="176" width="3.5" height="10"/><rect x="46" y="172" width="3.5" height="14"/><rect x="58" y="168" width="3.5" height="18"/><rect x="70" y="175" width="3.5" height="11"/><rect x="82" y="170" width="3.5" height="16"/><rect x="94" y="178" width="3.5" height="8"/><rect x="106" y="166" width="3.5" height="20"/><rect x="118" y="171" width="3.5" height="15"/><rect x="130" y="176" width="3.5" height="10"/><rect x="142" y="168" width="3.5" height="18"/><rect x="154" y="164" width="3.5" height="22"/><rect x="166" y="170" width="3.5" height="16"/><rect x="178" y="166" width="3.5" height="20"/><rect x="190" y="174" width="3.5" height="12"/><rect x="202" y="178" width="3.5" height="8"/><rect x="214" y="172" width="3.5" height="14"/><rect x="226" y="168" width="3.5" height="18"/><rect x="238" y="164" width="3.5" height="22"/><rect x="250" y="167" width="3.5" height="19"/><rect x="262" y="172" width="3.5" height="14"/><rect x="274" y="170" width="3.5" height="16"/><rect x="286" y="175" width="3.5" height="11"/><rect x="298" y="171" width="3.5" height="15"/><rect x="310" y="178" width="3.5" height="8"/><rect x="322" y="181" width="3.5" height="5"/><rect x="334" y="183" width="3.5" height="3"/>
       </g>
-      <g font-family="IBM Plex Mono" font-size="8.5" fill="#7C878A"><text x="16" y="198">6a</text><text x="96" y="198">10a</text><text x="176" y="198">2p</text><text x="256" y="198">6p</text><text x="330" y="198">10p</text></g>
-      <g fill="#B9772E"><g transform="translate(176 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g><g transform="translate(265 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g><g transform="translate(298 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g></g>
-      <path d="M184 202 V214" stroke="#B9772E" stroke-dasharray="2 2"/>
+      <g font-family="Atkinson Hyperlegible Mono" font-size="8.5" fill="#7C878A"><text x="16" y="198">6a</text><text x="96" y="198">10a</text><text x="176" y="198">2p</text><text x="256" y="198">6p</text><text x="330" y="198">10p</text></g>
+      <g fill="#B9772E"><circle cx="179.75" cy="160" r="3.5"/><circle cx="275.75" cy="160" r="3.5"/><circle cx="299.75" cy="160" r="3.5"/></g>
       <rect x="40" y="214" width="300" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/>
       <text class="lbl-s" x="52" y="230" style="fill:#7A4E1E">2:09pm &middot; marked on the Omi</text>
       <text class="ts" x="52" y="247">Dale quoted the culvert pipe: $340 and $490</text>
@@ -496,16 +492,16 @@ ol.src a{color:var(--steel)}
   </div>
   <div class="specimen">
     <div class="d">Sunday, November 15</div>
-    <div class="s">Alegreya italic sets names and dates, close to the wordmark&rsquo;s hand. Alegreya Sans carries the reading.</div>
+    <div class="s">Vollkorn semibold italic sets names and dates, close to the wordmark&rsquo;s Monarcha. Atkinson Hyperlegible Next carries the reading, built to be read at a glance.</div>
     <div><span class="h">Heard: &ldquo;fifty should do it.&rdquo;</span></div>
-    <div class="m">2:09PM &middot; IBM PLEX MONO FOR TIMES AND COUNTS</div>
+    <div class="m">2:09PM &middot; ATKINSON HYPERLEGIBLE MONO FOR TIMES AND COUNTS</div>
   </div>
   <ul class="pts">
     <li>Every animation stands for something that happened. Tap a tile to play it.</li>
   </ul>
   <div class="tiles" id="pl-tiles">
     <button class="tile" data-tile="lay"><div class="stage" id="t-lay"></div><div class="cap"><b>Lay</b>A new page is laid over the last, the way trace goes down on a drawing.</div></button>
-    <button class="tile" data-tile="strike"><div class="stage" id="t-strike"></div><div class="cap"><b>Strike</b>A mark lands: the pick taps the ribbon at its minute.</div></button>
+    <button class="tile" data-tile="strike"><div class="stage" id="t-strike"></div><div class="cap"><b>Strike</b>A mark lands: an ore dot drops onto the ribbon at its minute.</div></button>
     <button class="tile" data-tile="landing"><div class="stage" id="t-landing"></div><div class="cap"><b>Live</b>The ribbon fills as the day is heard.</div></button>
     <button class="tile" data-tile="peek"><div class="stage" id="t-peek"></div><div class="cap"><b>Peek</b>Lift the page to see the heard day beneath it.</div></button>
     <button class="tile" data-tile="presence"><div class="stage" id="t-presence"></div><div class="cap"><b>Presence</b>While the agent works, the gradient drifts along the composer.</div></button>
@@ -632,9 +628,7 @@ const scr = $('#pl-screen');
 if (!scr) return;
 
 /* ---------- glyphs ---------- */
-const PICK_D = 'M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z';
-const PICK = '<svg viewBox="0 0 16 16" width="14" height="14" class="ic pick" aria-hidden="true"><path d="' + PICK_D + '" fill="currentColor"/><path d="M7.4 5.6 14.6 14.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
-const PICKG = (cls, delay) => '<g class="pick-g ' + (cls || '') + '"' + (delay != null ? ' style="animation-delay:' + delay + 'ms"' : '') + '><path d="' + PICK_D + '" fill="#B9772E"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round" fill="none"/></g>';
+const MK = '<span class="mkdot" role="img" aria-label="marked"></span>';
 const I = {
   today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6.5C4 5.1 5.1 4 6.5 4h11C18.9 4 20 5.1 20 6.5v7c0 1.4-1.1 2.5-2.5 2.5H11l-4.5 3.5V16C5.1 16 4 14.9 4 13.5z"/></svg>',
   journal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 4h10.5A1.5 1.5 0 0 1 18 5.5V20H7.5A1.5 1.5 0 0 1 6 18.5z"/><path d="M6 17h12M9.5 8h5M9.5 11h5"/></svg>',
@@ -776,24 +770,22 @@ function ribbon(o) {
   (o.marks || []).forEach((m, k) => {
     const x = 6 + (m.h - 6) / 16 * 288, sk = o.strike || o.strikeIdx === k;
     s += '<g data-act="mark" data-day="' + o.day + '" data-i="' + k + '" style="cursor:pointer"><rect x="' + (x - 9) + '" y="0" width="18" height="' + base + '" fill="transparent"/>' +
-      '<line x1="' + x + '" y1="' + (base - mh + 4) + '" x2="' + x + '" y2="' + base + '" stroke="#B9772E" stroke-width="1" stroke-dasharray="1.5 1.5"/>' +
-      '<g transform="translate(' + (x - 6) + ' ' + (base - mh - 10) + ') scale(.82)">' + PICKG(sk ? 'strike' : '', sk ? (o.strike ? k * 320 : 0) : null) + '</g>' +
-      (sk ? [[-7, -5], [6, -7], [8, 2]].map(([dx, dy]) => '<circle class="chipdot fly" cx="' + x + '" cy="' + (base - mh + 2) + '" r="1.3" style="--dx:' + dx + 'px;--dy:' + dy + 'px;animation-delay:' + ((o.strike ? k * 320 : 0) + 330) + 'ms"/>').join('') : '') + '</g>';
+      '<circle class="mk' + (sk ? ' strike' : '') + '" cx="' + x + '" cy="' + (base - mh) + '" r="3.5"' + (sk && o.strike ? ' style="animation-delay:' + (k * 320) + 'ms"' : '') + '/>' + '</g>';
   });
   return s + '</svg>';
 }
 function line(e, dk) {
-  if (e.m != null) return '<div class="ln" data-act="mark" data-day="' + (dk || 'sun') + '" data-i="' + e.m + '" style="cursor:pointer">' + PICK + '<span>' + e.text + '</span></div>';
+  if (e.m != null) return '<div class="ln" data-act="mark" data-day="' + (dk || 'sun') + '" data-i="' + e.m + '" style="cursor:pointer">' + MK + '<span>' + e.text + '</span></div>';
   if (e.p) return '<div class="ln">' + e.text + '</div>';
   if (e.s) return '<div class="ln held settled">' + I.wave + ' <span class="tx">' + e.text + '</span><span class="settle-tag">settled</span></div>';
   const st = e.id === 'e2' ? !!S.gravel : !!S.settled[e.id];
   return '<div class="ln held' + (st ? ' settled' : '') + '" data-line="' + e.id + '"' + (st ? '' : ' data-act="reply" data-r="' + e.id + '"') + '><span class="by">heard · ' + e.by + '</span>' + I.wave + ' <span class="tx">' + e.text + '</span><span class="settle-tag">settled</span></div>';
 }
 function msg(m, i, streaming) {
-  if (m.me) return '<div class="msg me" data-li="' + i + '">' + m.text + (m.marked ? ' ' + PICK.replace('class="ic pick"', 'class="ic" style="color:#F2D49B"') : '') + '<span class="when">' + m.t + '</span></div>';
+  if (m.me) return '<div class="msg me" data-li="' + i + '">' + m.text + (m.marked ? ' ' + '<span class="mkdot" style="background:#F2D49B;margin:0 0 0 4px" aria-label="marked"></span>' : '') + '<span class="when">' + m.t + '</span></div>';
   const words = streaming ? m.text.split(' ').map((w, k) => '<span style="animation-delay:' + (k * 45) + 'ms">' + w + ' </span>').join('') : m.text;
   return '<div class="msg su' + (streaming ? ' stream' : '') + '" data-li="' + i + '">' + words +
-    (m.mark ? '<br><button class="mchip" data-act="mark" data-day="' + m.mark[0] + '" data-i="' + m.mark[1] + '">' + PICK + 'Heard ' + m.mark[2] + '</button>' : '') + '<span class="when">Plebian · ' + m.t + '</span></div>';
+    (m.mark ? '<br><button class="mchip" data-act="mark" data-day="' + m.mark[0] + '" data-i="' + m.mark[1] + '">' + MK + 'Heard ' + m.mark[2] + '</button>' : '') + '<span class="when">Plebian · ' + m.t + '</span></div>';
 }
 function stagesHTML() {
   return STAGES.map(([a, v], i) => {
@@ -847,14 +839,14 @@ function vJournal() {
   if (S.seg === 'days') return h + ['sun', 'sat', 'fri', 'thu'].map(dayCard).join('');
   const rows = [];
   ['sun', 'sat', 'fri', 'thu'].forEach(k => { const d = day(k); d.marks.slice().reverse().forEach((m, j) => rows.push([k, d.marks.length - 1 - j, d, m])); });
-  return h + rows.map(([k, i, d, m]) => '<div class="card tight mrow" data-act="mark" data-day="' + k + '" data-i="' + i + '">' + PICK + '<div><div class="t">' + d.name.slice(0, 3).toUpperCase() + ' · ' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('');
+  return h + rows.map(([k, i, d, m]) => '<div class="card tight mrow" data-act="mark" data-day="' + k + '" data-i="' + i + '">' + MK + '<div><div class="t">' + d.name.slice(0, 3).toUpperCase() + ' · ' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('');
 }
 function vDay() {
   const d = day(S.day);
   const entry = S.day === 'sun' ? (S.landed ? sunEntry() : null) : d.entry;
   const xch = S.day === 'sun' ? S.thread.map(m => '<div class="xch"><span class="w">' + m.t + (m.me ? ' · you' : ' · Plebian') + '</span>' + m.text + '</div>').join('') :
     (d.xch.length ? d.xch.map(([t, you, su]) => '<div class="xch"><span class="w">' + t + '</span>' + (you ? '<span><b>You:</b> ' + you + '</span>' : '') + '<span><b>Plebian:</b> ' + su + '</span></div>').join('') : '<div class="pending">No messages that day.</div>');
-  const marks = d.marks.length ? d.marks.map((m, i) => '<div class="mrow" data-act="mark" data-day="' + S.day + '" data-i="' + i + '" style="padding:5px 0">' + PICK + '<div><div class="t">' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('') : '<div class="pending">No marks.</div>';
+  const marks = d.marks.length ? d.marks.map((m, i) => '<div class="mrow" data-act="mark" data-day="' + S.day + '" data-i="' + i + '" style="padding:5px 0">' + MK + '<div><div class="t">' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('') : '<div class="pending">No marks.</div>';
   return '<div class="card"><div class="dmeta">' + d.date.toUpperCase() + ' · ' + d.heard.toUpperCase() + ' HEARD</div>' + ribbon({ d: d.d, marks: d.marks, day: S.day, big: true, until: S.day === 'sun' && !S.landed ? liveBars() : null }) +
     '<div class="sec">Entry</div>' + (entry ? '<div class="lines" style="margin-top:2px">' + entry.map(e => line(e, S.day)).join('') + '</div>' : '<div class="pending">Tonight’s read writes the entry.</div>') + '</div>' +
     '<div class="stack" style="overflow:hidden;border-radius:14px"><div class="under"><div class="sec" style="margin:0 0 4px">Heard, beneath</div>' +
@@ -864,7 +856,7 @@ function vDay() {
 }
 function vMark() {
   const d = day(S.mref[0]), m = d.marks[S.mref[1]];
-  return '<div class="card"><div class="cap-row">' + PICK + '<span class="dmeta">' + d.name.toUpperCase() + ' · ' + m.t.toUpperCase() + ' · TAPPED ON THE OMI</span></div>' +
+  return '<div class="card"><div class="cap-row">' + MK + '<span class="dmeta">' + d.name.toUpperCase() + ' · ' + m.t.toUpperCase() + ' · TAPPED ON THE OMI</span></div>' +
     '<div class="ln" style="margin-top:6px;font-size:15px">' + m.title + '</div>' +
     '<div class="player"><button data-act="play" aria-label="Play the stretch">' + I.play + '</button><div class="wave">' + wave() + '<span class="head" id="phead"></span></div><span class="dmeta">0:48</span></div></div>' +
     '<div class="card"><div class="sec" style="margin-top:0">Heard, around the mark</div><div class="verb">' +
@@ -1058,10 +1050,10 @@ render(true);
 const T = id => document.getElementById(id);
 const restart = (el, cls) => { el.classList.remove(cls); void el.getBoundingClientRect(); el.classList.add(cls); };
 const tiles = {
-  lay: () => { T('t-lay').innerHTML = '<div style="position:relative;width:120px;height:74px"><div class="card" style="position:absolute;inset:8px 0 0 10px;opacity:.55"></div><div class="card" id="tl" style="position:absolute;inset:0 10px 8px 0;padding:8px"><div style="font:700 italic 13px var(--display)">Sunday</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:5px;width:60%"></div></div></div>'; T('tl').style.animation = 'none'; void T('tl').offsetWidth; T('tl').style.animation = 'lay .5s var(--ease) both'; },
+  lay: () => { T('t-lay').innerHTML = '<div style="position:relative;width:120px;height:74px"><div class="card" style="position:absolute;inset:8px 0 0 10px;opacity:.55"></div><div class="card" id="tl" style="position:absolute;inset:0 10px 8px 0;padding:8px"><div style="font:600 italic 13px var(--display)">Sunday</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:5px;width:60%"></div></div></div>'; T('tl').style.animation = 'none'; void T('tl').offsetWidth; T('tl').style.animation = 'lay .5s var(--ease) both'; },
   strike: () => { T('t-strike').innerHTML = '<div style="width:160px">' + ribbon({ d: dens(3), marks: [{ h: 13.4 }], day: 'x', strike: true }) + '</div>'; },
   landing: () => { T('t-landing').innerHTML = '<div style="width:170px">' + ribbon({ d: dens(5), grow: true }) + '</div>'; },
-  peek: () => { T('t-peek').innerHTML = '<div style="position:relative;width:140px;height:80px;overflow:hidden;border-radius:10px"><div class="under" style="padding:7px;font:400 9.5px/1.5 var(--mono);color:var(--teal)">2:09 dale “the twenty foot…”<br>2:09 you “by the culvert…”<br>2:10 dale “Wednesday”</div><div class="card top" id="tp" style="position:absolute;inset:0;padding:8px"><div style="font:700 italic 13px var(--display)">With Plebian</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div></div></div>';
+  peek: () => { T('t-peek').innerHTML = '<div style="position:relative;width:140px;height:80px;overflow:hidden;border-radius:10px"><div class="under" style="padding:7px;font:400 9.5px/1.5 var(--mono);color:var(--teal)">2:09 dale “the twenty foot…”<br>2:09 you “by the culvert…”<br>2:10 dale “Wednesday”</div><div class="card top" id="tp" style="position:absolute;inset:0;padding:8px"><div style="font:600 italic 13px var(--display)">With Plebian</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div></div></div>';
     later(250, () => { const t = T('tp'); if (t) t.classList.add('peek'); }); later(1700, () => { const t = T('tp'); if (t) t.classList.remove('peek'); }); },
   presence: () => { T('t-presence').innerHTML = '<div class="compose" style="width:170px;border-radius:12px;position:relative"><span class="presence on" id="tpr"></span><div class="field" style="min-height:30px"><span>Message Plebian…</span></div></div>'; later(2600, () => { const p = T('tpr'); if (p) p.classList.remove('on'); }); },
   settle: () => { T('t-settle').innerHTML = '<div class="ln held" id="tst" style="width:170px;font-size:13px">' + I.wave + ' <span class="tx">Gravel Wednesday, by the culvert.</span></div>'; later(500, () => { const t = T('tst'); if (t) t.classList.add('settling'); }); later(1100, () => { const t = T('tst'); if (t) t.classList.add('settled'); }); }

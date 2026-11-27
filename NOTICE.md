@@ -13,6 +13,6 @@ It builds on the following work, each under its own license:
 - **restic** — BSD-2-Clause. https://github.com/restic/restic
 - **Tailscale** (Tailscale Inc. and contributors) — BSD-3-Clause. The server joins the owner's tailnet through its embedded library, tsnet. https://github.com/tailscale/tailscale
 - **bubblewrap** (its contributors) — LGPL-2.0-or-later. Built by the release CI and run unmodified as the tools sandbox. https://github.com/containers/bubblewrap
-- **Alegreya, Alegreya Sans, IBM Plex Mono** — SIL Open Font License 1.1.
+- **Vollkorn, Atkinson Hyperlegible Next, Atkinson Hyperlegible Mono** — SIL Open Font License 1.1. The wordmark is set in Monarcha (Isaco Type, commercial) and ships only as an image.
 
 Speech models (transcription, segmentation, speaker embeddings) are downloaded at install with their licenses recorded beside them.
