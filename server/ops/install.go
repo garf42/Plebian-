@@ -116,6 +116,40 @@ type InstallOptions struct {
 	Config     Config
 	Out        io.Writer
 	SpeechFrom string // a directory holding the speech model files; empty = download
+	// BrowserFrom is a directory holding chromium/, node/ and mcp/ (Playwright MCP's
+	// node_modules); empty leaves the browser out (gap G032).
+	BrowserFrom string
+}
+
+// copyTree copies a directory, modes kept, owned by uid:gid.
+func copyTree(src, dst string, uid, gid int) error {
+	return filepath.Walk(src, func(p string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(src, p)
+		t := filepath.Join(dst, rel)
+		switch {
+		case fi.IsDir():
+			if err := os.MkdirAll(t, fi.Mode().Perm()|0o700); err != nil {
+				return err
+			}
+		case fi.Mode()&os.ModeSymlink != 0:
+			l, err := os.Readlink(p)
+			if err != nil {
+				return err
+			}
+			os.Remove(t)
+			if err := os.Symlink(l, t); err != nil {
+				return err
+			}
+		default:
+			if err := copyFile(p, t, fi.Mode().Perm()); err != nil {
+				return err
+			}
+		}
+		return os.Lchown(t, uid, gid)
+	})
 }
 
 // Install lays the root down, creates the accounts, enables their linger flags and starts
@@ -227,6 +261,13 @@ func Install(o InstallOptions) (err error) {
 				if err := copyFile(l, dst, 0o644); err != nil {
 					return err
 				}
+			}
+		}
+	}
+	if o.BrowserFrom != "" {
+		for _, d := range []string{"chromium", "node", "mcp"} {
+			if err := copyTree(filepath.Join(o.BrowserFrom, d), r.P("browser", d), suid, sgid); err != nil {
+				return fmt.Errorf("browser: %w", err)
 			}
 		}
 	}

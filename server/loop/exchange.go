@@ -482,10 +482,32 @@ type draftRow struct {
 	payload []byte
 }
 
+// canonical is a call's input with its JSON re-encoded (keys sorted, no spacing), so a
+// repeat matches however the model spaced it; the stored call stays as written.
+func canonical(b []byte) []byte {
+	var v any
+	if json.Unmarshal(b, &v) != nil {
+		return b
+	}
+	c, _ := json.Marshal(v)
+	return c
+}
+
 func (l *Loop) matchingDraft(ctx context.Context, name string, input []byte) (draftRow, bool) {
-	var d draftRow
-	err := l.S.DB.QueryRowContext(ctx, `SELECT id, COALESCE(event,0), payload FROM drafts WHERE tool=? AND call=? AND state='waiting' ORDER BY id DESC LIMIT 1`, name, input).Scan(&d.id, &d.event, &d.payload)
-	return d, err == nil
+	rows, err := l.S.DB.QueryContext(ctx, `SELECT id, COALESCE(event,0), payload, call FROM drafts WHERE tool=? AND state='waiting' ORDER BY id DESC`, name)
+	if err != nil {
+		return draftRow{}, false
+	}
+	defer rows.Close()
+	want := canonical(input)
+	for rows.Next() {
+		var d draftRow
+		var call []byte
+		if rows.Scan(&d.id, &d.event, &d.payload, &call) == nil && bytes.Equal(canonical(call), want) {
+			return d, true
+		}
+	}
+	return draftRow{}, false
 }
 
 func (l *Loop) makeDraft(ctx context.Context, turn int64, id, name string, class tools.Class, input []byte) core.Part {

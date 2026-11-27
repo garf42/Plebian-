@@ -156,3 +156,8 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   The lamp prices a heard word by its chance in the heard body, so a box that has heard little wakes on no landing: a word unseen before reaches the 10-bit line only once the underlay holds about ten thousand words (a few days of talk, or about a thousand short messages).
   Assumed: as specified; the first days, landings land and light nothing, and the owner's own words drive the agent. Reversible: yes (a prior for the heard body's frequencies, such as the English word frequencies the grammar already ships, would let a new box wake sooner).
   Blocks: nothing (A08 builds a lived-in body first).
+
+- G032 — node: n.browser — volatility: medium — last_reviewed: phase-2
+  The box's browser (Chromium, Node.js and Playwright MCP, about 400 MB) is not fetched by the installer yet; install copies it from --browser-from, and the release pins nothing for it.
+  Assumed: install --browser-from <dir holding chromium/, node/, mcp/>; with none, browse and the live view say the browser is not installed. Reversible: yes (an install step that fetches Node's release with its SHASUMS256, Playwright MCP 0.0.86 by npm with its lockfile, and the Chromium that Playwright pins).
+  Blocks: browse, the live view and the texts sign-in on an owner's box until fetched.

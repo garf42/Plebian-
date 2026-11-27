@@ -28,25 +28,25 @@ fixtures: `tests/browser/` fixture sites (form POST, fetch POST, XHR PUT, DELETE
 
 ## demons
 - D1: holds form submissions but lets fetch() and XHR state changes through
-  kill_test: tests/browser/test_script_requests_held
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestScriptRequestsHeld
+  negative_check: seen red — TestScriptRequestsHeld: buy: held [] (fetch() and XHR let through)
+  status: killed
 - D2: records the owner's keystrokes while the owner holds the wheel, in plain text or any encoding (base64, hex, URL-encoded)
-  kill_test: tests/browser/test_wheel_not_recorded
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/live_test.go TestWheelNotRecorded
+  negative_check: seen red — TestWheelNotRecorded: the log holds the owner's typing (base64 of the password)
+  status: killed
 - D3: on approval, re-composes the request from a fresh snapshot instead of releasing the held bytes
-  kill_test: tests/browser/test_release_bytes_identical
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestReleaseBytesIdentical
+  negative_check: seen red — TestReleaseBytesIdentical: first equals the held bytes: false (release re-composed the body)
+  status: killed
 - D4: holds analytics beacons as drafts, so every agent click raises one
-  kill_test: tests/browser/test_beacon_dropped
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestBeaconDropped
+  negative_check: seen red — TestBeaconDropped: a beacon raised a draft (beacons held)
+  status: killed
 - D5: passes a GraphQL mutation as a read: one selected by operationName from a document that also holds a query, one inside a batch, or a persisted document whose bytes show no operation
-  kill_test: tests/browser/test_graphql_mutation_held
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestGraphQLMutationHeld
+  negative_check: seen red — TestGraphQLMutationHeld: the mutation was not held (a mixed document read by its first operation)
+  status: killed
 
 ## clauses
 - [ADVISORY] origin: derived — probe: a paused POST reached the fixture zero times while held and exactly once, byte-identical, after release; owner input through CDP Input events on the same page worked; cookies read back (prefab: Chromium via CDP)

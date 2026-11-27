@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"os/user"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -26,6 +27,7 @@ import (
 	"plebian/server/api"
 	"plebian/server/assemble"
 	"plebian/server/audio"
+	"plebian/server/browser"
 	"plebian/server/clock"
 	"plebian/server/config"
 	"plebian/server/core"
@@ -125,12 +127,13 @@ func install(args []string) error {
 	authKey := fs.String("auth-key-file", "", "a Tailscale auth key file, instead of the sign-in link")
 	control := fs.String("control-url", "", "a Headscale server's URL (empty = Tailscale)")
 	speechFrom := fs.String("speech-from", "", "a directory holding the speech model files instead of downloading them; none skips them")
+	browserFrom := fs.String("browser-from", "", "a directory holding chromium/, node/ and mcp/ for the box's browser")
 	fs.Parse(args)
 	if _, err := time.LoadLocation(*tz); err != nil {
 		return fmt.Errorf("--tz: %v", err)
 	}
 	r := ops.Root(*root)
-	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey, ControlURL: *control}, Out: os.Stdout, SpeechFrom: *speechFrom}); err != nil {
+	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey, ControlURL: *control}, Out: os.Stdout, SpeechFrom: *speechFrom, BrowserFrom: *browserFrom}); err != nil {
 		return err
 	}
 	fmt.Println("Plebian is installed in", r)
@@ -281,7 +284,22 @@ func serve(args []string) error {
 	calFeed := &feeds.Calendar{L: lander, Watch: feedWatch("calendar"), Secrets: secrets, HTTP: hc, Usual: usual, Log: logger,
 		Loc: func(ctx context.Context) *time.Location { return api.Location(ctx, s) }}
 	textsFeed := &feeds.Texts{L: lander, Watch: feedWatch("texts"), Secrets: secrets, HTTP: hc, Usual: usual, Log: logger}
+	chrome := r.P("browser", "chromium", "chrome")
+	if m, _ := filepath.Glob(r.P("browser", "chromium", "*", "chrome")); len(m) > 0 {
+		chrome = m[0]
+	}
+	box := &browser.Box{Chrome: chrome, Node: r.P("browser", "node", "bin", "node"), Profile: r.P("browser", "profile"),
+		MCPCli: r.P("browser", "mcp", "node_modules", "@playwright", "mcp", "cli.js"),
+		Draft: func(ctx context.Context, _ int64, reqs []browser.Request) (int64, error) {
+			var shown []string
+			for _, q := range reqs {
+				shown = append(shown, q.Shown())
+			}
+			return lp.HeldDraft(ctx, strings.Join(shown, "\n\n"))
+		}}
 	reg := tools.NewRegistry(append(loop.CoreTools(s, an.Name, feeds.PutOut(s, runner)),
+		browser.Browse{B: box, Send: func(ctx context.Context, q models.Request) (models.Response, error) { return lp.SubCall(ctx, q) }},
+		browser.Send{B: box},
 		feeds.SendTool{M: mailFeed, Clock: clk},
 		feeds.TextTool{T: textsFeed},
 		tools.Shell{Write: false, Runner: runner, Secrets: secrets},
@@ -363,6 +381,7 @@ func serve(args []string) error {
 		}
 		return fmt.Errorf("unknown admin action %q", action)
 	}
+	srv.Hooks.Browser = box.Live
 	srv.Hooks.AudioLive = an.LiveHandler
 	srv.Hooks.AudioFile = an.FileHandler
 	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }

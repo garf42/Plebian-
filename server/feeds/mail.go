@@ -192,6 +192,9 @@ func (m *Mail) session(ctx context.Context, a Account) error {
 			idle.Close()
 			return nil
 		case <-grew:
+		// A push a server drops would leave mail waiting until IDLE's restart; the feed
+		// also looks again at the calendar's cadence (G026).
+		case <-m.L.Clock.After(m.L.Clock.Now().Add(retry(m.Usual(ctx)))):
 		case <-c.Closed():
 			return errors.New("IMAP connection closed")
 		}

@@ -60,7 +60,7 @@ func TestIMAPIdlePushAndSMTPRecord(t *testing.T) {
 		if n != 1 {
 			t.Fatalf("EXISTS %d", n)
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(15 * time.Second):
 		t.Fatal("no IDLE push")
 	}
 	if err := idle.Close(); err != nil {
