@@ -54,7 +54,8 @@ reference: a naive implementation (every sum taken over every use, every cover r
   status: live
 
 ## clauses
-- [BINDING] origin: derived — ink is computed in time independent of a label's use count (recent uses exact, older uses folded into an aggregate as in Petrov 2006), and on every fixture the resulting ranking equals the differential reference's except where two values lie within the deadband (ledger: L0001) (kill_test: tests/recall/test_ink_rank_matches_reference)
+- [BINDING] origin: derived — ink is never a sum over every use: uses fold into time buckets that merge only while width ≤ (deadband / d) × age and (spread of d) × ln(age) ≤ deadband, so cost grows with the logarithm of a label's uses, and on every fixture the ranking equals the exact sum's except where two values lie within the deadband (ledger: L0001, L0012) (kill_test: tests/recall/test_ink_rank_matches_reference)
+- [BINDING] origin: derived — τ moves only when an outcome is charged; each word is weighted by its ordinary-English information and read from the innermost symbol around it that has a record (ledger: L0013) (kill_test: tests/recall/test_repetition_never_moves_trust)
 
 ## open gaps
 - G001 — default parameters are conventions awaiting refit

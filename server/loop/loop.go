@@ -14,10 +14,12 @@ import (
 	"sync"
 	"time"
 
+	"plebian/server/assemble"
 	"plebian/server/clock"
 	"plebian/server/config"
 	"plebian/server/core"
 	"plebian/server/models"
+	"plebian/server/recall"
 	"plebian/server/store"
 	"plebian/server/tools"
 )
@@ -33,6 +35,10 @@ type Loop struct {
 	// Index indexes a sealed sheet (n.grammar): writer tags per part, and whether heard or
 	// outside words opened its turn.
 	Index func(ctx context.Context, n int64, sh core.Sheet, heardOpened bool) error
+	// A keeps the strata and builds the spotlight (n.assemble); R settles outcomes (n.recall).
+	A     *assemble.Assembler
+	R     *recall.R
+	Heard assemble.Heard
 
 	wake     chan struct{}
 	mu       sync.Mutex

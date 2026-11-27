@@ -54,7 +54,9 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 	var nextSpot []byte
 	for round := 0; ; round++ {
 		v := l.inView(start, opener, parts)
-		spots = append(spots, nextSpot)
+		l.settle(ctx, parts)
+		spot, shown := l.spotlight(ctx, routes[0], parts)
+		spots = append(spots, append(nextSpot, spot...))
 		nextSpot = nil
 		resp, rt, err := l.call(ctx, routes, start, spots, thinking, parts)
 		if err != nil {
@@ -63,10 +65,17 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 		}
 		out := outputParts(resp, l.now())
 		sh := core.Sheet{Opener: sheetOpener, Parts: append(append([]core.Part{}, parts...), out...)}
-		meta := store.TurnMeta{At: l.now(), Shown: "[]", HeardOpened: opener == core.ByLanding || opener == core.ByQuestion, OutsideInView: v.outside, Model: rt.Model.ID, RequestID: resp.RequestID}
+		if shown == nil {
+			shown = []int64{}
+		}
+		shownJSON, _ := json.Marshal(shown)
+		meta := store.TurnMeta{At: l.now(), Shown: string(shownJSON), HeardOpened: opener == core.ByLanding || opener == core.ByQuestion, OutsideInView: v.outside, Model: rt.Model.ID, RequestID: resp.RequestID}
 		n, err := l.S.Seal(ctx, sh, meta)
 		if err != nil {
 			return err
+		}
+		if l.tailFrom == 0 {
+			l.tailFrom = n
 		}
 		if l.Index != nil {
 			if err := l.Index(ctx, n, sh, meta.HeardOpened); err != nil {
@@ -104,7 +113,9 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 		for _, c := range calls {
 			id, name, _ := strings.Cut(c.Meta, " ")
 			l.S.DB.ExecContext(ctx, `INSERT INTO calls(turn, call_id, tool, class, state) VALUES(?,?,?,?, 'sealed')`, n, id, name, string(l.Tools.ClassOf(name, c.Text)))
-			held := lastFailed != nil && !lastFailedHeld && sameCall(*lastFailed, c)
+			// Held once: a call repeating word for word the one whose failure it answers, while
+			// its wording is struck (TP-07 circuit breaker).
+			held := lastFailed != nil && !lastFailedHeld && sameCall(*lastFailed, c) && (l.R == nil || l.R.Struck(ctx, c.Text))
 			rd := l.runOrDraft(ctx, n, opener, ownerAt, v, c, held)
 			if held {
 				lastFailedHeld = true
@@ -170,6 +181,9 @@ func (l *Loop) call(ctx context.Context, routes []models.Route, start int, spots
 		rt := rt
 		B := l.budget(ctx, rt)
 		in := assemble.Input{Model: rt.Model.ID, Tools: l.Tools.Band(), Tail: l.tail, Exchange: start, Spots: spots, Thinking: thinking, Inbound: parts}
+		if l.A != nil {
+			in.Deep, in.Recent = l.A.Bands(ctx)
+		}
 		req := assemble.Build(in, l.P)
 		n, err := l.Counter.Count(ctx, &rt.Provider, req)
 		if err != nil {
@@ -210,20 +224,122 @@ func (l *Loop) call(ctx context.Context, routes []models.Route, start int, spots
 	return models.Response{}, models.Route{}, lastErr
 }
 
-// foldOnOpen folds the tail as an exchange opens when the request would pass B; the
-// newest sheet never folds. shortcut: folded sheets leave the request here; n.assemble
-// folds them into recent strata (TP-05) instead.
+// foldOnOpen folds the tail into recent strata as an exchange opens, when the request
+// would pass B; the newest sheet never folds (TP-05). Within an exchange nothing folds.
 func (l *Loop) foldOnOpen(ctx context.Context, rt models.Route, parts []core.Part) {
 	B := l.budget(ctx, rt)
-	for len(l.tail) > 1 {
-		req := assemble.Build(assemble.Input{Model: rt.Model.ID, Tools: l.Tools.Band(), Tail: l.tail, Exchange: len(l.tail), Inbound: parts}, l.P)
-		n, err := l.Counter.Count(ctx, &rt.Provider, req)
-		if err != nil || n <= B {
-			return
+	req := l.build(ctx, rt, len(l.tail), nil, nil, parts)
+	n, err := l.Counter.Count(ctx, &rt.Provider, req)
+	if err != nil || n <= B || len(l.tail) < 2 {
+		return
+	}
+	if l.A == nil {
+		for len(l.tail) > 1 && n > B {
+			l.tail = l.tail[1:]
+			l.tailFrom++
+			req = l.build(ctx, rt, len(l.tail), nil, nil, parts)
+			n, _ = l.Counter.Count(ctx, &rt.Provider, req)
 		}
-		l.tail = l.tail[1:]
-		l.tailFrom++
 		l.S.SetSetting(ctx, "tail_from", fmt.Sprint(l.tailFrom))
+		return
+	}
+	var turns []int64
+	for i := range l.tail {
+		turns = append(turns, l.tailFrom+int64(i))
+	}
+	fixed := l.Counter.CountText(rt.Model.ID, []byte(assemble.System)) + int(float64(B)*l.P.SpotlightShare)
+	for _, t := range l.Tools.Band() {
+		fixed += l.Counter.CountText(rt.Model.ID, append([]byte(t.Name+t.Description), t.Schema...))
+	}
+	k := l.A.Merge(ctx, rt.Model.ID, B, fixed, turns, float64(l.tailFrom+int64(len(l.tail))))
+	l.tail = l.tail[k:]
+	l.tailFrom += int64(k)
+	l.S.SetSetting(ctx, "tail_from", fmt.Sprint(l.tailFrom))
+}
+
+func (l *Loop) build(ctx context.Context, rt models.Route, start int, spots [][]byte, thinking map[int][]models.Block, parts []core.Part) models.Request {
+	in := assemble.Input{Model: rt.Model.ID, Tools: l.Tools.Band(), Tail: l.tail, Exchange: start, Spots: spots, Thinking: thinking, Inbound: parts}
+	if l.A != nil {
+		in.Deep, in.Recent = l.A.Bands(ctx)
+	}
+	return assemble.Build(in, l.P)
+}
+
+// spotlight builds the quoted record beside this round's inbound.
+func (l *Loop) spotlight(ctx context.Context, rt models.Route, parts []core.Part) ([]byte, []int64) {
+	if l.A == nil {
+		return nil, nil
+	}
+	var cue, last []byte
+	for _, p := range parts {
+		if p.Kind == core.PartOwner || p.Kind == core.PartReading || p.Kind == core.PartQuestion || p.Kind == core.PartClock {
+			cue = append(append(cue, p.Text...), ' ')
+		}
+	}
+	for i := len(l.tail) - 1; i >= 0 && last == nil; i-- {
+		for _, p := range l.tail[i].Parts {
+			if p.Kind == core.PartAgent {
+				last = append(last, p.Text...)
+			}
+		}
+	}
+	inView := map[int64]bool{}
+	rows, err := l.S.DB.QueryContext(ctx, `SELECT id FROM fragments WHERE turn >= ?`, l.tailFrom)
+	if err == nil {
+		for rows.Next() {
+			var id int64
+			rows.Scan(&id)
+			inView[id] = true
+		}
+		rows.Close()
+	}
+	return l.A.Spotlight(ctx, rt.Model.ID, l.budget(ctx, rt), cue, last, inView, l.Heard, float64(l.tailFrom+int64(len(l.tail))))
+}
+
+// settle is the outcome ledger, first in each turn: each reading settles its call by its
+// exit code; a failure is a redline (an open loop) that a success of the same step closes.
+func (l *Loop) settle(ctx context.Context, parts []core.Part) {
+	if l.R == nil {
+		return
+	}
+	n := l.tailFrom + int64(len(l.tail)) - 1
+	for _, p := range parts {
+		if p.Kind != core.PartReading {
+			continue
+		}
+		f := strings.Fields(p.Meta)
+		if len(f) < 2 {
+			continue
+		}
+		id, exit := f[0], f[1]
+		var call core.Part
+		for i := len(l.tail) - 1; i >= 0; i-- {
+			for _, c := range l.tail[i].Parts {
+				if c.Kind == core.PartCall && strings.HasPrefix(c.Meta, id+" ") {
+					call = c
+				}
+			}
+			if call.Meta != "" {
+				break
+			}
+		}
+		if call.Meta == "" || strings.HasPrefix(string(p.Text), "drafted") || strings.HasPrefix(string(p.Text), "held") {
+			continue
+		}
+		_, name, _ := strings.Cut(call.Meta, " ")
+		st := step(name, call.Text)
+		ok := exit == "0"
+		l.R.Charge(ctx, n, id, call.Text, ok, "exit")
+		if ok {
+			l.S.DB.ExecContext(ctx, `UPDATE loops SET closed_turn=? WHERE kind='redline' AND step=? AND closed_turn IS NULL`, n, st)
+		} else {
+			text := string(p.Text)
+			if len(text) > 400 {
+				text = text[:400]
+			}
+			l.S.DB.ExecContext(ctx, `UPDATE loops SET closed_turn=? WHERE kind='redline' AND step=? AND closed_turn IS NULL`, n, st) // a newer reading of the same failure takes its place
+			l.S.DB.ExecContext(ctx, `INSERT INTO loops(kind, step, text, opened_turn, call_turn, call_id) VALUES('redline', ?, ?, ?, ?, ?)`, st, name+" "+string(call.Text)+" → "+text, n, n, id)
+		}
 	}
 }
 

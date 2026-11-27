@@ -22,6 +22,7 @@ import (
 	"github.com/skip2/go-qrcode"
 
 	"plebian/server/api"
+	"plebian/server/assemble"
 	"plebian/server/audio"
 	"plebian/server/clock"
 	"plebian/server/config"
@@ -30,6 +31,7 @@ import (
 	"plebian/server/loop"
 	"plebian/server/models"
 	"plebian/server/ops"
+	"plebian/server/recall"
 	"plebian/server/speech"
 	"plebian/server/store"
 	"plebian/server/tools"
@@ -226,12 +228,18 @@ func serve(args []string) error {
 	} else {
 		an.E = engine{eng}
 	}
+	rc := &recall.R{S: s, G: gr, P: core.Defaults}
 	reg := tools.NewRegistry(loop.CoreTools(s, an.Name)...)
 	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger,
 		Index: func(ctx context.Context, n int64, sh core.Sheet, heard bool) error {
-			_, err := gr.Index(ctx, n, sh, heard, core.Defaults)
-			return err
-		}}
+			ix, err := gr.Index(ctx, n, sh, heard, core.Defaults)
+			if err != nil {
+				return err
+			}
+			return rc.Cover(ctx, ix.Fragments, n)
+		},
+		A: &assemble.Assembler{S: s, G: gr, R: rc, P: core.Defaults, Counter: counter},
+		R: rc}
 	if err := lp.Init(ctx); err != nil {
 		return err
 	}
