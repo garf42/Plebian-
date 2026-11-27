@@ -11,7 +11,7 @@ An agent you own. One ongoing conversation with an AI that works for you, rememb
 
 ## Status
 
-From CI run 45983583848 (commit 835583c), the same on amd64 and arm64, each scenario run twice:
+From CI run 45987993187 (commit 55c6853), the same on amd64 and arm64, each scenario run twice:
 
 | Scenario | What it proves | State |
 |---|---|---|
@@ -21,12 +21,12 @@ From CI run 45983583848 (commit 835583c), the same on amd64 and arm64, each scen
 | A04 | a failed step becomes a redline, its repeat held once | pass |
 | A05 | live Omi audio lands as heard rows with speakers | pass (server half; the app half has not run on the emulator) |
 | A06 | offline audio lands at its true wall time | pass (server half; the app half has not run on the emulator) |
-| A07 | an unnamed voice opens one question | fail |
+| A07 | an unnamed voice opens one question | pass |
 | A08 | overheard words never act; a mail wakes the agent | fail |
-| A09 | a heard fact is answered with who and when | fail |
+| A09 | a heard fact is answered with who and when | pass |
 | A10 | mail, calendar and texts land; a PDF is read as outside words | pass |
 | A11 | research answered with its URLs | pass |
-| A12 | a browser order is held and drafted | fail |
+| A12 | a browser order is held and drafted | pass |
 | A13 | the clock opens the night's entry | fail |
 | A14 | standing needs a signature and waits the owner's usual time | pass |
 | A15 | both wire formats; fallback; per-model budget | pass |

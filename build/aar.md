@@ -22,11 +22,15 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
   - Blocked on a precondition: model provider key, libgm, Omi over BLE, universal_ble, biometric_signature, and the Flutter packages' platform halves.
   - G035 lists the server dependencies in use without a row.
 - **Tests:** 109 Go test functions, 80 Flutter tests, and 20 acceptance scenarios run twice per arch.
-- **Scenarios** (server run 45983583848, commit 835583c, identical on amd64 and arm64, both runs agreeing):
-  - Pass: A01, A02, A03, A04, A05, A06, A10, A11, A14, A15, A17, A18, A20, Manifest, NonVacuity (under the every-assertion-red rule), VersionIsCommitUnderTest.
+- **Scenarios** (server run 45987993187, commit 55c6853, identical on amd64 and arm64, both runs agreeing):
+  - Pass: A01, A02, A03, A04, A05, A06, A07, A09, A10, A11, A12, A14, A15, A17, A18, A20, Manifest, NonVacuity (under the every-assertion-red rule), VersionIsCommitUnderTest.
   - A05 and A06 count their server halves only; the app halves have not run on the emulator (G049).
-  - Fail: A07 (asked 3 times), A08 (no woken turn), A09 (no reply), A12 (Chromium crash handler), A13 (entry not held), A16 (asked 9 times).
+  - Fail:
+    - A08: no woken turn.
+    - A13: the clock-written entry is not shown held.
+    - A16: the quiet feed's question was counted 4 times.
   - Blocked: A19.
+  - The previous run (45983583848, commit 835583c) had A07, A09 and A12 red. A09 went green with L0049, A12 with the Chromium environment change (correcting L0048's flags-only fix), and A07 with counting distinct question blocks.
 - **TP tests:** TP-T1…T15 have tests; TP-T16 and TP-T17 are not built (G036).
 
 ## Rediscovery rate
@@ -82,10 +86,11 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 
 ## What to change, ranked by damage still possible
 
-1. **A08 and A09.**
-   - A09's likely cause, words split across a stretch's lines, is fixed in L0049, not yet through CI.
-   - A08's woken turn is still undiagnosed. The node-level wake passes with the same lines (`tests/underlay/wake_test.go`).
-   - The journal now prints for each failing scenario, but `compare_runs` keeps only `file.go:N` lines, so the journal body is in the raw job log only.
+1. **A08, A13, A16.**
+   - A08: the woken turn is still undiagnosed; the node-level wake passes with the same lines (`tests/underlay/wake_test.go`).
+   - A13: the clock now opens the turn, but its entry reads as not held; held entries project correctly at the node level.
+   - A16: the question is still counted more than once.
+   - The journal printed for each failing scenario came back empty (`journalctl _UID` with `--since`), so these three have no server-side record yet.
 2. **The browser is not fetched by install (G032).** On the owner's box, `browse`, the live view and the texts sign-in are absent until a browser directory is supplied.
 3. **Tailnet reach is untested in CI** (CI runs `--no-tailnet`).
    - L0036 fixed a paired address that changed on every restart; no unit or acceptance test would have caught it.
