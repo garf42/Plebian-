@@ -32,9 +32,9 @@ reference: the fixture provider's request log; MR-1, MR-2
   negative_check: pending
   status: live
 - D2: switches provider on the first 429 regardless of Retry-After
-  kill_test: tests/models/test_retry_window
-  negative_check: pending
-  status: live
+  kill_test: tests/models/retry_test.go TestRetryWindow
+  negative_check: seen red — TestRetryWindow: Retry-After 7s within 1m0s: same provider answered false (switched on the first 429)
+  status: killed
 - D3: counts every model's tokens with one generic tokenizer, so a request that fits B on paper overflows another model or is silently cut by a runtime that truncates
   kill_test: tests/models/test_counts_never_short
   negative_check: pending
