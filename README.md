@@ -15,7 +15,7 @@ From CI run 45987993187 (commit 55c6853), the same on amd64 and arm64, each scen
 
 | Scenario | What it proves | State |
 |---|---|---|
-| A01 | install leaves nothing outside its root; uninstall removes all | pass |
+| A01 | install leaves nothing outside its root but its accounts and the system packages the box lacks; uninstall removes all but those packages | pass |
 | A02 | pairing; an unpaired client reads nothing | pass |
 | A03 | a message gets a reply; every sealed turn rebuilds byte-exact | pass |
 | A04 | a failed step becomes a redline, its repeat held once | pass |
@@ -49,10 +49,10 @@ From CI run 45987993187 (commit 55c6853), the same on amd64 and arm64, each scen
    ```
    - It installs into `/opt/plebian` (`--root` to change) and creates two system accounts.
    - It downloads the speech models (sherpa-onnx's releases, pinned hashes) and the release's browser bundle (checked by its `.sha256`).
-   - Through `apt` it installs what the box lacks for those: Chromium's libraries and `poppler-utils`.
+   - Through `apt`, and only what the box lacks: Chromium's libraries (Playwright's list, with fonts and Xvfb) for the browser, and `poppler-utils` (pdftotext) for the agent's tools.
    - It prints a Tailscale sign-in link; once the box is on your tailnet it prints a pairing code.
    - `sudo /opt/plebian/bin/plebian pair` prints a new code.
-   - `sudo /opt/plebian/bin/plebian uninstall` removes everything under the root and leaves the system packages.
+   - `sudo /opt/plebian/bin/plebian uninstall` removes the root and the two accounts and leaves the system packages.
 2. **App**: on your Android phone, install the Tailscale app, then install `plebian.apk` from the same release.
 3. **Pair and connect**: enter the code, then go through the Setup cards: model, Omi, mail, calendar, texts, storage, backups.
 

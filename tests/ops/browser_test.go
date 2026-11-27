@@ -36,7 +36,7 @@ func publish(t *testing.T, tgz []byte, sum string) string {
 	return p
 }
 
-// G032 (n.ops): install takes the release's browser bundle only as its .sha256 names it,
+// D4 (n.ops), G032: install takes the release's browser bundle only as its .sha256 names it,
 // and only whole: Node and Playwright MCP's entry point must be in it.
 func TestBrowserBundleChecked(t *testing.T) {
 	ctx := context.Background()
@@ -52,6 +52,17 @@ func TestBrowserBundleChecked(t *testing.T) {
 	if _, err := ops.FetchBrowser(ctx, publish(t, whole, strings.Repeat("0", 64)), t.TempDir()); err == nil {
 		t.Fatalf("a bundle that does not match its sha256 was taken")
 	}
+	// A program released with its bundle's sum takes no other bundle, even one whose
+	// .sha256 beside it matches.
+	ops.BrowserSum = strings.Repeat("1", 64)
+	if _, err := ops.FetchBrowser(ctx, publish(t, whole, hex.EncodeToString(h[:])), t.TempDir()); err == nil {
+		t.Fatalf("a bundle other than the one released with this program was taken")
+	}
+	ops.BrowserSum = hex.EncodeToString(h[:])
+	if _, err := ops.FetchBrowser(ctx, publish(t, whole, hex.EncodeToString(h[:])), t.TempDir()); err != nil {
+		t.Fatalf("the bundle released with this program was refused: %v", err)
+	}
+	ops.BrowserSum = ""
 	part := bundle(t, map[string]string{"browser/node/bin/node": "node"})
 	hp := sha256.Sum256(part)
 	if _, err := ops.FetchBrowser(ctx, publish(t, part, hex.EncodeToString(hp[:])), t.TempDir()); err == nil {

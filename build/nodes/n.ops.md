@@ -12,8 +12,9 @@ spec: AG-02 (spend), AG-06 (watchdog, backups, health), AG-08, AG-09; PL-06 (Thi
 ## guarantee
 [BINDING] origin: specified
 - out: release artifacts for linux/arm64 and linux/amd64 with pinned checksums (bubblewrap built among them); one program with install, update, uninstall, serve, pair, backup, restore and replay; a user-level service per account (the server; the tools user's runner) with a watchdog; the This week pipeline (sweep task → brief items → owner approvals → mechanic run or repository issue → candidate → replay → deploy)
-- install writes nothing outside its root except its two system accounts and their linger flags; uninstall removes everything install created; a pre-existing service, directory and port on the host are untouched
-- the server joins the owner's tailnet as its own device through Tailscale's embedded library (state under the root; install prints the sign-in link); the API listens only there and on localhost, and every port bound is one found free
+- install writes nothing outside its root except its two system accounts, their linger flags and the system packages the box lacks for what Plebian runs (Chromium's libraries through Playwright's list, the host programs the tools use), installed through the system's package manager; uninstall removes everything else install created; a pre-existing service, directory and port on the host are untouched (L0051)
+- install takes the browser bundle released with its program, by the sum stamped into it and the .sha256 beside it, and swaps it in whole
+- the server joins the owner's tailnet as its own device through Tailscale's embedded library (state under the root; install prints the sign-in link); the API listens only there and on localhost; every port bound on the host is one found free, and the tailnet port is HTTP's 80 on tsnet's own stack (L0036)
 - with a bucket configured, audio and originals live in the bucket and nothing else changes
 - nightly backups (restic) go to a second disk and an offsite destination, encrypted with the owner's key; a restore into a fresh root replays a page byte-identical
 - an update replays every page and request since the last deploy; any difference blocks the deploy until the owner approves it in This week; a failed start after deploy rolls back to the previous version
@@ -42,6 +43,10 @@ fixtures: scenarios A01, A17, A18, A20; probe `tests/probes/backup`
 - D3: deploys without replaying
   kill_test: tests/acceptance A20 (tests/demons/n.ops-D3.patch)
   negative_check: seen red (2026-11-27, demons run 45982484950) — replayed_before_deploy: updates card "deployed 65e8f60… at 2026-11-27T10:30:19Z: replayed 0 pages identical"
+  status: killed
+- D4: takes a browser bundle that does not match its .sha256
+  kill_test: tests/ops/browser_test.go TestBrowserBundleChecked
+  negative_check: seen red (2026-11-27) — browser_test.go:53: a bundle that does not match its sha256 was taken
   status: killed
 
 ## clauses

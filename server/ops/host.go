@@ -3,6 +3,8 @@ package ops
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +17,10 @@ import (
 // The box's browser is one bundle per release, built by CI from server/browser/bundle:
 // Node.js, Playwright MCP and the Chromium that Playwright pins, checked by its .sha256.
 
+// BrowserSum is the sha256 of the bundle released with this program, stamped at build
+// time (-ldflags -X); when set, only that bundle is taken, whatever the release holds now.
+var BrowserSum = ""
+
 // BrowserAsset is the release asset holding the browser bundle for an architecture.
 func BrowserAsset(goarch string) string { return "plebian-browser-linux-" + goarch + ".tar.gz" }
 
@@ -24,6 +30,9 @@ func FetchBrowser(ctx context.Context, url, dir string) (string, error) {
 	tgz, err := fetchCandidate(ctx, url)
 	if err != nil {
 		return "", err
+	}
+	if h := sha256.Sum256(tgz); BrowserSum != "" && hex.EncodeToString(h[:]) != BrowserSum {
+		return "", fmt.Errorf("the browser bundle is not the one released with this program")
 	}
 	if err := unpack(tgz, dir); err != nil {
 		return "", err
@@ -77,11 +86,13 @@ func aptInstall(out io.Writer, pkgs ...string) error {
 }
 
 // EnsureHost puts on the box what its programs need from the system: the host programs
-// above, and the libraries Chromium links against (Playwright's own list for this
-// distribution, run only when the loader finds some missing). It changes nothing when
-// everything is present. The packages stay when Plebian is uninstalled: other software
-// may use them.
-func EnsureHost(r Root, out io.Writer) error {
+// above, and the libraries the browser bundle's Chromium links against (Playwright's own
+// list for this distribution, which also brings fonts and Xvfb), run only when the loader
+// finds some missing. browser is the bundle's directory (chromium/, node/, mcp/), checked
+// before it is handed to the server's account; empty when no browser is installed. It
+// changes nothing when everything is present. The packages stay when Plebian is
+// uninstalled: other software may use them.
+func EnsureHost(out io.Writer, browser string) error {
 	var pkgs []string
 	for _, h := range hostPrograms {
 		if _, err := exec.LookPath(h.program); err != nil {
@@ -93,15 +104,18 @@ func EnsureHost(r Root, out io.Writer) error {
 			return err
 		}
 	}
-	chrome, _ := filepath.Glob(r.P("browser", "chromium", "*", "chrome"))
-	if len(chrome) == 0 {
+	if browser == "" {
 		return nil
+	}
+	chrome, _ := filepath.Glob(filepath.Join(browser, "chromium", "*", "chrome"))
+	if len(chrome) != 1 {
+		return fmt.Errorf("the browser bundle holds %d Chromium builds, not one", len(chrome))
 	}
 	miss, err := missingLibs(chrome[0])
 	if err != nil || len(miss) == 0 {
 		return err
 	}
-	cmd := exec.Command(r.P("browser", "node", "bin", "node"), r.P("browser", "mcp", "node_modules", "playwright", "cli.js"), "install-deps", "chromium")
+	cmd := exec.Command(filepath.Join(browser, "node", "bin", "node"), filepath.Join(browser, "mcp", "node_modules", "playwright", "cli.js"), "install-deps", "chromium")
 	cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
 	var b bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &b, &b
@@ -112,6 +126,6 @@ func EnsureHost(r Root, out io.Writer) error {
 		sort.Strings(still)
 		return fmt.Errorf("Chromium still lacks %s after installing its libraries", strings.Join(still, " "))
 	}
-	fmt.Fprintln(out, "installed Chromium's libraries:", strings.Join(miss, " "))
+	fmt.Fprintln(out, "installed Chromium's libraries (Playwright's list):", strings.Join(miss, " "))
 	return nil
 }

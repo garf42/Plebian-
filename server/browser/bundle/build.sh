@@ -19,6 +19,7 @@ curl -fsSL -o "$work/node.tar.xz" "https://nodejs.org/dist/$version/node-$versio
 echo "$sha  $work/node.tar.xz" | sha256sum -c - >/dev/null
 mkdir "$work/node" && tar -xJf "$work/node.tar.xz" -C "$work/node" --strip-components=1
 cp "$work/node/bin/node" "$B/node/bin/node"
+cp "$work/node/LICENSE" "$B/node/LICENSE" # Node's notice and those of what is built into it
 cp "$here/package.json" "$here/package-lock.json" "$B/mcp/"
 (cd "$B/mcp" && PATH="$work/node/bin:$PATH" npm ci --ignore-scripts --no-audit --no-fund --omit=dev)
 PLAYWRIGHT_BROWSERS_PATH="$work/pw" "$B/node/bin/node" "$B/mcp/node_modules/playwright/cli.js" install chromium

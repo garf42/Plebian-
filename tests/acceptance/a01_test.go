@@ -22,7 +22,8 @@ var churn = []string{"/proc", "/sys", "/dev", "/run", "/tmp", "/var/tmp", "/var/
 	"/var/lib/docker", "/var/lib/containerd", "/opt/hostedtoolcache", "/opt/runner", "/usr/share/rust", "/swapfile",
 	"/var/lib/waagent", "/var/lib/cloud", "/var/lib/sudo", "/var/lib/private", "/var/lib/polkit-1"}
 
-// What install may write outside its root: the two accounts and their linger flags.
+// What install may write outside its root: the two accounts and their linger flags, and
+// the files of the system packages the box lacked (hostPackage's, removed before the run).
 var allowed = []string{"/etc/passwd", "/etc/group", "/etc/shadow", "/etc/gshadow", "/etc/passwd-", "/etc/group-", "/etc/shadow-", "/etc/gshadow-",
 	"/etc/.pwd.lock", "/var/lib/systemd/linger/plebian", "/var/lib/systemd/linger/plebian-tools", "/var/lib/systemd/linger"}
 
@@ -71,11 +72,11 @@ func diff(a, b map[string]string) []string {
 	return out
 }
 
-func outsideAllowed(paths []string) []string {
+func outsideAllowed(paths []string, pkg map[string]bool) []string {
 	var bad []string
 	for _, p := range paths {
 		q := strings.TrimSuffix(p, " (removed)")
-		ok := false
+		ok := pkg[q] && !strings.HasSuffix(p, " (removed)")
 		for _, a := range allowed {
 			if q == a {
 				ok = true
@@ -147,16 +148,42 @@ func (c canary) alive() bool {
 	return strings.TrimSpace(string(b)) == "canary"
 }
 
+// hostPackage is one package install puts on a box that lacks it (pdftotext for the tools).
+const hostPackage = "poppler-utils"
+
+func pkgInstalled() bool {
+	out, _ := exec.Command("dpkg-query", "-W", "-f=${Status}", hostPackage).Output()
+	return strings.Contains(string(out), "install ok installed")
+}
+
+func pkgFiles() map[string]bool {
+	out, _ := exec.Command("dpkg", "-L", hostPackage).Output()
+	m := map[string]bool{}
+	for _, l := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		m[l] = true
+	}
+	return m
+}
+
+func apt(t testing.TB, args ...string) {
+	cmd := exec.Command("sudo", append([]string{"-n", "env", "DEBIAN_FRONTEND=noninteractive", "apt-get", "-y", "-qq"}, args...)...)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("apt-get %v: %v %s", args, err, out)
+	}
+}
+
 type a01 struct {
-	canary                canary
-	before, during, after map[string]string
-	listen                []string
-	canaryDuring          bool
-	canaryAfter           bool
-	rootLeft              bool
-	accountsLeft          []string
-	version               bool
-	commit                string
+	pkgRemoved, pkgAfterInstall, pkgAfterUninstall bool
+	pkg                                            map[string]bool
+	canary                                         canary
+	before, during, after                          map[string]string
+	listen                                         []string
+	canaryDuring                                   bool
+	canaryAfter                                    bool
+	rootLeft                                       bool
+	accountsLeft                                   []string
+	version                                        bool
+	commit                                         string
 }
 
 func init() {
@@ -165,6 +192,16 @@ func init() {
 		ID: "A01",
 		Setup: func(t testing.TB) *H {
 			st = &a01{canary: startCanary(t)}
+			// The box lacks a package install needs: install must put it on, through apt.
+			t.Cleanup(func() {
+				if !pkgInstalled() {
+					apt(t, "install", "--no-install-recommends", hostPackage)
+				}
+			})
+			if pkgInstalled() {
+				apt(t, "remove", hostPackage)
+			}
+			st.pkgRemoved = !pkgInstalled()
 			st.before = snapshot(st.canary.dir)
 			return &H{T: t}
 		},
@@ -175,11 +212,13 @@ func init() {
 			st.version = h.Do("GET", "/v1/version", nil, &v, false) == 200
 			st.commit = v.Commit
 			st.during = snapshot(st.canary.dir)
+			st.pkgAfterInstall, st.pkg = pkgInstalled(), pkgFiles()
 			st.listen = listeners()
 			st.canaryDuring = st.canary.alive()
 			runOut(h.T, sudo(filepath.Join(h.Root, "bin", "plebian"), "uninstall", "--root", h.Root))
 			time.Sleep(time.Second)
 			st.after = snapshot(st.canary.dir)
+			st.pkgAfterUninstall = pkgInstalled()
 			st.canaryAfter = st.canary.alive()
 			_, err := os.Stat(h.Root)
 			st.rootLeft = err == nil
@@ -199,13 +238,15 @@ func init() {
 				host, _, _ := net.SplitHostPort(a)
 				c.Check("listens_localhost_only", host == "127.0.0.1" || host == "::1" || host == "[::1]", "listens on %s", a)
 			}
+			c.Check("missing_package_installed", st.pkgRemoved && st.pkgAfterInstall, "%s removed before install %v, installed by it %v", hostPackage, st.pkgRemoved, st.pkgAfterInstall)
+			c.Check("packages_left_on_uninstall", st.pkgAfterInstall && st.pkgAfterUninstall, "%s still there after uninstall: %v", hostPackage, st.pkgAfterUninstall)
 			if st.during != nil {
-				bad := outsideAllowed(diff(st.before, st.during))
+				bad := outsideAllowed(diff(st.before, st.during), st.pkg)
 				c.Check("writes_only_root_accounts_linger", len(bad) == 0, "install wrote outside its root: %v", bad)
 				c.Check("canary_untouched_during", st.canaryDuring, "the canary service stopped answering on its port")
 			}
 			if st.after != nil {
-				bad := outsideAllowed(diff(st.before, st.after))
+				bad := outsideAllowed(diff(st.before, st.after), st.pkg)
 				c.Check("uninstall_restores", len(bad) == 0, "after uninstall, changed: %v", bad)
 				c.Check("canary_untouched_after", st.canaryAfter, "the canary stopped answering after uninstall")
 				c.Check("root_removed", !st.rootLeft, "the root is still there")

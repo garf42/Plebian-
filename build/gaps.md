@@ -137,10 +137,10 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   Assumed: the texts feed speaks the library's interface (pair, status, stream, send) over HTTP to a link endpoint, which the fixture serves; a libgm-backed link implementing the same Link interface in-process joins when n.browser hands over cookies. Reversible: yes (one Link implementation).
   Blocks: the texts half of A10 for live use.
 
-- G028 — node: n.tools — volatility: medium — last_reviewed: phase-4
-  The agent opens a PDF "the way it reads any file", but no PDF reader ships in Plebian's root; the sandbox sees the host's /usr.
-  Assumed: pdftotext from the host (poppler-utils) when installed; CI installs it. Reversible: yes (ship a reader under bin/ like bubblewrap).
-  Blocks: PDF reading on a box without poppler-utils.
+- G028 — node: n.tools — volatility: low — last_reviewed: phase-5
+  The agent opens a PDF "the way it reads any file" with the host's pdftotext (the sandbox sees the host's /usr); install puts poppler-utils on through apt when it is missing (L0051), and A01 removes it before installing to check that.
+  Assumed: a Debian-family host with apt-get; on another, install names the package to add. Reversible: yes (ship a reader under bin/ like bubblewrap).
+  Blocks: PDF reading on a box without apt-get.
 
 - G029 — node: n.store — volatility: low — last_reviewed: phase-4
   No spec says whether a bucket, once set, can be unset, or whether the nightly backup copies a bucket's originals.
@@ -158,7 +158,7 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   Blocks: nothing (A08 builds a lived-in body first).
 
 - G032 — node: n.browser — volatility: low — last_reviewed: phase-5
-  Resolved: each release carries plebian-browser-linux-<arch>.tar.gz, built by server/browser/bundle/build.sh from Node.js (pinned by nodejs.org's checksum), Playwright MCP 0.0.86 (npm ci against the committed lockfile) and the Chromium that Playwright pins; install fetches it by its .sha256 and installs Chromium's libraries through Playwright's own list (L0051). Still open: the fetch path itself runs only on a release; CI tests the same bundle built by the same script.
+  Resolved: each release carries plebian-browser-linux-<arch>.tar.gz, built by server/browser/bundle/build.sh from Node.js (pinned by nodejs.org's checksum), Playwright MCP 0.0.86 (npm ci against the committed lockfile) and the Chromium that Playwright pins. Install fetches it by the sum stamped into the program and its .sha256, stages it root-owned, checks Chromium's libraries from the staged copy (Playwright's list when the loader finds any missing) and swaps it in whole (L0051). Still open: the fetch runs only from a release (CI tests the same bundle from the same script); Playwright's Debian 12 arm64 list has run only on the owner's box; the download has no deadline and apt does not wait for a held dpkg lock.
   Assumed: the release's bundle is the one acceptance built and tested from the same script and pins. Reversible: yes (install --browser-from <dir> or none).
   Blocks: nothing.
 

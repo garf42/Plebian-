@@ -123,6 +123,46 @@ type InstallOptions struct {
 	BrowserURL  string // this release's browser bundle; empty when the build names no release
 }
 
+// swapBrowser puts a bundle's chromium/, node/ and mcp/ in place whole: each is laid
+// down as <name>.new (moved when it was staged on this filesystem, copied otherwise),
+// and only when all three are complete do they replace the old ones, so a failed copy
+// leaves the old browser as it was and no directory of an earlier bundle survives.
+func swapBrowser(r Root, from string, move bool, uid, gid int) error {
+	names := []string{"chromium", "node", "mcp"}
+	clean := func() {
+		for _, d := range names {
+			os.RemoveAll(r.P("browser", d+".new"))
+		}
+	}
+	clean()
+	for _, d := range names {
+		src, dst := filepath.Join(from, d), r.P("browser", d+".new")
+		if move && os.Rename(src, dst) == nil {
+			filepath.Walk(dst, func(p string, _ os.FileInfo, _ error) error { return os.Lchown(p, uid, gid) })
+			continue
+		}
+		if err := copyTree(src, dst, uid, gid); err != nil {
+			clean()
+			return err
+		}
+	}
+	for _, d := range names {
+		cur := r.P("browser", d)
+		os.RemoveAll(cur + ".old")
+		if err := os.Rename(cur, cur+".old"); err != nil && !os.IsNotExist(err) {
+			clean()
+			return err
+		}
+		if err := os.Rename(cur+".new", cur); err != nil {
+			os.Rename(cur+".old", cur)
+			clean()
+			return err
+		}
+		os.RemoveAll(cur + ".old")
+	}
+	return nil
+}
+
 // copyTree copies a directory, modes kept, owned by uid:gid.
 func copyTree(src, dst string, uid, gid int) error {
 	return filepath.Walk(src, func(p string, fi os.FileInfo, err error) error {
@@ -266,7 +306,7 @@ func Install(o InstallOptions) (err error) {
 			}
 		}
 	}
-	browserFrom := o.BrowserFrom
+	browserFrom, fetched := o.BrowserFrom, false
 	switch browserFrom {
 	case "none":
 		browserFrom = ""
@@ -275,29 +315,18 @@ func Install(o InstallOptions) (err error) {
 			fmt.Fprintln(o.Out, "browser not installed: this build names no release to fetch it from (install --browser-from <dir>)")
 			break
 		}
-		dl := r.P("run", "browser-bundle")
-		os.RemoveAll(dl)
-		defer os.RemoveAll(dl)
-		if d, err := FetchBrowser(context.Background(), o.BrowserURL, dl); err != nil {
-			fmt.Fprintln(o.Out, "browser not installed:", err)
-		} else {
-			browserFrom = d
-		}
-	}
-	if browserFrom != "" {
-		// The browser directory is the server account's: Chromium keeps its profile there.
-		if err := os.MkdirAll(r.P("browser", "profile"), 0o700); err != nil {
+		// Staged in a directory only root can write, on the root's filesystem: the libraries
+		// are checked from it before anything is handed to the server's account.
+		stage := r.P(".browser-stage")
+		os.RemoveAll(stage)
+		defer os.RemoveAll(stage)
+		if err := os.Mkdir(stage, 0o700); err != nil {
 			return fmt.Errorf("browser: %w", err)
 		}
-		for _, d := range []string{r.P("browser"), r.P("browser", "profile")} {
-			if err := os.Chown(d, suid, sgid); err != nil {
-				return fmt.Errorf("browser: %w", err)
-			}
-		}
-		for _, d := range []string{"chromium", "node", "mcp"} {
-			if err := copyTree(filepath.Join(browserFrom, d), r.P("browser", d), suid, sgid); err != nil {
-				return fmt.Errorf("browser: %w", err)
-			}
+		if d, err := FetchBrowser(context.Background(), o.BrowserURL, stage); err != nil {
+			fmt.Fprintln(o.Out, "browser not installed:", err)
+		} else {
+			browserFrom, fetched = d, true
 		}
 	}
 	if o.SpeechFrom == "none" {
@@ -308,8 +337,24 @@ func Install(o InstallOptions) (err error) {
 	}
 	// What the box's own system must provide (Chromium's libraries, host programs the
 	// tools use) is installed through its package manager; without it the rest still runs.
-	if err := EnsureHost(r, o.Out); err != nil {
+	if err := EnsureHost(o.Out, browserFrom); err != nil {
 		fmt.Fprintln(o.Out, "the box's system packages:", err)
+	}
+	swapped := false
+	if browserFrom != "" {
+		// The browser directory is the server account's: Chromium keeps its profile there.
+		if err := os.MkdirAll(r.P("browser", "profile"), 0o700); err != nil {
+			return fmt.Errorf("browser: %w", err)
+		}
+		for _, d := range []string{r.P("browser"), r.P("browser", "profile")} {
+			if err := os.Chown(d, suid, sgid); err != nil {
+				return fmt.Errorf("browser: %w", err)
+			}
+		}
+		if err := swapBrowser(r, browserFrom, fetched, suid, sgid); err != nil {
+			return fmt.Errorf("browser: %w", err)
+		}
+		swapped = true
 	}
 	cb, _ := json.MarshalIndent(o.Config, "", " ")
 	if err := writeFile(r.Config(), cb, 0o644, 0, 0); err != nil {
@@ -366,6 +411,13 @@ func Install(o InstallOptions) (err error) {
 	}
 	if err := userCtl(ServerUser, "enable", "--now", "plebian.service"); err != nil {
 		return err
+	}
+	if swapped && !fresh {
+		// A running server holds the browser paths it found at start; it takes the new ones.
+		os.Remove(r.APIFile())
+		if err := userCtl(ServerUser, "restart", "plebian.service"); err != nil {
+			return err
+		}
 	}
 	return waitAPI(r, 60*time.Second)
 }
