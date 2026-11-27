@@ -65,7 +65,7 @@ jobs:
           PLEBIAN_APK_KEY_PASSWORD: ${{ secrets.PLEBIAN_APK_KEY_PASSWORD }}
         run: |
           cd app
-          if [ -n "$PLEBIAN_APK_KEYSTORE" ]; then echo "$PLEBIAN_APK_KEYSTORE" | base64 -d > android/app/release.jks; fi
+          if [ -n "$PLEBIAN_APK_KEYSTORE" ]; then echo "$PLEBIAN_APK_KEYSTORE" | base64 -d > android/app/release.jks; export PLEBIAN_APK_KEYSTORE_FILE="$PWD/android/app/release.jks"; fi
           flutter pub get
           flutter build apk --release --build-name="${GITHUB_REF_NAME#v}" --dart-define=PLEBIAN_COMMIT="${GITHUB_SHA}"
           mkdir -p ../dist && cp build/app/outputs/flutter-apk/app-release.apk ../dist/plebian.apk
