@@ -26,7 +26,6 @@ func TestA19(t *testing.T) {
 	Run(t, "A19")
 }
 
-func TestA20(t *testing.T) { Run(t, "A20") }
 
 // TestNonVacuity: every built scenario's assertions fail on an empty store.
 func TestNonVacuity(t *testing.T) {

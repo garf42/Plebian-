@@ -171,8 +171,8 @@ func Install(o InstallOptions) (err error) {
 		mode     os.FileMode
 	}{
 		{string(r), 0, 0, 0o755},
-		{r.P("bin"), 0, 0, 0o755},
-		{r.P("lib"), 0, 0, 0o755},
+		{r.P("bin"), suid, sgid, 0o755}, // the server's own: an approved update replaces its program
+		{r.P("lib"), suid, sgid, 0o755},
 		{r.P("data"), suid, sgid, 0o700},
 		{r.Blobs(), suid, sgid, 0o700},
 		{r.P("secrets"), suid, sgid, 0o700},

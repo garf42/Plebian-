@@ -3,6 +3,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"context"
 	"encoding/json"
 	"flag"
@@ -70,6 +71,14 @@ func main() {
 		err = runner(args)
 	case "replay":
 		err = replay(args)
+	case "deploy-helper":
+		fs := flag.NewFlagSet("deploy-helper", flag.ExitOnError)
+		root := fs.String("root", "", "the root being updated")
+		from := fs.String("from", "", "the unpacked candidate (bin, lib)")
+		expect := fs.String("expect", "", "the commit the candidate reports")
+		replayed := fs.Int("replayed", 0, "pages replayed identical before the deploy")
+		fs.Parse(args)
+		err = ops.DeployHelper(ops.Root(*root), *from, *expect, *replayed)
 	case "restore":
 		fs := flag.NewFlagSet("restore", flag.ExitOnError)
 		root := fs.String("root", "/opt/plebian", "the installed root to restore into")
@@ -321,8 +330,9 @@ func serve(args []string) error {
 	srv.Hooks.Wake = lp.Wake
 	srv.Hooks.Admin = func(ctx context.Context, dev, action string, body []byte) error {
 		var a struct {
-			Step  string `json:"step"`
-			Nonce string `json:"nonce"`
+			Step      string `json:"step"`
+			Nonce     string `json:"nonce"`
+			Candidate string `json:"candidate"`
 		}
 		if err := json.Unmarshal(body, &a); err != nil {
 			return err
@@ -330,6 +340,26 @@ func serve(args []string) error {
 		switch action {
 		case "grant":
 			return lp.Grant(ctx, a.Step, dev+":"+a.Nonce)
+		case "deploy":
+			go func() {
+				dctx := context.WithoutCancel(ctx)
+				since := ops.LastDeployed(r)
+				if since.IsZero() {
+					var first string
+					s.DB.QueryRowContext(dctx, `SELECT COALESCE(MIN(at),'') FROM events`).Scan(&first)
+					since, _ = time.Parse(time.RFC3339Nano, first)
+				}
+				day := api.DayOf(since, api.Location(dctx, s))
+				dir, commit, n, err := ops.Prepare(dctx, r, s, a.Candidate, day)
+				if err != nil {
+					ops.WriteDeploy(r, ops.DeployState{State: "blocked", Version: commit, Detail: err.Error()})
+					return
+				}
+				if err := ops.Deploy(r, dir, commit, n); err != nil {
+					ops.WriteDeploy(r, ops.DeployState{State: "blocked", Version: commit, Detail: err.Error()})
+				}
+			}()
+			return nil
 		}
 		return fmt.Errorf("unknown admin action %q", action)
 	}
@@ -394,7 +424,15 @@ func serve(args []string) error {
 		}
 	}
 	srv.Hooks.SetupCards = func(ctx context.Context) (any, error) {
-		return map[string]any{"cards": append(ms.Cards(ctx), fs.Cards(ctx)...)}, nil
+		cards := append(ms.Cards(ctx), fs.Cards(ctx)...)
+		if d, ok := ops.ReadDeploy(r); ok {
+			for _, c := range cards {
+				if c["id"] == "updates" {
+					c["status"] = fmt.Sprintf("%s %s at %s: %s", d.State, d.Version, d.At, d.Detail)
+				}
+			}
+		}
+		return map[string]any{"cards": cards}, nil
 	}
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -476,6 +514,7 @@ func runner(args []string) error {
 func replay(args []string) error {
 	fs := flag.NewFlagSet("replay", flag.ExitOnError)
 	verify := fs.Bool("verify", false, "rebuild every sealed turn and heard row and check its hash")
+	pages := fs.String("pages", "", "render every page from this date (YYYY-MM-DD) to the newest and print each page's sha256")
 	path := fs.String("store", "", "a store file other than the root's (a restored copy)")
 	fs.Parse(args)
 	r, err := ops.FromExecutable()
@@ -496,8 +535,11 @@ func replay(args []string) error {
 		return err
 	}
 	s.SetSpeller(gr)
+	if *pages != "" {
+		return replayPages(s, *pages)
+	}
 	if !*verify {
-		return fmt.Errorf("replay: say what to replay (--verify)")
+		return fmt.Errorf("replay: say what to replay (--verify or --pages)")
 	}
 	t, h, verr := s.Verify(context.Background())
 	out := map[string]any{"turns": t, "heard": h, "ok": verr == nil}
@@ -508,6 +550,35 @@ func replay(args []string) error {
 	fmt.Println(string(b))
 	if verr != nil {
 		return verr
+	}
+	return nil
+}
+
+// replayPages prints "<date> <sha256 of the page as served>" for each page from since to
+// the newest event's page: the update replay runs this with both programs on one snapshot.
+func replayPages(s *store.Store, since string) error {
+	ctx := context.Background()
+	a := &api.Server{S: s, Clock: clock.System{}}
+	loc := api.Location(ctx, s)
+	var last string
+	s.DB.QueryRowContext(ctx, `SELECT COALESCE(MAX(at),'') FROM events`).Scan(&last)
+	end := since
+	if t, err := time.Parse(time.RFC3339Nano, last); err == nil {
+		end = api.DayOf(t, loc)
+	}
+	d, err := time.ParseInLocation("2006-01-02", since, loc)
+	if err != nil {
+		return err
+	}
+	for day := d.Format("2006-01-02"); day <= end; day = d.Format("2006-01-02") {
+		p, err := a.Page(ctx, day)
+		if err != nil {
+			return err
+		}
+		b, _ := json.Marshal(p)
+		h := sha256.Sum256(b)
+		fmt.Printf("%s %x\n", day, h)
+		d = d.AddDate(0, 0, 1)
 	}
 	return nil
 }
