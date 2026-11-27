@@ -16,6 +16,9 @@ jobs:
         runner: [ubuntu-22.04-arm, ubuntu-24.04]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash # named, GitHub runs it with -eo pipefail, so a probe piped to tee still fails
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -31,16 +34,19 @@ jobs:
           # -I keeps user site-packages out, so probe packages live in a venv of their own.
           python3 -m venv "$RUNNER_TEMP/venv" && echo "PY=$RUNNER_TEMP/venv/bin/python" >> "$GITHUB_ENV"
       - name: SQLite at a million-turn store (twice)
+        id: sqlite
         continue-on-error: true
-        run: cd tests/probes/sqlite && for i in 1 2; do go run . "$RUNNER_TEMP/probe$i.db"; done
+        run: cd tests/probes/sqlite && for i in 1 2; do go run . "$RUNNER_TEMP/probe$i.db"; done 2>&1 | tee "$RUNNER_TEMP/out-sqlite.txt"
       - name: restic 0.20.0 (twice inside the probe)
+        id: restic
         continue-on-error: true
         run: |
           arch=$(dpkg --print-architecture)
           curl -sSfL -o restic.bz2 "https://github.com/restic/restic/releases/download/v0.20.0/restic_0.20.0_linux_${arch}.bz2"
           bunzip2 restic.bz2 && chmod +x restic
-          RESTIC=$PWD/restic bash tests/probes/backup/probe_restic.sh
+          RESTIC=$PWD/restic bash tests/probes/backup/probe_restic.sh 2>&1 | tee "$RUNNER_TEMP/out-restic.txt"
       - name: Speech (twice)
+        id: speech
         continue-on-error: true
         run: |
           $PY -m pip install -q sherpa-onnx==2.0.3 numpy
@@ -49,16 +55,25 @@ jobs:
           curl -sSfL $B/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8.tar.bz2 | tar -xj
           curl -sSfL $B/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2 | tar -xj
           curl -sSfL -o nemo_en_titanet_small.onnx $B/speaker-recongition-models/nemo_en_titanet_small.onnx
-          cd "$GITHUB_WORKSPACE" && for i in 1 2; do $PY -I tests/probes/speech/probe_speech.py "$M"; done
+          cd "$GITHUB_WORKSPACE" && for i in 1 2; do $PY -I tests/probes/speech/probe_speech.py "$M"; done 2>&1 | tee "$RUNNER_TEMP/out-speech.txt"
       - name: Browser (twice)
+        id: browser
         continue-on-error: true
         run: |
           $PY -m pip install -q playwright
           if [ "$(uname -m)" = x86_64 ]; then export PROBE_CHANNEL=chrome; else export PROBE_CHANNEL=; $PY -m playwright install --with-deps chromium; fi
-          for i in 1 2; do $PY -I tests/probes/browser/probe_browser.py; done
+          for i in 1 2; do $PY -I tests/probes/browser/probe_browser.py; done 2>&1 | tee "$RUNNER_TEMP/out-browser.txt"
       - name: MCP client and Playwright MCP over CDP (twice)
+        id: mcp
         continue-on-error: true
         run: |
           cd tests/probes/mcp && npm i -s @playwright/mcp@0.0.86
-          if [ "$(uname -m)" = x86_64 ]; then export CHROME=google-chrome; else npx -y playwright install chromium && export CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux/chrome | head -1); fi
-          for i in 1 2; do go run .; done
+          if [ "$(uname -m)" = x86_64 ]; then export CHROME=google-chrome; else npx -y playwright install chromium && export CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome | head -1); fi
+          for i in 1 2; do go run .; done 2>&1 | tee "$RUNNER_TEMP/out-mcp.txt"
+      - name: Results (last lines of each probe; the job fails if any probe did)
+        if: always()
+        run: |
+          set +e
+          for f in sqlite restic speech browser mcp; do echo "== $f"; tail -n 6 "$RUNNER_TEMP/out-$f.txt" 2>/dev/null; done
+          echo "outcomes: sqlite=${{ steps.sqlite.outcome }} restic=${{ steps.restic.outcome }} speech=${{ steps.speech.outcome }} browser=${{ steps.browser.outcome }} mcp=${{ steps.mcp.outcome }}"
+          for o in ${{ steps.sqlite.outcome }} ${{ steps.restic.outcome }} ${{ steps.speech.outcome }} ${{ steps.browser.outcome }} ${{ steps.mcp.outcome }}; do [ "$o" = success ] || exit 1; done
