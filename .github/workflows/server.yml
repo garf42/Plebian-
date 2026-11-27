@@ -12,6 +12,11 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same branch supersedes a run still going.
+concurrency:
+  group: server-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
 jobs:
   plan:
     runs-on: ubuntu-24.04
