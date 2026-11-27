@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "org.plebian.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37 // the plugins' AAR metadata require compiling against 37 (CI app run 45982484877); targetSdk stays Flutter's
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
