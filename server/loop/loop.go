@@ -39,6 +39,12 @@ type Loop struct {
 	A     *assemble.Assembler
 	R     *recall.R
 	Heard assemble.Heard
+	// Sleep is the sleep pass (structure only, no uses); it runs between exchanges after
+	// SleepIdle without one, or every SleepTurns turns if the loop never idles (TP-08).
+	Sleep func(ctx context.Context) error
+
+	lastActive time.Time
+	sleptAt    int64
 
 	wake     chan struct{}
 	mu       sync.Mutex
@@ -101,9 +107,12 @@ func (l *Loop) Run(ctx context.Context) {
 		if err != nil {
 			l.Log.Printf("loop: %v", err)
 		}
+		l.maybeSleep(ctx)
 		var timer <-chan time.Time
 		if !next.IsZero() {
 			timer = l.Clock.After(next)
+		} else if l.Sleep != nil && l.turnCount(ctx) > l.sleptAt {
+			timer = l.Clock.After(l.lastActive.Add(l.P.SleepIdle))
 		}
 		select {
 		case <-ctx.Done():
@@ -111,6 +120,34 @@ func (l *Loop) Run(ctx context.Context) {
 		case <-l.wake:
 		case <-timer:
 		}
+	}
+}
+
+func (l *Loop) turnCount(ctx context.Context) int64 {
+	var n int64
+	l.S.DB.QueryRowContext(ctx, `SELECT COALESCE(MAX(id),0) FROM turns`).Scan(&n)
+	return n
+}
+
+// maybeSleep runs the sleep pass between exchanges once the loop has been idle
+// SleepIdle, or after SleepTurns turns without one.
+func (l *Loop) maybeSleep(ctx context.Context) {
+	if l.Sleep == nil {
+		return
+	}
+	n := l.turnCount(ctx)
+	if n == l.sleptAt {
+		return
+	}
+	if l.lastActive.IsZero() {
+		l.lastActive = l.Clock.Now()
+	}
+	idle := !l.Clock.Now().Before(l.lastActive.Add(l.P.SleepIdle))
+	if idle || n-l.sleptAt >= int64(l.P.SleepTurns) {
+		if err := l.Sleep(ctx); err != nil {
+			l.Log.Printf("sleep pass: %v", err)
+		}
+		l.sleptAt = n
 	}
 }
 

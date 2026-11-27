@@ -243,3 +243,58 @@ func TestSameSheetsSameSpellings(t *testing.T) {
 		}
 	}
 }
+
+// TP-T12 and TP-T14: after a sleep pass no pair of symbols appears twice and no label
+// occurs fewer than twice, and every row still rebuilds byte for byte from its spelling.
+func TestRepeatsAreLabels(t *testing.T) {
+	s, g := open(t)
+	texts := []string{"copy the prod config", "copy the prod config to staging", "Staging: copy the prod config, port 8080",
+		"port 8080 is up", "the config for port 8080", "restart staging", "restart staging and copy the prod config", "fifty yards"}
+	for i := 0; i < 3; i++ {
+		for j, x := range texts {
+			w := core.Agent
+			if (i+j)%2 == 0 {
+				w = core.Owner
+			}
+			seal(t, s, g, sheet(w, x))
+		}
+	}
+	if err := g.Check(ctx); err == nil {
+		t.Log("grammar already clean before the sleep pass")
+	}
+	if err := g.Sleep(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.Check(ctx); err != nil {
+		t.Fatalf("after the sleep pass: %v", err)
+	}
+	g2, _ := grammar.Open(ctx, s)
+	s.SetSpeller(g2)
+	if n, _, err := s.Verify(ctx); err != nil || n != 3*len(texts) {
+		t.Fatalf("verify after respelling: %d %v", n, err)
+	}
+	if err := g2.Check(ctx); err != nil {
+		t.Fatalf("after reopening: %v", err)
+	}
+	// A second pass changes nothing.
+	var before []string
+	r, _ := s.DB.Query(`SELECT hex(spelling) FROM turns ORDER BY id`)
+	for r.Next() {
+		var x string
+		r.Scan(&x)
+		before = append(before, x)
+	}
+	r.Close()
+	g2.Sleep(ctx)
+	r, _ = s.DB.Query(`SELECT hex(spelling) FROM turns ORDER BY id`)
+	i := 0
+	for r.Next() {
+		var x string
+		r.Scan(&x)
+		if x != before[i] {
+			t.Fatalf("a second sleep pass respelled turn %d", i+1)
+		}
+		i++
+	}
+	r.Close()
+}

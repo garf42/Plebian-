@@ -37,6 +37,8 @@ type Store struct {
 	// turnCache holds rebuilt turns: sealed bytes never change, so a rebuilt turn is
 	// reused. shortcut: unbounded map; bound it by size when stores reach millions of turns.
 	turnCache sync.Map
+	// Cache, set by the store itself, drops rebuilt turns after a respelling.
+	Cache func()
 }
 
 // Open opens or creates the store file with mode 0600 and applies migrations.
@@ -65,6 +67,7 @@ func Open(path string, blobs Blobs) (*Store, error) {
 	}
 	db.SetMaxOpenConns(1) // shortcut: one connection serializes all access; upgrade to a reader pool if projections contend with turns
 	s := &Store{DB: db, Path: path, Blobs: blobs, speller: Loose{}}
+	s.Cache = func() { s.turnCache.Range(func(k, _ any) bool { s.turnCache.Delete(k); return true }) }
 	if err := s.migrate(); err != nil {
 		db.Close()
 		return nil, err
@@ -128,6 +131,11 @@ func (s *Store) TurnBytes(ctx context.Context, n int64) ([]byte, error) {
 	if b, ok := s.turnCache.Load(n); ok {
 		return b.([]byte), nil
 	}
+	return s.rebuild(ctx, n)
+}
+
+// rebuild expands a turn's spelling and checks it against its hash, bypassing the cache.
+func (s *Store) rebuild(ctx context.Context, n int64) ([]byte, error) {
 	var sp, sha []byte
 	if err := s.DB.QueryRowContext(ctx, `SELECT spelling, sha FROM turns WHERE id=?`, n).Scan(&sp, &sha); err != nil {
 		return nil, err
@@ -191,7 +199,7 @@ func (s *Store) Verify(ctx context.Context) (turns, heard int, err error) {
 		return 0, 0, err
 	}
 	for _, id := range t {
-		if _, err := s.TurnBytes(ctx, id); err != nil {
+		if _, err := s.rebuild(ctx, id); err != nil {
 			return turns, heard, err
 		}
 		turns++

@@ -239,8 +239,9 @@ func serve(args []string) error {
 			}
 			return rc.Cover(ctx, ix.Fragments, n)
 		},
-		A: &assemble.Assembler{S: s, G: gr, R: rc, P: core.Defaults, Counter: counter},
-		R: rc}
+		A:     &assemble.Assembler{S: s, G: gr, R: rc, P: core.Defaults, Counter: counter},
+		R:     rc,
+		Sleep: gr.Sleep}
 	if err := lp.Init(ctx); err != nil {
 		return err
 	}

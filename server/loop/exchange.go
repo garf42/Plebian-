@@ -36,7 +36,10 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 		return errors.New("no model configured")
 	}
 	l.emit(ctx, "presence", map[string]any{"working": true}, 0)
-	defer l.emit(ctx, "presence", map[string]any{"working": false}, 0)
+	defer func() {
+		l.lastActive = l.Clock.Now()
+		l.emit(ctx, "presence", map[string]any{"working": false}, 0)
+	}()
 
 	// The budget folds the tail only as the exchange opens, counted with the spotlight the
 	// opening request will carry (TP-T4).

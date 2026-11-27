@@ -143,6 +143,8 @@ CREATE TABLE fragment_symbols(fragment INTEGER NOT NULL, symbol INTEGER NOT NULL
 CREATE INDEX fragment_symbols_symbol ON fragment_symbols(symbol);
 CREATE TABLE inks(symbol INTEGER NOT NULL, body TEXT NOT NULL, state TEXT NOT NULL, PRIMARY KEY(symbol, body));
 CREATE TABLE near_matches(id INTEGER PRIMARY KEY, body TEXT NOT NULL, writer TEXT NOT NULL, word TEXT NOT NULL, symbol INTEGER NOT NULL, change TEXT NOT NULL, turn INTEGER, tick INTEGER, settled INTEGER NOT NULL DEFAULT 0);`,
+	// 5: a label the sleep pass folded back in is retired (kept for its history, never spelled with).
+	`ALTER TABLE symbols ADD COLUMN retired INTEGER NOT NULL DEFAULT 0;`,
 }
 
 func (s *Store) migrate() error {

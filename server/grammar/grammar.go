@@ -72,7 +72,7 @@ func Open(ctx context.Context, s *store.Store) (*G, error) {
 		s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM inks WHERE body=?`, body).Scan(&v)
 		g.totals[body], g.vocabN[body] = n, v
 	}
-	rows, err := s.DB.QueryContext(ctx, `SELECT id, expansion, COALESCE(left_sym,0), COALESCE(right_sym,0) FROM symbols ORDER BY id`)
+	rows, err := s.DB.QueryContext(ctx, `SELECT id, expansion, COALESCE(left_sym,0), COALESCE(right_sym,0), retired FROM symbols ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +80,15 @@ func Open(ctx context.Context, s *store.Store) (*G, error) {
 	for rows.Next() {
 		var id, l, r int64
 		var exp []byte
-		if err := rows.Scan(&id, &exp, &l, &r); err != nil {
+		var retired bool
+		if err := rows.Scan(&id, &exp, &l, &r, &retired); err != nil {
 			return nil, err
 		}
 		sy := &symbol{left: l, right: r, exp: exp, key: Key(string(exp))}
 		g.syms[id] = sy
 		if l == 0 {
 			g.term[string(exp)] = id
-		} else {
+		} else if !retired {
 			g.label[[2]int64{l, r}] = id
 		}
 	}
@@ -190,6 +191,13 @@ func (g *G) terminal(ctx context.Context, tok []byte) (int64, error) {
 }
 
 func (g *G) newLabel(ctx context.Context, a, b int64) (int64, error) {
+	// A retired label for the same pair comes back rather than a second one forming.
+	var old int64
+	if g.S.DB.QueryRowContext(ctx, `SELECT id FROM symbols WHERE left_sym=? AND right_sym=? AND retired=1`, a, b).Scan(&old) == nil {
+		g.S.DB.ExecContext(ctx, `UPDATE symbols SET retired=0 WHERE id=?`, old)
+		g.label[[2]int64{a, b}] = old
+		return old, nil
+	}
 	exp := append(append([]byte(nil), g.syms[a].exp...), g.syms[b].exp...)
 	res, err := g.S.DB.ExecContext(ctx, `INSERT INTO symbols(body, expansion, left_sym, right_sym) VALUES('', ?, ?, ?)`, exp, a, b)
 	if err != nil {
