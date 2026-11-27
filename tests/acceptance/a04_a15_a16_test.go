@@ -178,17 +178,20 @@ func init() {
 		ranLines  int
 		reported  bool
 		restarted bool
+		quietAsks int
 	}
 	var st16 *a16
 	register(Scenario{
 		ID: "A16",
 		Setup: func(t testing.TB) *H {
 			st16 = &a16{}
-			h := fresh(t)
+			h := InstallSpeech(t)
+			h.Fixtures["speech"] = StartFixture(t, "speech")
 			marker := filepath.Join(h.Root, "workspace", "crash.txt")
 			h.Model("anthropic", []map[string]any{
 				{"match": "start the long job", "reply": map[string]any{"tool_calls": []map[string]any{{"name": "run", "input": map[string]any{"command": "echo started >> " + marker + "; sleep 20"}}}}},
 				{"match": "interrupted", "reply": map[string]any{"text": "The job was interrupted; I did not run it again."}},
+				{"match": "has been quiet since", "reply": map[string]any{"text": "The Omi has gone quiet."}},
 			})
 			return h
 		},
@@ -235,6 +238,28 @@ func init() {
 			b, _ := exec.Command("sudo", "-n", "cat", marker).Output()
 			st16.ranLines = strings.Count(string(b), "started")
 			st16.replay = h.Replay()
+			// The Omi feed: two arrivals ten minutes apart make its longest quiet; a quiet
+			// past that opens one question.
+			clip := Speech(h.T, h.Fixtures["speech"], talk[:1])
+			h.Live(clip, 0, h.Now())
+			h.Advance(10 * time.Minute)
+			h.Live(clip, 1000, h.Now())
+			h.Advance(11 * time.Minute)
+			Until(90*time.Second, func() bool {
+				for _, m := range AgentMessages(h.Today()) {
+					if m == "The Omi has gone quiet." {
+						return true
+					}
+				}
+				return false
+			})
+			h.Advance(30 * time.Minute) // a longer quiet asks no second time
+			time.Sleep(5 * time.Second)
+			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
+				if bytes.Contains(r.Body, []byte("feed omi has been quiet since")) {
+					st16.quietAsks++
+				}
+			}
 		},
 		Assert: func(h *H, c *C) {
 			c.Check("call_started", st16.ranLines >= 1, "the long call never started")
@@ -243,6 +268,7 @@ func init() {
 			c.Check("not_rerun", st16.ranLines == 1, "the interrupted call ran %d times", st16.ranLines)
 			turns, _ := st16.replay["turns"].(float64)
 			c.Check("sealed_turns_intact", st16.replay["ok"] == true && turns >= 2, "replay after the crash: %v", st16.replay)
+			c.Check("silent_feed_asks_once", st16.quietAsks == 1, "the quiet Omi feed was asked about %d times", st16.quietAsks)
 		},
 	})
 }
