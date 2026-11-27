@@ -28,31 +28,36 @@ func a04Script(marker string) []map[string]any {
 		call("run", failing), // the same call, word for word: held
 		call("run", failing), // issued once more: runs
 		call("run", map[string]any{"command": "test -d ."}),
-		text("It isn't there; the workspace is."),
+		text(a04Reply),
 	}
 }
+
+const a04Reply = "It isn't there; the workspace is."
 
 type a04 struct {
 	runs      int
 	sawHeld   bool
-	redlineAt int // first request carrying the open redline
-	closedAt  int // first request after it without one
+	redlineAt int // first request whose spotlight carries the open redline
+	closedAt  int // first request after it whose spotlight no longer does
 	reqs      int
 	reply     []string
 }
 
 func driveA04(h *H, format string, st *a04) {
 	marker := filepath.Join(h.Root, "workspace", "runs.txt")
+	before := len(AgentMessages(h.Today()))
 	h.Say("is the marker there")
-	Until(90*time.Second, func() bool { return len(AgentMessages(h.Today())) > 0 })
-	st.reply = AgentMessages(h.Today())
+	Until(90*time.Second, func() bool { return len(AgentMessages(h.Today())) > before })
+	st.reply = AgentMessages(h.Today())[before:]
 	b, _ := exec.Command("sudo", "-n", "cat", marker).Output()
 	if os.Geteuid() == 0 {
 		b, _ = os.ReadFile(marker)
 	}
 	st.runs = strings.Count(string(b), "run")
 	reqs := Requests(h.T, h.Fixtures["model:"+format])
-	n := 0
+	// Requests within an exchange only append, so each round's spotlight is the new
+	// part: a round whose request adds no open redline is one where the loop is closed.
+	n, prev := 0, 0
 	for _, r := range reqs {
 		if !strings.HasSuffix(r.URL, "/messages") && !strings.HasSuffix(r.URL, "/completions") {
 			continue
@@ -61,19 +66,20 @@ func driveA04(h *H, format string, st *a04) {
 		if bytes.Contains(r.Body, []byte("held: this is the call that just failed")) {
 			st.sawHeld = true
 		}
-		open := bytes.Contains(r.Body, []byte(`open kind=\"redline\"`))
-		if open && st.redlineAt == 0 {
+		c := bytes.Count(r.Body, []byte(`open kind=\"redline\"`))
+		if c > prev && st.redlineAt == 0 {
 			st.redlineAt = n
 		}
-		if !open && st.redlineAt != 0 && st.closedAt == 0 {
+		if c <= prev && st.redlineAt != 0 && st.closedAt == 0 {
 			st.closedAt = n
 		}
+		prev = c
 	}
 	st.reqs = n
 }
 
 func assertA04(h *H, c *C, st *a04) {
-	c.Check("reply_after_steps", len(st.reply) == 1 && st.reply[0] == "It isn't there; the workspace is.", "agent replied %q", st.reply)
+	c.Check("reply_after_steps", len(st.reply) == 1 && st.reply[0] == a04Reply, "agent replied %q", st.reply)
 	c.Check("redline_opened", st.redlineAt > 0, "no request carried an open redline (%d requests)", st.reqs)
 	c.Check("repeat_held", st.sawHeld, "the word-for-word repeat was not held")
 	c.Check("failing_call_ran_twice", st.runs == 2, "the failing call ran %d times (held once, then run once more)", st.runs)
@@ -209,7 +215,8 @@ func init() {
 					return false
 				}
 				h.Addr = a.Addr
-				return h.Do("GET", "/v1/version", nil, nil, false) == 200
+				st, err := h.Try("GET", "/v1/version", nil, nil, false)
+				return err == nil && st == 200
 			})
 			Until(60*time.Second, func() bool {
 				for _, m := range AgentMessages(h.Today()) {

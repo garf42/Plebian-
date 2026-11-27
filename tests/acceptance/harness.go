@@ -186,6 +186,16 @@ func (h *H) pair(code string) {
 
 // Do sends a JSON request; auth adds the bearer token. It returns the status.
 func (h *H) Do(method, path string, body any, out any, auth bool) int {
+	st, err := h.Try(method, path, body, out, auth)
+	if err != nil {
+		h.T.Fatalf("%s %s: %v", method, path, err)
+	}
+	return st
+}
+
+// Try is Do that returns a transport error instead of failing the test (a server
+// restarting is not a failure).
+func (h *H) Try(method, path string, body any, out any, auth bool) (int, error) {
 	var rd io.Reader
 	if body != nil {
 		b, _ := json.Marshal(body)
@@ -197,7 +207,7 @@ func (h *H) Do(method, path string, body any, out any, auth bool) int {
 	}
 	resp, err := h.http.Do(req)
 	if err != nil {
-		h.T.Fatalf("%s %s: %v", method, path, err)
+		return 0, err
 	}
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(resp.Body)
@@ -205,7 +215,7 @@ func (h *H) Do(method, path string, body any, out any, auth bool) int {
 	if out != nil && len(b) > 0 {
 		json.Unmarshal(b, out)
 	}
-	return resp.StatusCode
+	return resp.StatusCode, nil
 }
 
 // Signed sends a signed admin action.
