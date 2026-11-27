@@ -56,12 +56,19 @@ jobs:
           done
           for f in *.tar.bz2; do tar -xjf "$f"; done
           ls -la
+      - name: restic (pinned, prefab "restic 0.20.0"; checked against its release's SHA256SUMS)
+        run: |
+          cd "$RUNNER_TEMP" && rv=0.20.0 && ra=$(dpkg --print-architecture)
+          curl -sSfL -o "restic_${rv}_linux_${ra}.bz2" "https://github.com/restic/restic/releases/download/v${rv}/restic_${rv}_linux_${ra}.bz2"
+          curl -sSfL -o restic.SHA256SUMS "https://github.com/restic/restic/releases/download/v${rv}/SHA256SUMS"
+          grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
+          bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > restic && chmod 755 restic && ./restic version
       - name: Unit and node tests
         env:
           PLEBIAN_SPEECH_MODELS: ${{ runner.temp }}/speech
         run: |
           go vet ./...
-          go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
+          PLEBIAN_RESTIC=$RUNNER_TEMP/restic go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
       - name: Fixtures
         run: |
           if [ -f tests/fixtures/go.mod ]; then
@@ -74,6 +81,7 @@ jobs:
           cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
           chmod 644 dist/plebian/lib/*.so
           cp /usr/bin/bwrap dist/plebian/bin/bwrap
+          cp "$RUNNER_TEMP/restic" dist/plebian/bin/restic
           ldd dist/plebian/bin/plebian
           dist/plebian/bin/plebian version
           cp LICENSE NOTICE.md dist/plebian/

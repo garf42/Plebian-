@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -69,6 +70,21 @@ func main() {
 		err = runner(args)
 	case "replay":
 		err = replay(args)
+	case "restore":
+		fs := flag.NewFlagSet("restore", flag.ExitOnError)
+		root := fs.String("root", "/opt/plebian", "the installed root to restore into")
+		from := fs.String("from", "", "the restic repository holding the backup")
+		keyFile := fs.String("key-file", "", "a file holding the backup key the owner kept (read from stdin when empty)")
+		fs.Parse(args)
+		var kb []byte
+		if *keyFile != "" {
+			kb, err = os.ReadFile(*keyFile)
+		} else {
+			kb, err = io.ReadAll(io.LimitReader(os.Stdin, 4096))
+		}
+		if err == nil {
+			err = ops.Restore(ops.Root(*root), *from, strings.TrimSpace(string(kb)))
+		}
 	default:
 		usage()
 	}
@@ -291,6 +307,8 @@ func serve(args []string) error {
 	go calFeed.Run(ctx)
 	go textsFeed.Run(ctx)
 	fs := &feeds.Setup{Mail: mailFeed, Cal: calFeed, Texts: textsFeed}
+	bk := &ops.Backup{S: s, Root: r, Secrets: secrets, Clock: clk, Log: logger, Loc: func(ctx context.Context) *time.Location { return api.Location(ctx, s) }}
+	go bk.Run(ctx)
 	srv := &api.Server{S: s, Clock: clk, Log: logger}
 	ms := &api.ModelSetup{A: srv, Secrets: secrets}
 	srv.Hooks.Wake = lp.Wake
@@ -312,6 +330,24 @@ func serve(args []string) error {
 	srv.Hooks.AudioFile = an.FileHandler
 	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }
 	srv.Hooks.Setup = func(w http.ResponseWriter, req *http.Request, card string) {
+		if card == "backups" {
+			var b struct {
+				SecondDisk string `json:"second_disk"`
+				Offsite    string `json:"offsite"`
+			}
+			if err := json.NewDecoder(http.MaxBytesReader(w, req.Body, 1<<20)).Decode(&b); err != nil {
+				http.Error(w, "", http.StatusBadRequest)
+				return
+			}
+			key, err := bk.Setup(req.Context(), b.SecondDisk, b.Offsite)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{"key": key}) // shown once; the owner keeps it
+			return
+		}
 		if !ms.Handle(w, req) && !fs.Handle(w, req) {
 			http.Error(w, "", http.StatusNotImplemented)
 		}

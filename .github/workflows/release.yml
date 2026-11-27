@@ -27,6 +27,13 @@ jobs:
           cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
           chmod 644 dist/plebian/lib/*.so
           cp /usr/bin/bwrap dist/plebian/bin/bwrap
+          # restic, pinned (prefab "restic 0.20.0"), checked against its release's SHA256SUMS
+          rv=0.20.0; ra=$(dpkg --print-architecture)
+          curl -sSfL -o "restic_${rv}_linux_${ra}.bz2" "https://github.com/restic/restic/releases/download/v${rv}/restic_${rv}_linux_${ra}.bz2"
+          curl -sSfL -o restic.SHA256SUMS "https://github.com/restic/restic/releases/download/v${rv}/SHA256SUMS"
+          grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
+          bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > dist/plebian/bin/restic && chmod 755 dist/plebian/bin/restic
+          rm -f "restic_${rv}_linux_${ra}.bz2" restic.SHA256SUMS
           cp LICENSE NOTICE.md dist/plebian/
           dist/plebian/bin/plebian version
           tar -C dist -czf "dist/plebian-linux-${arch}.tar.gz" plebian

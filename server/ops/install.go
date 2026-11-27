@@ -209,10 +209,13 @@ func Install(o InstallOptions) (err error) {
 		}
 	}
 	// The sandbox's bubblewrap ships beside the program in the release.
-	if bw := filepath.Join(filepath.Dir(exe), "bwrap"); bw != r.P("bin", "bwrap") {
-		if _, err := os.Stat(bw); err == nil {
-			if err := copyFile(bw, r.P("bin", "bwrap"), 0o755); err != nil {
-				return err
+	// Programs shipped beside it in the release: the sandbox and the backup tool.
+	for _, name := range []string{"bwrap", "restic"} {
+		if src := filepath.Join(filepath.Dir(exe), name); src != r.P("bin", name) {
+			if _, err := os.Stat(src); err == nil {
+				if err := copyFile(src, r.P("bin", name), 0o755); err != nil {
+					return err
+				}
 			}
 		}
 	}
