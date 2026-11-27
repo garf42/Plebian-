@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plebian</title>
+<meta name="description" content="Plebian: an agent you own, and your days read back, fed by the Omi you wear and by your mail, texts and calendar.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400;1,700&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>:root{
+  --dawn:#848DB3; --slate:#5D739B; --steel:#49637C; --teal:#3B555A; --forest:#2D4839;
+  --grad:linear-gradient(125deg,#848DB3 0%,#5D739B 30%,#49637C 55%,#3B555A 78%,#2D4839 100%);
+  --ink:#1E2A2D; --ink-2:#47555A; --ink-3:#7C878A; --ink-4:#A9B1B2;
+  --paper:#FBFAF6; --paper-2:#F3F1EA; --paper-3:#E9E6DD; --rule:#DCD8CD; --rule-2:#C9C4B6;
+  --ore:#B9772E; --ore-2:#E7C9A2; --ok:#3E7A55; --warn:#A4552F;
+  --display:"Alegreya",Georgia,serif; --sans:"Alegreya Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper-2);color:var(--ink);font:400 16px/1.5 var(--sans);
+  background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(73,99,124,.07) 27px 28px);}
+a{color:var(--steel)}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 40px;display:flex;flex-direction:column;gap:22px}
+.sheet{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:26px 26px 28px;display:flex;flex-direction:column;gap:16px;min-width:0;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.sheet-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:10px;flex-wrap:wrap}
+.sno{font:500 11px/1 var(--mono);letter-spacing:.06em;color:#fff;background:var(--steel);padding:5px 7px;border-radius:3px}
+.sheet-head h2{margin:0;font:700 italic 27px/1.1 var(--display);color:var(--ink);letter-spacing:-.005em}
+.scale{margin-left:auto;font:400 11.5px/1.3 var(--mono);color:var(--ink-3)}
+.lead{font-size:17.5px;line-height:1.55;color:var(--ink);margin:0;max-width:64ch}
+ul.pts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;max-width:68ch}
+ul.pts li{position:relative;padding-left:18px;color:var(--ink)}
+ul.pts li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--steel)}
+ul.pts li b{font-weight:700}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px;align-items:start}
+.two.wide-r{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+@media (max-width:820px){.two,.two.wide-r{grid-template-columns:minmax(0,1fr)}}
+.note{font:400 13px/1.45 var(--sans);color:var(--ink-3)}
+.mono{font-family:var(--mono)}
+
+/* cover */
+.cover{padding:0;overflow:hidden}
+.cover .hero{background:var(--grad);display:flex;align-items:center;justify-content:center;padding:44px 20px 40px}
+.cover .hero img{width:min(520px,78%);height:auto;display:block}
+.cover .body{padding:22px 26px 26px;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font:500 11.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+dl.tb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;border:1px solid var(--rule);border-radius:3px}
+dl.tb>div{padding:10px 12px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);min-width:0}
+dl.tb>div:nth-child(3n){border-right:0}
+dl.tb>div:nth-last-child(-n+3){border-bottom:0}
+dl.tb dt{font:500 10.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+dl.tb dd{margin:0;font-size:15px;line-height:1.35;color:var(--ink)}
+@media (max-width:700px){dl.tb{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  dl.tb>div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)!important}
+  dl.tb>div:nth-child(2n){border-right:0!important}
+  dl.tb>div:nth-last-child(-n+2){border-bottom:0!important}}
+
+/* tables */
+.tablewrap{overflow-x:auto;min-width:0}
+table.map{border-collapse:collapse;width:100%;min-width:0;font-size:14.5px}
+table.map th{font:500 10.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-2)}
+table.map td{padding:9px 12px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink)}
+table.map td:first-child{font-weight:700;white-space:nowrap}
+table.map td.dim{color:var(--ink-2)}
+table.map tr:last-child td{border-bottom:0}
+
+/* flows */
+ol.flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;max-width:720px}
+ol.flow li{display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;position:relative;padding:0 0 14px}
+ol.flow li::after{content:"";position:absolute;left:42px;top:26px;bottom:0;width:1.5px;background:var(--rule-2)}
+ol.flow li:last-child::after{display:none}
+ol.flow .lane{justify-self:center;font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:6px 7px;border-radius:3px;height:fit-content;position:relative;z-index:1;min-width:68px;text-align:center}
+.lane.wrist{background:#7A6A55}.lane.dock{background:var(--teal)}.lane.pi{background:var(--steel)}.lane.mem{background:var(--slate)}.lane.app{background:var(--forest)}
+ol.flow .step{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:9px 12px;font-size:15px;line-height:1.45}
+ol.flow .step b{font-weight:700}
+ol.flow .step .mk{color:var(--ore)}
+.chain{display:grid;grid-template-columns:repeat(5,minmax(0,1fr) auto) minmax(0,1fr);gap:8px;align-items:stretch}
+.chain .c{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:8px 11px;font-size:14.5px;line-height:1.3}
+.chain .c b{display:block;font:700 italic 16px/1.2 var(--display);margin-bottom:2px}
+.chain .ar{color:var(--ink-3);font:400 16px/1 var(--mono);align-self:center}
+
+/* diagrams */
+svg.dia{width:100%;height:auto;display:block;max-width:560px}
+svg.dia .lbl{font:500 11px var(--mono);fill:var(--ink-2);letter-spacing:.04em}
+svg.dia .lbl-s{font:400 10.5px var(--mono);fill:var(--ink-3)}
+svg.dia .t{font:700 italic 15px var(--display);fill:var(--ink)}
+svg.dia .ts{font:400 12.5px var(--sans);fill:var(--ink-2)}
+svg.dia .tw{font:600 12.5px var(--sans);fill:#fff}
+
+/* palette & type */
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sw{border:1px solid var(--rule);border-radius:4px;overflow:hidden;background:#fff}
+.sw .chip{height:54px}
+.sw .cap{padding:7px 9px;font:400 12px/1.35 var(--mono);color:var(--ink-2)}
+.sw .cap b{display:block;font:700 italic 15px/1.2 var(--display);color:var(--ink)}
+.sw.wide{grid-column:span 4}
+@media (max-width:560px){.sw.wide{grid-column:span 2}}
+.specimen{display:flex;flex-direction:column;gap:10px;border:1px solid var(--rule);border-radius:4px;padding:14px 16px;background:#fff}
+.specimen .d{font:700 italic 30px/1.1 var(--display)}
+.specimen .s{font:400 16px/1.45 var(--sans)}
+.specimen .m{font:400 12.5px/1.3 var(--mono);color:var(--ink-3)}
+.specimen .h{font:400 15px/1.45 var(--sans);color:var(--ink-2);background-image:linear-gradient(90deg,var(--ink-4) 50%,transparent 50%);background-size:6px 1px;background-repeat:repeat-x;background-position:0 100%;display:inline;padding-bottom:1px}
+
+/* motion tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{border:1px solid var(--rule);border-radius:6px;background:#fff;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit}
+.tile .stage{height:112px;background:linear-gradient(160deg,#E7EAF0,#E6ECE8);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tile .cap{padding:8px 10px 10px;font-size:13.5px;line-height:1.35;color:var(--ink-2)}
+.tile .cap b{display:block;font:700 italic 16px/1.2 var(--display);color:var(--ink)}
+.tile:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.replay{position:absolute;right:8px;top:7px;font:500 10px/1 var(--mono);color:var(--ink-3);letter-spacing:.08em}
+
+/* sources */
+ol.src{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14.5px;color:var(--ink-2)}
+ol.src a{color:var(--steel)}
+.foot{text-align:center;font:400 11.5px/1.3 var(--mono);color:var(--ink-3);margin:6px 0 0}
+
+/* ======== the phone and the app inside it ======== */
+.bench{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.bench{grid-template-columns:minmax(0,1fr)}}
+.rig{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+.phone{width:min(330px,100%);aspect-ratio:9/19.3;background:#101618;border-radius:42px;padding:9px;box-shadow:0 18px 40px rgba(30,42,45,.22),0 2px 0 rgba(255,255,255,.4) inset;position:relative}
+.screen{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:linear-gradient(170deg,#E8EBF1 0%,#E5EBE8 100%);display:flex;flex-direction:column;font:400 14px/1.42 var(--sans);color:var(--ink)}
+.sbar{height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px 0 26px;font:600 11.5px/1 var(--sans);color:#fff;background:var(--grad);background-size:100% 400%;background-position:0 0}
+.sbar .cam{width:10px;height:10px;border-radius:50%;background:#0c1113}
+.ahead{flex:none;height:50px;display:flex;align-items:center;gap:8px;padding:0 12px 0 14px;background:var(--grad);background-size:100% 400%;background-position:0 9%;color:#fff;position:relative;z-index:3}
+.ahead .wm{height:23px;width:auto;display:block}
+.ahead .back{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.14);border:0;cursor:pointer;flex:none}
+.ahead .title{font:700 italic 19px/1 var(--display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rchip{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:99px;padding:4px 9px 4px 7px;font:500 11px/1 var(--sans);cursor:pointer;white-space:nowrap}
+.rchip .dot{width:7px;height:7px;border-radius:50%;background:#CFE3D2;box-shadow:0 0 0 2px rgba(207,227,210,.25)}
+.rchip.docked .dot{background:#F2D49B;box-shadow:0 0 0 2px rgba(242,212,155,.3);animation:pulse 1.3s var(--ease) infinite}
+.gear{width:28px;height:28px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(242,212,155,0)}}
+.vp{flex:1;position:relative;overflow:hidden}
+.scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:12px 12px 18px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+.scr::-webkit-scrollbar{display:none}
+.scr>*{flex-shrink:0}
+.scr.lay{animation:lay .34s var(--ease) both}
+.scr.out{animation:out .2s ease both}
+@keyframes lay{from{opacity:0;transform:translateY(16px) rotate(-.7deg) scale(.988);filter:blur(1.2px)}to{opacity:1;transform:none;filter:none}}
+@keyframes out{to{opacity:0;transform:translateY(-6px) scale(.995)}}
+.tabs{flex:none;height:58px;display:flex;justify-content:space-around;align-items:center;background:rgba(251,250,246,.92);border-top:1px solid rgba(0,0,0,.06);padding-bottom:4px}
+.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font:500 11px/1 var(--sans);color:var(--ink-3);cursor:pointer;position:relative;padding:4px 14px}
+.tabs button svg{width:22px;height:22px}
+.tabs button.on{color:var(--forest)}
+.tabs button.on::before{content:"";position:absolute;top:-6px;width:22px;height:2.5px;border-radius:2px;background:var(--forest)}
+.badge{position:absolute;top:0;right:8px;min-width:16px;height:16px;border-radius:8px;background:var(--ore);color:#fff;font:700 10px/16px var(--sans);text-align:center;padding:0 4px;transform:scale(1);transition:transform .25s var(--ease)}
+.badge.bump{animation:bump .4s var(--ease)}
+@keyframes bump{40%{transform:scale(1.35)}}
+
+/* sheets of tracing paper inside the app */
+.card{background:rgba(252,251,248,.9);border:1px solid rgba(255,255,255,.7);border-radius:14px;box-shadow:0 1px 2px rgba(30,42,45,.06),0 6px 18px rgba(30,42,45,.06);padding:12px 12px 12px;position:relative}
+.card.tight{padding:10px 12px}
+.cap-row{display:flex;align-items:baseline;gap:8px}
+.dname{font:700 italic 21px/1.1 var(--display);color:var(--ink)}
+.dmeta{font:400 10.5px/1.3 var(--mono);color:var(--ink-3);letter-spacing:.02em}
+.kick{font:500 9.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.lines{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.ln{font-size:13.5px;line-height:1.45;color:var(--ink);position:relative}
+.ln .ic{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px}
+.ln .by{display:block;font:500 10px/1.3 var(--mono);letter-spacing:.04em;color:var(--teal);margin-bottom:1px}
+.held[data-act]{cursor:pointer}
+.oi[data-act]{cursor:pointer}
+.qchip{display:flex;gap:6px;align-items:flex-start;margin:0 2px 6px;padding:6px 9px;border-left:2px solid var(--steel);background:var(--paper-2);border-radius:4px;font-size:12px;line-height:1.35;color:var(--ink-2)}
+.qchip span:last-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qchip .qa{color:var(--steel);flex:none}
+.held{color:var(--ink-2)}
+.held .tx{background-image:linear-gradient(90deg,var(--ink-4) 55%,transparent 55%);background-size:6px 1px;background-repeat:repeat-x;background-position:0 100%;padding-bottom:1px;position:relative}
+.held .tx::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--forest);transition:width .45s var(--ease)}
+.held.settled{color:var(--ink)}
+.held.settled .tx{background-image:none}
+.held.settled .tx::after{width:100%;background:transparent;transition:none}
+.settling .tx::after{width:100%!important}
+.acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--rule-2);background:#fff;color:var(--ink);border-radius:99px;padding:5px 11px;font:600 12px/1 var(--sans);cursor:pointer}
+.btn.pri{background:var(--forest);border-color:var(--forest);color:#fff}
+.btn.ghost{background:transparent}
+.btn:active{transform:scale(.97)}
+.settle-tag{font:500 10px/1 var(--mono);color:var(--ok);margin-left:6px;opacity:0;transition:opacity .3s}
+.settled .settle-tag{opacity:1}
+
+/* ribbon */
+.ribbon{width:100%;height:auto;display:block;margin-top:8px;overflow:visible}
+.ribbon .bar{fill:var(--steel);opacity:.55;transform-box:fill-box;transform-origin:50% 100%}
+.ribbon .bar.grow{animation:grow .5s var(--ease) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.ribbon .base{stroke:var(--rule-2);stroke-width:1}
+.ribbon .hr{font:400 8.5px var(--mono);fill:var(--ink-3)}
+.ribbon .empty{fill:none;stroke:var(--ink-4);stroke-dasharray:2 3}
+.pick{color:var(--ore)}
+.pick-g{transform-box:fill-box;transform-origin:70% 80%}
+.pick-g.strike{animation:strike .62s var(--ease) both}
+@keyframes strike{0%{opacity:0;transform:translateY(-9px) rotate(-38deg)}55%{opacity:1;transform:translateY(0) rotate(9deg)}72%{transform:rotate(-4deg)}100%{opacity:1;transform:none}}
+.chipdot{fill:var(--ore);opacity:0}
+.chipdot.fly{animation:fly .5s ease-out both}
+@keyframes fly{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+
+/* thread */
+.msg{max-width:86%;font-size:14px;line-height:1.45}
+.msg.me{align-self:flex-end;background:var(--steel);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 11px}
+.msg.su{align-self:flex-start;color:var(--ink);padding:2px 2px}
+.msg .when{display:block;font:400 9.5px/1.2 var(--mono);color:var(--ink-3);margin-top:3px}
+.msg.me .when{color:rgba(255,255,255,.7)}
+.mchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;border:1px solid var(--ore-2);background:#FBF3E8;color:#7A4E1E;border-radius:99px;padding:3px 8px 3px 6px;font:600 11px/1 var(--sans);cursor:pointer}
+.mchip svg{width:12px;height:12px}
+.stream span{opacity:0;animation:fadein .18s ease forwards}
+@keyframes fadein{to{opacity:1}}
+.compose{flex:none;padding:8px 10px 10px;background:rgba(251,250,246,.94);border-top:1px solid rgba(0,0,0,.05);position:relative}
+.compose .field{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--rule);border-radius:22px;padding:6px 6px 6px 13px;min-height:38px}
+.compose .field span{flex:1;font-size:13.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compose .field span.typed{color:var(--ink)}
+.compose .send{width:28px;height:28px;border-radius:50%;border:0;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
+.presence{position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:2px;opacity:0;background:linear-gradient(90deg,transparent,var(--dawn),var(--steel),var(--forest),transparent);background-size:220% 100%;transition:opacity .25s}
+.presence.on{opacity:1;animation:drift 1.4s linear infinite}
+@keyframes drift{from{background-position:120% 0}to{background-position:-100% 0}}
+
+/* journal */
+.seg{display:flex;background:rgba(255,255,255,.65);border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;border-radius:8px;background:transparent;padding:7px 0;font:600 12.5px/1 var(--sans);color:var(--ink-2);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:8px 11px;font-size:13px;color:var(--ink-3)}
+.day{cursor:pointer}
+.day .first{font-size:13.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
+.day .chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.tag{font:500 10px/1 var(--mono);color:var(--ink-2);background:var(--paper-3);border-radius:99px;padding:4px 7px}
+.tag.ore{background:#F6E6D2;color:#7A4E1E}
+.mrow{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;cursor:pointer}
+.mrow .t{font:400 10.5px/1.3 var(--mono);color:var(--ink-3)}
+.mrow .x{font-size:13.5px;line-height:1.4}
+.pending{color:var(--ink-3);font-size:13px}
+
+/* day page and the heard layer beneath */
+.stack{position:relative}
+.under{position:absolute;inset:0;border-radius:14px;background:rgba(237,241,240,.95);border:1px dashed var(--rule-2);padding:12px;overflow:hidden}
+.under .row{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;font-size:12.5px;line-height:1.4;color:var(--ink-2);padding:5px 0;border-bottom:1px dashed rgba(0,0,0,.08)}
+.under .row .tm{font:400 10px/1.4 var(--mono);color:var(--ink-3)}
+.under .row i{font-style:normal;font:500 10px/1 var(--mono);color:var(--teal);margin-right:4px}
+.top{position:relative;z-index:2;background:#FBFAF6!important;transition:transform .42s var(--ease),box-shadow .42s}
+.top.peek{transform:translateY(calc(100% - 46px)) rotate(.6deg);box-shadow:0 -6px 18px rgba(30,42,45,.12)}
+.sec{font:500 9.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:12px 0 2px}
+.xch{font-size:13px;line-height:1.45;color:var(--ink);display:flex;flex-direction:column;gap:3px;padding:6px 0;border-bottom:1px solid var(--rule)}
+.xch:last-child{border-bottom:0}
+.xch .w{color:var(--ink-3);font:400 10px/1.2 var(--mono)}
+
+/* mark detail */
+.verb{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.verb .r{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+.verb .r i{font-style:normal;font:500 10px/1 var(--mono);color:var(--teal);margin-right:5px}
+.verb .r.here{background:#FBF3E8;border-radius:6px;padding:4px 6px;color:var(--ink)}
+.player{display:flex;align-items:center;gap:9px;margin-top:10px}
+.player button{width:30px;height:30px;border-radius:50%;border:0;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.wave{flex:1;height:26px;position:relative}
+.wave svg{width:100%;height:100%}
+.wave .head{position:absolute;top:0;bottom:0;width:2px;background:var(--ore);left:0}
+.wave .head.go{animation:play 5s linear both}
+@keyframes play{to{left:100%}}
+
+/* open */
+.oi{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.oi:last-child{border-bottom:0}
+.oi .q{font-size:13.5px;line-height:1.4}
+.oi .src{font:400 10px/1.3 var(--mono);color:var(--ink-3)}
+.oi.done{opacity:0;max-height:0;padding:0;overflow:hidden;transition:opacity .3s,max-height .4s,padding .4s}
+
+/* recorder screen */
+.pod{display:flex;align-items:center;gap:14px}
+.pod svg{width:92px;height:60px;flex:none}
+.meter{height:6px;border-radius:3px;background:var(--paper-3);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--steel);border-radius:3px;transition:width .6s var(--ease)}
+.stages{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.stg{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px;color:var(--ink-3)}
+.stg .b{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--ink-4)}
+.stg.run{color:var(--ink)}
+.stg.run .b{border-color:var(--ore);border-top-color:transparent;animation:spin .8s linear infinite}
+.stg.ok{color:var(--ink)}
+.stg.ok .b{border-color:var(--ok);background:var(--ok)}
+.stg .v{font:400 10.5px/1 var(--mono);color:var(--ink-3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.legend{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--ink-2)}
+.legend span{font:500 11px/1 var(--mono);color:var(--ink);display:inline-block;min-width:66px}
+
+/* admin */
+.lane-h{display:flex;align-items:center;gap:6px;font:700 italic 15px/1.2 var(--display);margin-top:4px}
+.lane-h .n{font:500 10px/1 var(--mono);color:var(--ink-3)}
+.ai{border-top:1px solid var(--rule);padding:8px 0;display:flex;flex-direction:column;gap:5px;font-size:13px;line-height:1.4}
+.ai .why{color:var(--ink-3);font-size:12px}
+.ai.ok .acts{display:none}
+.ai .st{font:500 10px/1 var(--mono);color:var(--ok);display:none}
+.ai.ok .st{display:block}
+.deploy{display:flex;align-items:center;gap:10px;justify-content:space-between}
+
+/* toast inside the phone */
+.toast{position:absolute;left:10px;right:10px;top:84px;z-index:9;pointer-events:none;background:rgba(30,42,45,.92);color:#fff;border-radius:14px;padding:10px 12px;font-size:12.5px;line-height:1.35;display:flex;gap:10px;align-items:center;transform:translateY(-130%);opacity:0;transition:transform .38s var(--ease),opacity .3s}
+.toast.show{transform:none;opacity:1}
+.toast img{height:14px}
+
+/* the recorder beside the phone */
+.wristrig{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;width:min(330px,100%)}
+.wristrig svg{width:74px;height:48px;flex:none}
+.wristrig .s{font-size:13px;line-height:1.35;color:var(--ink-2)}
+.wristrig .s b{display:block;font:700 italic 15px/1.2 var(--display);color:var(--ink)}
+.buzz{animation:buzz .11s linear 4}
+@keyframes buzz{25%{transform:translateX(-1.6px)}75%{transform:translateX(1.6px)}}
+.demos{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;width:min(360px,100%)}
+.demos button{border:1px solid var(--rule-2);background:#fff;border-radius:99px;padding:8px 12px;font:600 13px/1 var(--sans);color:var(--ink);cursor:pointer}
+.demos button.go{background:var(--forest);color:#fff;border-color:var(--forest)}
+.demos button:disabled{opacity:.45;cursor:default}
+.demo-note{font-size:12.5px;color:var(--ink-3);text-align:center;width:min(340px,100%);min-height:2.8em}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.15s!important}
+}
+
+@media (max-width:560px){.wrap{padding:16px 10px 30px;gap:16px}.sheet{padding:18px 14px 20px}.sheet-head h2{font-size:24px}.cover .body{padding:18px 14px 20px}}
+
+@media (max-width:560px){
+  table.map{min-width:0}
+  table.map thead{display:none}
+  table.map tr{display:block;padding:10px 0;border-bottom:1px solid var(--rule)}
+  table.map tr:last-child{border-bottom:0}
+  table.map td{display:block;border:0!important;padding:2px 0}
+  table.map td:first-child{font:700 italic 16px/1.3 var(--display);white-space:normal;margin-bottom:2px}
+  table.map td[data-label]::before{content:attr(data-label) " \00B7  ";font:500 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+}
+
+@media (max-width:860px){
+  .chain{display:flex;flex-direction:column;align-items:stretch}
+  .chain .ar{transform:rotate(90deg);align-self:center;line-height:.6}
+}
+</style>
+</head><body>
+<main class="wrap">
+
+<section class="sheet cover">
+  <div class="hero"><img src="data:image/png;base64,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" alt="Plebian"></div>
+  <div class="body">
+    <span class="eyebrow">Your agent &middot; the Omi &middot; Tracer Paper</span>
+    <p class="lead">Plebian is the agent you own: where you talk to it and read your days back. It holds one ongoing thread, sorted into journal pages and fed through the day by the Omi you wear and by your mail, texts and calendar.</p>
+    <dl class="tb">
+      <div><dt>Tabs</dt><dd>Today &middot; Journal &middot; Open</dd></div>
+      <div><dt>Fed by</dt><dd>The Omi through your phone; mail, texts and calendar, read on the Pi</dd></div>
+      <div><dt>Memory</dt><dd><a href="../tracer-paper-memory.md">Tracer Paper</a>, on the same Pi</dd></div>
+      <div><dt>Runs on</dt><dd>Your phone, with everything else on the Pi</dd></div>
+      <div><dt>Marks</dt><dd>Double-tap the Omi, or long-press any line</dd></div>
+      <div><dt>Acts</dt><dd>On your word, or on standing you&rsquo;ve given a step</dd></div>
+      <div><dt>Date</dt><dd>19 Nov 2026</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="sheet" id="pl01">
+  <div class="sheet-head"><span class="sno">PL-01</span><h2>The app in your hand</h2><span class="scale">tap through it; the buttons play the Omi</span></div>
+  <div class="bench">
+    <div class="rig">
+      <div class="phone"><div class="screen" id="pl-screen" role="application" aria-label="Plebian on a phone: Today, Journal and Open tabs, a day page, a mark, the Omi and admin screens."></div></div>
+      <div class="wristrig" id="pl-wrist">
+        <svg viewBox="0 0 74 48" aria-hidden="true"><defs><radialGradient id="om" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#F4F5F6"/><stop offset=".6" stop-color="#D3D8DB"/><stop offset="1" stop-color="#9AA3A8"/></radialGradient></defs><path d="M4 5 Q37 27 70 5" fill="none" stroke="#3A4447" stroke-width="2"/><g id="pl-pod"><rect x="33" y="10" width="8" height="6" rx="3" fill="none" stroke="#7F888C" stroke-width="1.6"/><circle cx="37" cy="30" r="15" fill="url(#om)" stroke="#7F888C"/><circle cx="37" cy="30" r="10.5" fill="none" stroke="#B9C0C4" stroke-width=".8"/><circle cx="37" cy="21" r="1.3" fill="#49637C"/></g></svg>
+        <div class="s"><b id="pl-wrist-t">Paired with your phone</b><span id="pl-wrist-s">Streaming since 6:42am. Two marks today.</span></div>
+      </div>
+      <div class="demos">
+        <button data-demo="tap">Double-tap the Omi</button>
+        <button data-demo="dock" class="go">Tonight&rsquo;s read</button>
+        <button data-demo="ask">Ask about the pipe</button>
+        <button data-demo="reset">Reset</button>
+      </div>
+      <div class="demo-note" id="pl-note">It is Sunday evening. The Omi has been streaming through your phone since 6:42am, and the Pi has heard the day as it happened.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <ul class="pts">
+        <li><b>Today</b> is one ongoing thread with the agent. Each night&rsquo;s page tops it: what the day held, your marks, and what needs your word.</li>
+        <li><b>Journal</b> keeps every day on its own page, newest first. Marks lists every moment you marked, across all days.</li>
+        <li><b>Open</b> holds what is waiting on you: the agent&rsquo;s questions, its drafts and your kept orders. Only your own words close them, and a draft runs exactly as shown.</li>
+        <li>The Omi pairs with the phone as it does with Omi&rsquo;s app, and Plebian sends what it hears on to the Pi as it comes in. The chip in the header shows the link.</li>
+        <li>Heard lines carry the speaker&rsquo;s name and sit lighter, on a dashed rule, until you say something about them. Any reply in your own words settles the line; tapping one only quotes it into the thread.</li>
+      </ul>
+      <div class="tablewrap"><table class="map">
+        <thead><tr><th></th><th>Plebian</th><th>Duet</th><th>Omi app</th></tr></thead>
+        <tbody>
+          <tr><td>Main surface</td><td>One thread, cut into day pages</td><td class="dim">One ongoing thread</td><td class="dim">A list of conversations</td></tr>
+          <tr><td>Waiting on you</td><td>Open; only your words close one</td><td class="dim">Tasks; only you mark one done</td><td class="dim">Action items</td></tr>
+          <tr><td>Each day</td><td>The night&rsquo;s entry, with the verbatim day behind every line; a morning look too, once you&rsquo;ve asked for one twice</td><td class="dim">A morning brief</td><td class="dim">A summary per conversation</td></tr>
+          <tr><td>Capture</td><td>The Omi through your phone, plus your mail, texts and calendar, all to the Pi</td><td class="dim">Your connected accounts</td><td class="dim">The pendant, through your phone to Omi&rsquo;s servers</td></tr>
+          <tr><td>Checking</td><td>Code watches every feed at no model cost; the agent is called only when what lands touches something open</td><td class="dim">Every few hours, counted against your usage</td><td class="dim">&mdash;</td></tr>
+          <tr><td>Before acting</td><td>Drafts it and waits for your word; a step you&rsquo;ve given standing runs after a short stop window, unless someone else&rsquo;s words were in view</td><td class="dim">Shows the plan and waits for your OK</td><td class="dim">&mdash;</td></tr>
+          <tr><td>Grows with use</td><td>The clock takes over what you ask for twice; steps earn standing on their record</td><td class="dim">You choose what to hear about and how often</td><td class="dim">&mdash;</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="pl02">
+  <div class="sheet-head"><span class="sno">PL-02</span><h2>How a day fills</h2><span class="scale">Omi &rarr; phone &rarr; Pi &rarr; page</span></div>
+  <ol class="flow">
+    <li><span class="lane wrist">Omi</span><div class="step">Records all day and streams to Plebian on your phone over Bluetooth, paired the way it pairs with Omi&rsquo;s app.</div></li>
+    <li><span class="lane wrist">Omi</span><div class="step">Double-tap to mark the moment. In the phone&rsquo;s range, the app writes the <b class="mk">mark</b> at once and gives the Omi a short buzz; out of range, the Omi gives itself a long one. A single tap does nothing, so a bump can&rsquo;t leave a mark, and a three-second hold turns the Omi off.</div></li>
+    <li><span class="lane dock">Phone</span><div class="step">Plebian sends the audio on to the Pi as it arrives, over your tailnet, at home or away. Everything Omi&rsquo;s app would send to Omi&rsquo;s servers goes to the Pi.</div></li>
+    <li><span class="lane dock">Phone</span><div class="step">Out of the phone&rsquo;s range, the Omi records to its own 512 MB and syncs when it&rsquo;s back, stamped with its own clock, as it does with Omi&rsquo;s app.</div></li>
+    <li><span class="lane pi">Pi</span><div class="step">The Pi transcribes as audio arrives and labels each speaker; a voice it doesn&rsquo;t know becomes a question in Open, and once you name it in your own words it is known from then on. Each conversation lands as it ends, as underlay rows, and each mark becomes a pointer into one.</div></li>
+    <li><span class="lane pi">Pi</span><div class="step">Mail, texts and the calendar land the same way, fetched by code as they arrive. The agent is called only when what lands, a calendar entry coming due included, lights an open loop or a kept order.</div></li>
+    <li><span class="lane mem">Memory</span><div class="step">The night&rsquo;s read gets the day with what is open, the kept orders and the marks. The agent writes the entry. A heard answer comes back as a question, and nothing heard closes anything.</div></li>
+    <li><span class="lane app">Plebian</span><div class="step">The page is up: the entry on top and the marks on the ribbon. Whatever you say back about a heard line settles it.</div></li>
+  </ol>
+  <ul class="pts">
+    <li>Conversations and messages land on the Pi through the day. The night&rsquo;s read runs once, at the hour you&rsquo;ve come to ask for it, over all of them.</li>
+    <li>Plebian&rsquo;s background service does two jobs: it holds the Omi&rsquo;s Bluetooth link and the line to the Pi, so audio flows and notifications arrive without any push service.</li>
+  </ul>
+</section>
+
+<section class="sheet" id="pl03">
+  <div class="sheet-head"><span class="sno">PL-03</span><h2>The page</h2><span class="scale">a day, cut at 4am</span></div>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <ul class="pts">
+        <li>A page is a day, cut at 4am, so a late night stays with its day.</li>
+        <li>Its layers stack top to bottom, like the tracer paper under it: the entry, your talk with the agent, marks in the margin, and the heard day beneath.</li>
+        <li>The ribbon across the top is the day by the hour. It shows how much talk there was and where the marks fall.</li>
+        <li>The heard day is only ever peeked at. It never mixes into your thread with the agent.</li>
+      </ul>
+    </div>
+    <svg class="dia" viewBox="0 0 360 300" role="img" aria-label="A day page as four stacked sheets. Entry on top, With Plebian, Marks, and Heard beneath.">
+      <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FBFAF6"/><stop offset="1" stop-color="#F1EFE8"/></linearGradient></defs>
+      <g stroke="#C9C4B6" stroke-dasharray="2 3" fill="none"><line x1="14" y1="72" x2="14" y2="96"/><line x1="14" y1="148" x2="14" y2="172"/><line x1="14" y1="224" x2="14" y2="248"/><line x1="322" y1="72" x2="322" y2="96"/><line x1="322" y1="148" x2="322" y2="172"/><line x1="322" y1="224" x2="322" y2="248"/></g>
+      <polygon points="36,20 346,20 322,72 12,72" fill="url(#pg)" stroke="#B5AE9C"/>
+      <text class="t" x="40" y="42">Entry</text><text class="ts" x="36" y="61">The agent&rsquo;s lines on the day, held till settled</text>
+      <g transform="translate(230 28)"><rect x="0" y="12" width="3" height="6" fill="#49637C" opacity=".55"/><rect x="5" y="8" width="3" height="10" fill="#49637C" opacity=".55"/><rect x="10" y="4" width="3" height="14" fill="#49637C" opacity=".55"/><rect x="15" y="9" width="3" height="9" fill="#49637C" opacity=".55"/><rect x="20" y="2" width="3" height="16" fill="#49637C" opacity=".55"/><rect x="25" y="7" width="3" height="11" fill="#49637C" opacity=".55"/><rect x="30" y="11" width="3" height="7" fill="#49637C" opacity=".55"/><rect x="35" y="5" width="3" height="13" fill="#49637C" opacity=".55"/><rect x="40" y="9" width="3" height="9" fill="#49637C" opacity=".55"/><line x1="-2" y1="18.5" x2="46" y2="18.5" stroke="#B5AE9C"/></g>
+      <polygon points="36,96 346,96 322,148 12,148" fill="#FBFAF6" fill-opacity=".92" stroke="#B5AE9C"/>
+      <text class="t" x="40" y="118">With Plebian</text><text class="ts" x="36" y="137">your messages and its replies that day</text>
+      <polygon points="36,172 346,172 322,224 12,224" fill="#FBF3E8" fill-opacity=".95" stroke="#D9B98E"/>
+      <text class="t" x="40" y="194">Marks</text><text class="ts" x="36" y="213">pins at the moments you marked</text>
+      <g fill="#B9772E" transform="translate(262 180)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g>
+      <g fill="#B9772E" transform="translate(290 188)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g>
+      <polygon points="36,248 346,248 322,300 12,300" fill="#E6ECEA" stroke="#9AA7A4" stroke-dasharray="4 3"/>
+      <text class="t" x="40" y="270" style="fill:#3B555A">Heard</text><text class="ts" x="36" y="289">the day verbatim, peeked, never mixed in</text>
+    </svg>
+  </div>
+  <div class="tablewrap"><table class="map">
+    <thead><tr><th>In the app</th><th>In the store</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td>Page</td><td>Everything stamped that day, in both bodies</td><td class="dim">Cut at 4am</td></tr>
+      <tr><td>Entry</td><td>The agent&rsquo;s lines from the night&rsquo;s read</td><td class="dim">Held at &frac12;, covering nothing, until you settle them</td></tr>
+      <tr><td>With Plebian</td><td>Sheets stamped that day</td><td class="dim">As the thread holds them</td></tr>
+      <tr><td>Heard</td><td>Underlay rows: talk, mail, texts, calendar</td><td class="dim">Never written into the thread</td></tr>
+      <tr><td>Mark</td><td>A pointer row: the time, the stretch around it, your note</td><td class="dim">The night&rsquo;s read reports every mark</td></tr>
+      <tr><td>Open</td><td>Open loops, kept orders, drafts waiting on your word</td><td class="dim">Only your words close one; a draft runs exactly as shown</td></tr>
+      <tr><td>Search</td><td>The lamp, over both bodies</td><td class="dim">Counts shown per body: &ldquo;never said here, heard once&rdquo;</td></tr>
+      <tr><td>Your reply</td><td>Anything you say about the line, in your own words</td><td class="dim">Retraces and settles it; a corrected heard word refits speech&rsquo;s edit costs</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sheet" id="pl04">
+  <div class="sheet-head"><span class="sno">PL-04</span><h2>Marks</h2><span class="scale">finding what mattered</span></div>
+  <div class="two">
+    <ul class="pts">
+      <li>There are two ways to mark, and both write one row. Double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it and an optional note.</li>
+      <li>A double-tap reaches the phone at once, so the mark is on the day&rsquo;s ribbon right away. A short buzz means it&rsquo;s saved. A long buzz means the phone was out of range: the audio still syncs, and long-pressing the line later marks it. The two are the Omi&rsquo;s own shortest and longest buzzes, 100 and 500 ms.</li>
+      <li>The night&rsquo;s read reports every mark. That line becomes the mark&rsquo;s title, so search finds a mark by what was said.</li>
+      <li>There are three ways back to a mark: Journal &rarr; Marks, newest first; the pick on each day&rsquo;s ribbon; or search with Marks on.</li>
+      <li>A mark says the moment mattered, not that the words were heard right. Heard words still wait until you&rsquo;ve said something about them.</li>
+    </ul>
+    <svg class="dia" viewBox="0 0 360 262" role="img" aria-label="Double-tap on the Omi and long-press in the app both write one mark row. Marks land on the day's ribbon; each opens to its line and the verbatim talk.">
+      <rect x="8" y="8" width="160" height="42" rx="5" fill="#F3F1EA" stroke="#DCD8CD"/><text class="t" x="18" y="26" style="font-size:14px">Double-tap the Omi</text><text class="lbl-s" x="18" y="42">reaches the phone at once</text>
+      <rect x="192" y="8" width="160" height="42" rx="5" fill="#F3F1EA" stroke="#DCD8CD"/><text class="t" x="202" y="26" style="font-size:14px">Long-press a line</text><text class="lbl-s" x="202" y="42">anywhere in the app</text>
+      <path d="M88 50 V64 Q88 70 100 72 L160 78" fill="none" stroke="#7C878A" stroke-width="1.2"/><path d="M272 50 V64 Q272 70 260 72 L200 78" fill="none" stroke="#7C878A" stroke-width="1.2"/>
+      <rect x="70" y="78" width="220" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/><text class="t" x="82" y="96" style="font-size:14px;fill:#7A4E1E">One mark row</text><text class="lbl-s" x="82" y="112">time &middot; the stretch &middot; your note</text>
+      <path d="M180 120 V140" stroke="#7C878A" stroke-width="1.2" marker-end="url(#ah4)"/><defs><marker id="ah4" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#7C878A"/></marker></defs>
+      <text class="lbl-s" x="188" y="136">on today&rsquo;s ribbon</text>
+      <line x1="20" y1="186" x2="340" y2="186" stroke="#C9C4B6"/>
+      <g fill="#49637C" opacity=".5">
+        <rect x="22" y="180" width="3.5" height="6"/><rect x="34" y="176" width="3.5" height="10"/><rect x="46" y="172" width="3.5" height="14"/><rect x="58" y="168" width="3.5" height="18"/><rect x="70" y="175" width="3.5" height="11"/><rect x="82" y="170" width="3.5" height="16"/><rect x="94" y="178" width="3.5" height="8"/><rect x="106" y="166" width="3.5" height="20"/><rect x="118" y="171" width="3.5" height="15"/><rect x="130" y="176" width="3.5" height="10"/><rect x="142" y="168" width="3.5" height="18"/><rect x="154" y="164" width="3.5" height="22"/><rect x="166" y="170" width="3.5" height="16"/><rect x="178" y="166" width="3.5" height="20"/><rect x="190" y="174" width="3.5" height="12"/><rect x="202" y="178" width="3.5" height="8"/><rect x="214" y="172" width="3.5" height="14"/><rect x="226" y="168" width="3.5" height="18"/><rect x="238" y="164" width="3.5" height="22"/><rect x="250" y="167" width="3.5" height="19"/><rect x="262" y="172" width="3.5" height="14"/><rect x="274" y="170" width="3.5" height="16"/><rect x="286" y="175" width="3.5" height="11"/><rect x="298" y="171" width="3.5" height="15"/><rect x="310" y="178" width="3.5" height="8"/><rect x="322" y="181" width="3.5" height="5"/><rect x="334" y="183" width="3.5" height="3"/>
+      </g>
+      <g font-family="IBM Plex Mono" font-size="8.5" fill="#7C878A"><text x="16" y="198">6a</text><text x="96" y="198">10a</text><text x="176" y="198">2p</text><text x="256" y="198">6p</text><text x="330" y="198">10p</text></g>
+      <g fill="#B9772E"><g transform="translate(176 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g><g transform="translate(265 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g><g transform="translate(298 146)"><path d="M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/></g></g>
+      <path d="M184 202 V214" stroke="#B9772E" stroke-dasharray="2 2"/>
+      <rect x="40" y="214" width="300" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/>
+      <text class="lbl-s" x="52" y="230" style="fill:#7A4E1E">2:09pm &middot; marked on the Omi</text>
+      <text class="ts" x="52" y="247">Dale quoted the culvert pipe: $340 and $490</text>
+    </svg>
+  </div>
+</section>
+
+<section class="sheet" id="pl05">
+  <div class="sheet-head"><span class="sno">PL-05</span><h2>Look and motion</h2><span class="scale">taken from the wordmark</span></div>
+  <ul class="pts">
+    <li>The ground is the logo&rsquo;s gradient, five stops from dawn slate to forest. Marks are ore, the one warm color, so a mark stands out on any page.</li>
+    <li>Pages are tracing paper laid on that ground. Heard text sits a shade lighter, on a dashed rule, until you settle it.</li>
+  </ul>
+  <div class="swatches">
+    <div class="sw wide"><div class="chip" style="background:var(--grad)"></div><div class="cap"><b>Ground</b>the logo&rsquo;s gradient, 125&deg;</div></div>
+    <div class="sw"><div class="chip" style="background:#848DB3"></div><div class="cap"><b>Dawn</b>#848DB3</div></div>
+    <div class="sw"><div class="chip" style="background:#49637C"></div><div class="cap"><b>Steel</b>#49637C &middot; your messages</div></div>
+    <div class="sw"><div class="chip" style="background:#2D4839"></div><div class="cap"><b>Forest</b>#2D4839 &middot; actions</div></div>
+    <div class="sw"><div class="chip" style="background:#B9772E"></div><div class="cap"><b>Ore</b>#B9772E &middot; marks</div></div>
+  </div>
+  <div class="specimen">
+    <div class="d">Sunday, November 15</div>
+    <div class="s">Alegreya italic sets names and dates, close to the wordmark&rsquo;s hand. Alegreya Sans carries the reading.</div>
+    <div><span class="h">Heard: &ldquo;fifty should do it.&rdquo;</span></div>
+    <div class="m">2:09PM &middot; IBM PLEX MONO FOR TIMES AND COUNTS</div>
+  </div>
+  <ul class="pts">
+    <li>Every animation stands for something that happened. Tap a tile to play it.</li>
+  </ul>
+  <div class="tiles" id="pl-tiles">
+    <button class="tile" data-tile="lay"><div class="stage" id="t-lay"></div><div class="cap"><b>Lay</b>A new page is laid over the last, the way trace goes down on a drawing.</div></button>
+    <button class="tile" data-tile="strike"><div class="stage" id="t-strike"></div><div class="cap"><b>Strike</b>A mark lands: the pick taps the ribbon at its minute.</div></button>
+    <button class="tile" data-tile="landing"><div class="stage" id="t-landing"></div><div class="cap"><b>Live</b>The ribbon fills as the day is heard.</div></button>
+    <button class="tile" data-tile="peek"><div class="stage" id="t-peek"></div><div class="cap"><b>Peek</b>Lift the page to see the heard day beneath it.</div></button>
+    <button class="tile" data-tile="presence"><div class="stage" id="t-presence"></div><div class="cap"><b>Presence</b>While the agent works, the gradient drifts along the composer.</div></button>
+    <button class="tile" data-tile="settle"><div class="stage" id="t-settle"></div><div class="cap"><b>Settle</b>Once you&rsquo;ve answered a heard line, its dashed rule inks solid.</div></button>
+  </div>
+  <ul class="pts">
+    <li>Touch feedback runs 180 to 320 ms. The night&rsquo;s read moves at the pace of the real work. With reduced motion turned on, each animation becomes a short fade.</li>
+  </ul>
+</section>
+
+<section class="sheet" id="pl06">
+  <div class="sheet-head"><span class="sno">PL-06</span><h2>Admin</h2><span class="scale">keeping Plebian current</span></div>
+  <div class="chain">
+    <div class="c"><b>Research</b>a weekly sweep</div><span class="ar">&rarr;</span>
+    <div class="c"><b>Brief</b>breakage, security, ideas, standing</div><span class="ar">&rarr;</span>
+    <div class="c"><b>You approve</b>item by item</div><span class="ar">&rarr;</span>
+    <div class="c"><b>Mechanic</b>builds on a branch</div><span class="ar">&rarr;</span>
+    <div class="c"><b>Replay</b>past days rebuilt</div><span class="ar">&rarr;</span>
+    <div class="c"><b>Deploy</b>one tap</div>
+  </div>
+  <ul class="pts">
+    <li>The sweep covers Duet and other agents, Omi firmware and app releases, security notices and anything that broke. The gear in the header opens the brief; each item says what changes and why, and you approve or skip it.</li>
+    <li>New feeds and tools come in the same way, and every new step that can change something starts out drafted.</li>
+    <li>Standing is granted here and nowhere else. The brief ranks steps by their record, and once you&rsquo;ve given one of a tool&rsquo;s steps standing, its others are offered as their record reaches that line. The agent can hand standing back from the thread, never take it.</li>
+    <li>Omi firmware installs from Plebian over Bluetooth, the way Omi&rsquo;s app installs it, carrying Plebian&rsquo;s one change: a double-tap with no phone connected buzzes long on its own.</li>
+    <li>Each sweep restores last night&rsquo;s copy of the Pi and replays a page from it, so the backup is proven, not assumed.</li>
+    <li>Replay gates every update. If a rebuilt page differs from the one you lived, the update waits, with the difference shown.</li>
+    <li>Hands-on work goes through your coding agent&rsquo;s remote session, from the same screen.</li>
+  </ul>
+</section>
+
+<section class="sheet" id="pl07">
+  <div class="sheet-head"><span class="sno">PL-07</span><h2>Where it runs</h2><span class="scale">one box at home</span></div>
+  <div class="two wide-r">
+    <ul class="pts">
+      <li>Plebian is a phone app set up like Omi&rsquo;s: it pairs with the Omi, streams its audio, syncs what it recorded out of range and takes its taps. It reuses Omi&rsquo;s open-source device code, MIT-licensed, for pairing, streaming, taps, offline sync, setting the clock and firmware updates, so Omi&rsquo;s own fixes reach it through the sweep.</li>
+      <li>Everything Omi&rsquo;s app would send to Omi&rsquo;s servers goes to the Pi instead: live audio, offline sync, conversations and voice profiles. The Pi is reached through your tailnet, the same way at home and away. Omi&rsquo;s app can&rsquo;t do this itself: pointed at your own transcriber, it still forwards the transcript to Omi&rsquo;s backend.</li>
+      <li>Mail comes straight to the Pi over IMAP with an app password, and the calendar from its secret iCal address: no Google Cloud project to set up. Replies go out over SMTP exactly as drafted, on your word; calendar changes go through the agent&rsquo;s browser, drafted the same way.</li>
+      <li>Texts reach the Pi as a linked device of Google Messages, the way Messages for web does, because no app on the phone can read encrypted RCS chats. That pairing is unofficial, so if Google breaks it the feed goes quiet.</li>
+      <li>Every feed is watched for silence: a quiet longer than any it has had becomes a question in Open, so a dead sign-in can&rsquo;t pass for a slow week.</li>
+      <li>Each night the store, the audio and every message as received are copied to a second disk, and offsite encrypted.</li>
+      <li>The background service that keeps the Omi connected also holds the line to the Pi, so notifications arrive without any push service.</li>
+      <li>Speech is typing: the keyboard&rsquo;s voice input fills the composer.</li>
+      <li>Nothing on the phone talks to any server but the Pi. If the home line can&rsquo;t take a connection from outside, as with carrier-grade NAT, the tunnel runs through a relay that sees only encrypted packets.</li>
+    </ul>
+    <svg class="dia" viewBox="0 0 360 446" role="img" aria-label="The Omi streams to Plebian on the phone over Bluetooth, and Plebian sends what Omi's app would send to Omi's servers to the Pi instead, over your tailnet at home or away. Mail and the calendar come from Google, and texts through Google Messages as a linked device, straight to the Pi. The Pi runs listening and sync, the feeds, the transcriber, the agent with Tracer Paper, the app server and the nightly copies.">
+      <defs><linearGradient id="al2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E9ECEE"/><stop offset=".55" stop-color="#B9C0C4"/><stop offset="1" stop-color="#8E979C"/></linearGradient><marker id="ah7" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="#7C878A"/></marker></defs>
+      <rect x="10" y="12" width="128" height="64" rx="6" fill="#F3F1EA" stroke="#DCD8CD"/>
+      <circle cx="36" cy="44" r="14" fill="url(#al2)" stroke="#7F888C"/><circle cx="36" cy="44" r="9.5" fill="none" stroke="#B9C0C4" stroke-width=".8"/><circle cx="36" cy="36" r="1.2" fill="#49637C"/>
+      <text class="t" x="58" y="36" style="font-size:14px">Omi</text><text class="lbl-s" x="58" y="52">512 MB</text><text class="lbl-s" x="58" y="66">on board</text>
+      <rect x="210" y="12" width="140" height="64" rx="6" fill="#F3F1EA" stroke="#DCD8CD"/>
+      <rect x="222" y="22" width="22" height="42" rx="5" fill="#2D4839"/><rect x="225" y="27" width="16" height="30" rx="2" fill="#FBFAF6"/>
+      <text class="t" x="252" y="36" style="font-size:14px">Phone</text><text class="lbl-s" x="252" y="52">Plebian app</text><text class="lbl-s" x="252" y="66">like Omi&rsquo;s</text>
+      <line x1="140" y1="44" x2="207" y2="44" stroke="#7C878A" stroke-width="1.3" marker-end="url(#ah7)"/>
+      <text class="lbl-s" x="174" y="37" text-anchor="middle">Bluetooth</text>
+      <rect x="10" y="92" width="128" height="58" rx="6" fill="#F3F1EA" stroke="#DCD8CD"/>
+      <text class="t" x="24" y="114" style="font-size:14px">Google</text><text class="lbl-s" x="24" y="130">mail &middot; calendar</text><text class="lbl-s" x="24" y="144">Messages, linked</text>
+      <line x1="74" y1="152" x2="74" y2="175" stroke="#7C878A" stroke-width="1.3" marker-end="url(#ah7)"/>
+      <text class="lbl-s" x="82" y="168">IMAP &middot; iCal</text>
+      <line x1="280" y1="78" x2="280" y2="176" stroke="#7C878A" stroke-width="1.3" marker-start="url(#ah7)" marker-end="url(#ah7)"/>
+      <text class="lbl-s" x="272" y="122" text-anchor="end">Your tailnet</text><text class="lbl-s" x="272" y="135" text-anchor="end">home or away</text>
+      <rect x="10" y="178" width="340" height="258" rx="8" fill="#FBFAF6" stroke="#49637C" stroke-width="1.3"/>
+      <text class="t" x="24" y="202">The Pi, at home</text>
+      <g>
+        <rect x="24" y="212" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="231"><tspan font-weight="700">Listen</tspan>: live audio and offline sync from the phone</text>
+        <rect x="24" y="248" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="267"><tspan font-weight="700">Feeds</tspan>: mail, calendar and texts, fetched by code</text>
+        <rect x="24" y="284" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="303"><tspan font-weight="700">Transcriber</tspan>: words and speakers, as audio arrives</text>
+        <rect x="24" y="320" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="339"><tspan font-weight="700">The agent</tspan> and Tracer Paper Memory</text>
+        <rect x="24" y="356" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="375"><tspan font-weight="700">Plebian server</tspan>: conversations, search, chat, voices</text>
+        <rect x="24" y="392" width="312" height="30" rx="4" fill="#E9EEEC" stroke="#C9D2CF"/><text class="ts" x="34" y="411"><tspan font-weight="700">Copies</tspan>: nightly to a second disk and offsite</text>
+      </g>
+    </svg>
+  </div>
+  <div class="tablewrap"><table class="map">
+    <thead><tr><th>Quantity</th><th>Size</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Audio</td><td>About 14 MB an hour</td><td class="dim">Opus at 16 kHz, the Omi&rsquo;s format; size assumes about 32 kbps (estimate)</td></tr>
+      <tr><td>A 12-hour day</td><td>About 170 MB</td><td class="dim">Streamed to the Pi as it&rsquo;s heard; out-of-range stretches sync when the Omi reconnects</td></tr>
+      <tr><td>A year of days</td><td>About 62 GB</td><td class="dim">On the Pi&rsquo;s disk, outside the store</td></tr>
+      <tr><td>Omi storage</td><td>512 MB, about 35 hours</td><td class="dim">Holds what it records out of the phone&rsquo;s range until it reconnects (estimate)</td></tr>
+      <tr><td>Omi battery</td><td>10 to 14 hours</td><td class="dim">Omi&rsquo;s figure for recording offline; a 16-hour day needs a top-up</td></tr>
+      <tr><td>Transcribing</td><td>About 5&times; faster than live</td><td class="dim">A Parakeet-class model measured 3.5% word error at a fifth of real time on a Pi-class board with 8 GB; a better model can redo a day overnight, and its transcript covers the first</td></tr>
+      <tr><td>Mail, texts, calendar</td><td>Small beside the audio</td><td class="dim">Kept as received, attachments included, on the Pi&rsquo;s disk</td></tr>
+      <tr><td>Copies</td><td>Nightly</td><td class="dim">A second disk plus an encrypted offsite copy, restored and replayed each week</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sheet">
+  <div class="sheet-head"><span class="sno">SRC</span><h2>Sources</h2></div>
+  <ol class="src">
+    <li><a href="https://roo.beehiiv.com/p/claude-duet-explained">Claude Duet, explained</a>: one ongoing thread; Tasks, where only you mark a task complete; approval before anything goes out; the morning brief.</li>
+    <li><a href="https://aitoolsreview.co.uk/insights/claude-duet-proactive-agent">Claude Duet: Anthropic&rsquo;s proactive agent</a>: the morning brief and check-ins every few hours.</li>
+    <li><a href="https://help.omi.me/en/articles/13153612-conversations-memories-and-chats">Omi help: conversations, memories and chats</a>: each recording becomes a conversation with a transcript, summary, key points and action items.</li>
+    <li><a href="https://docs.omi.me/doc/developer/backend/StoringConversations">Omi docs: storing conversations</a>: a title, overview and category generated for each conversation, with action items and memories extracted.</li>
+    <li><a href="https://docs.omi.me/doc/developer/backend/transcription">Omi docs: transcription</a>: Omi&rsquo;s app streams audio to its backend over a WebSocket, which matches voices to your profile and to people you&rsquo;ve named.</li>
+    <li><a href="https://docs.omi.me/onboarding/omi.md">Omi setup</a>: pairing in the app; one tap asks a question, and double tap is a quick action you choose.</li>
+    <li><a href="https://docs.omi.me/doc/hardware/OmiConsumer">Omi hardware</a>: an nRF5340 Bluetooth LE chip and 512 MB of on-board storage for audio.</li>
+    <li><a href="https://www.omi.me/pages/students">omi.me</a>: records offline without a phone, 10 to 14 hours per charge.</li>
+    <li><a href="https://newreleases.io/project/github/BasedHardware/omi/release/Omi_CV1_v3.0.17">Omi firmware v3.0.17</a>: near-accurate timestamps for offline recordings, and recording while it syncs.</li>
+    <li><a href="https://docs.omi.me/onboarding/omi-devkit-2">Omi DevKit 2 docs</a>: single and double taps are reported over Bluetooth to whatever is connected.</li>
+    <li><a href="https://github.com/BasedHardware/omi/blob/main/omi/firmware/omi/src/lib/core/button.c">Omi firmware, button.c</a>: a tap is under 300 ms, a second within 600 ms makes a double tap, a 3-second hold powers off, and a tap is sent only while a phone is connected, so the Omi knows when none is.</li>
+    <li><a href="https://github.com/BasedHardware/omi/blob/main/omi/firmware/omi/src/haptic.c">Omi firmware, haptic.c</a>: the motor&rsquo;s three buzzes, 100, 300 and 500 ms.</li>
+    <li><a href="https://docs.omi.me/doc/developer/Protocol">Omi Bluetooth protocol</a>: Opus at 16 kHz is the default audio codec.</li>
+    <li><a href="https://www.claude.com/resources/articles/claude-duet">Introducing Claude Duet</a>: it reads, drafts and prepares on its own, shows exactly what it will do and waits before sending, paying, signing or deleting, and checks connected accounts every few hours.</li>
+    <li><a href="https://docs.omi.me/doc/developer/custom-stt">Omi docs: custom STT</a>: with your own transcriber, the app still forwards transcripts to Omi&rsquo;s backend.</li>
+    <li><a href="https://github.com/BasedHardware/omi/blob/main/app/lib/services/devices/connectors/omi_connection.dart">Omi app source</a>, MIT-licensed: the tap, offline-storage and clock services over Bluetooth; its <a href="https://github.com/BasedHardware/omi/blob/main/app/pubspec.yaml">manifest</a> carries Nordic DFU and mcumgr for firmware updates.</li>
+    <li><a href="https://hashnode-hub.vercel.app/posts/68262037cbfffe5887227bb0">Speech-to-text on a Pi-class board</a>: Parakeet-TDT 0.6B int8 on sherpa-onnx, 3.51% word error at 0.21 real-time factor, 1.76 GB.</li>
+    <li><a href="https://www.synctech.com.au/faqs/why-are-some-messages-missing-from-the-backup/">SyncTech: missing messages</a>: encrypted RCS messages are readable only by the default SMS app.</li>
+    <li><a href="https://developer.android.com/work/dpc/rcs-messages-archival">Android RCS archival</a>: the sanctioned way in, for fully managed devices only.</li>
+    <li><a href="https://github.com/mautrix/gmessages/releases">mautrix-gmessages releases</a>: Google Messages pairing by Google account; QR pairing discontinued by Google.</li>
+    <li><a href="https://support.google.com/mail/answer/185833">Google: app passwords</a>: with 2-Step Verification on, an app password lets a mail client sign in over IMAP and SMTP.</li>
+    <li><a href="../tracer-paper-memory.md">Tracer Paper Memory</a>: the underlay, landings, the night&rsquo;s read and the heard rule.</li>
+  </ol>
+</section>
+<p class="foot">Plebian &middot; app design &middot; 19 Nov 2026</p>
+</main>
+
+<script>(function () {
+'use strict';
+const WM = 'data:image/png;base64,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';
+const $ = (s, r) => (r || document).querySelector(s);
+const scr = $('#pl-screen');
+if (!scr) return;
+
+/* ---------- glyphs ---------- */
+const PICK_D = 'M2 4.1 6.2 3.6C9 3.2 11.8 2.6 14.2 1.8 12.2 3.6 9.6 5.1 6.6 6.4L2 7.2Z';
+const PICK = '<svg viewBox="0 0 16 16" width="14" height="14" class="ic pick" aria-hidden="true"><path d="' + PICK_D + '" fill="currentColor"/><path d="M7.4 5.6 14.6 14.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
+const PICKG = (cls, delay) => '<g class="pick-g ' + (cls || '') + '"' + (delay != null ? ' style="animation-delay:' + delay + 'ms"' : '') + '><path d="' + PICK_D + '" fill="#B9772E"/><path d="M7.4 5.6 14.6 14.4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round" fill="none"/></g>';
+const I = {
+  today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6.5C4 5.1 5.1 4 6.5 4h11C18.9 4 20 5.1 20 6.5v7c0 1.4-1.1 2.5-2.5 2.5H11l-4.5 3.5V16C5.1 16 4 14.9 4 13.5z"/></svg>',
+  journal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 4h10.5A1.5 1.5 0 0 1 18 5.5V20H7.5A1.5 1.5 0 0 1 6 18.5z"/><path d="M6 17h12M9.5 8h5M9.5 11h5"/></svg>',
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="7.5"/><path d="M12 8.5V12l2.5 1.6"/></svg>',
+  back: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 6 8.5 12l6 6"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h8M17 7h2M5 17h2M11 17h8"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',
+  send: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>',
+  play: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+  search: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/></svg>',
+  wave: '<svg viewBox="0 0 16 16" width="13" height="13" class="ic" fill="none" stroke="#3B555A" stroke-width="1.4" aria-hidden="true"><path d="M1 8h2l1.5-4 2 8 2-10 2 12 1.5-6H15"/></svg>'
+};
+const POD = '<svg viewBox="0 0 92 60" aria-hidden="true"><defs><radialGradient id="om3" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#F4F5F6"/><stop offset=".6" stop-color="#D3D8DB"/><stop offset="1" stop-color="#9AA3A8"/></radialGradient></defs><path d="M4 6 Q46 34 88 6" fill="none" stroke="#3A4447" stroke-width="2.2"/><rect x="41" y="13" width="10" height="7" rx="3.5" fill="none" stroke="#7F888C" stroke-width="1.8"/><circle cx="46" cy="38" r="19" fill="url(#om3)" stroke="#7F888C"/><circle cx="46" cy="38" r="13.5" fill="none" stroke="#B9C0C4" stroke-width=".9"/><circle cx="46" cy="27" r="1.5" fill="#49637C"/></svg>';
+
+/* ---------- the days ---------- */
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const ENV = [.15, .3, .45, .6, .62, .55, .72, .58, .5, .7, .55, .6, .82, .62, .45, .22];
+function dens(seed, spikes) {
+  const r = rng(seed), a = [];
+  for (let i = 0; i < 64; i++) a.push(Math.max(.05, Math.min(1, ENV[i >> 2] * (.5 + .8 * r()))));
+  (spikes || []).forEach(i => { a[i] = .98; if (a[i + 1] != null) a[i + 1] = .9; });
+  return a;
+}
+const SUN_MARKS = [
+  { h: 14.15, t: '2:09pm', title: 'Dale quoted the culvert pipe: $340 for 20 ft, $490 for 30 ft.', verb: [
+    ['2:08', 'dale', 'How much you want?'], ['2:08', 'you', 'fifty should do it.'],
+    ['2:09', 'dale', 'The twenty foot culvert pipe three forty, the thirty foot is four ninety.', 1],
+    ['2:09', 'you', 'Have them dump the gravel down by the culvert, not at the top of the drive.'],
+    ['2:10', 'dale', 'So about that gravel delivery, I can bring it Wednesday.']] },
+  { h: 18.62, t: '6:37pm', title: 'Propane: locked rate or month to month, still undecided.', verb: [
+    ['6:36', 'priya', 'Did the propane people call back?'],
+    ['6:37', 'you', 'I have to figure out the propane contract, locked rate or month to month.', 1],
+    ['6:37', 'priya', 'Ugh, paperwork.']] }
+];
+const DEMO_MARK = { h: 20.25, t: '8:15pm', title: 'Priya: Biscuit eats the salmon food now; the chicken made him sick.', verb: [
+  ['8:14', 'priya', 'Biscuit’s new food is the salmon one, he threw up the chicken.', 1], ['8:15', 'you', 'Salmon, got it.']] };
+const DAYS = {
+  sun: { key: 'sun', name: 'Sunday', date: 'Nov 15', heard: '11 h 40 m', d: dens(15, [32, 50, 57]),
+    under: [['7:12–7:31', 'ana, you', 'Did you see the frost on the truck this morning?'], ['9:48–10:20', 'radio', '…and the pass is open, but chains are advised above the summit…'],
+      ['12:05–12:40', 'priya, you', 'Are we still doing the dump run Saturday?'], ['2:04–2:12', 'dale, you', 'How much you want?'],
+      ['6:30–6:41', 'priya, you', 'Did the propane people call back?'], ['8:10–8:20', 'priya, you', 'Biscuit’s new food is the salmon one…']] },
+  sat: { key: 'sat', name: 'Saturday', date: 'Nov 14', heard: '9 h 05 m', d: dens(14, [14]), first: 'Marcus borrows the flatbed this weekend to haul the joists.',
+    marks: [{ h: 9.52, t: '9:31am', title: 'Marcus: get the 3-inch deck screws; the 2½ won’t bite through the joist.', verb: [
+      ['9:31', 'marcus', 'Get the three inch deck screws, the two and a half won’t bite through the joist.', 1], ['9:31', 'you', 'Three inch deck screws, okay.'],
+      ['9:32', 'marcus', 'Can I borrow the flatbed this weekend to haul the joists?'], ['9:32', 'you', 'Sure.']] }],
+    entry: [{ s: 1, text: 'Marcus borrows the flatbed this weekend to haul the joists.' }, { m: 0, text: '9:31am, marked: get the 3-inch deck screws; the 2½ won’t bite.' }, { s: 1, text: 'You told Ana you’d bring the canning jars Sunday.' }],
+    xch: [['9:40am', 'remind me about screws at the store', 'I will, next time you’re there.']],
+    under: [['8:02–8:30', 'you, ana', 'Is the coffee on?'], ['9:28–9:40', 'marcus, you', 'Get the three inch deck screws…'], ['7:20–7:45', 'ana, you', 'Tell your mom I’ll bring the canning jars Sunday.']] },
+  fri: { key: 'fri', name: 'Friday', date: 'Nov 13', heard: '10 h 22 m', d: dens(13), first: 'Friday orders: 28 of them, $760, waiting on your go-ahead.', marks: [],
+    entry: [{ p: 1, text: 'Friday orders: 28 of them, $760, waiting on your go-ahead.' }, { s: 1, text: 'You told Marcus the lumber deposit goes on the business card.' }],
+    xch: [['4:02pm', null, '28 orders, $760. Want me to send the invoices?']],
+    under: [['3:49–3:52', 'marcus, you', 'How are we paying them?'], ['4:09–4:15', 'priya, you', 'Are the Friday orders done?']] },
+  thu: { key: 'thu', name: 'Thursday', date: 'Nov 12', heard: '8 h 47 m', d: dens(12, [9]), first: 'The lumber lands Monday morning by the garage; check the board count.',
+    marks: [{ h: 8.48, t: '8:29am', title: 'Marcus: the lumber lands Monday morning, by the garage.', verb: [['8:29', 'marcus', 'Lumber delivery is set for Monday morning, they’ll drop it by the garage.', 1], ['8:29', 'you', 'Good, I’ll count the boards.']] }],
+    entry: [{ m: 0, text: '8:29am, marked: the lumber lands Monday morning by the garage. Check the board count.' }],
+    xch: [], under: [['8:25–8:40', 'marcus, you', 'Lumber delivery is set for Monday morning…']] }
+};
+const STANDING = ['When Dale brings up the gravel delivery, remind me to ask about the culvert pipe.', 'When the well pump comes up, remind me the warranty is in the blue folder.'];
+const STAGES = [['Close the last conversation', 'ended 8:20pm'], ['Sync anything offline', 'nothing waiting'], ['Finish transcribing', '11 h 40 m'],
+  ['Gather what’s open', '4 loops · 2 orders'], ['The night’s read', 'with what’s open'], ['Write the entry', 'held till you settle it']];
+const hC = c => { const p = c.split(':').map(Number); return (p[0] % 12) + 12 + p[1] / 60; };
+const liveBars = () => Math.max(0, Math.min(64, Math.round((hC(S.clock) - 6) * 4)));
+const BRIEF = [
+  ['Breakage', [['a1', 'The transcriber’s new release labels speakers differently.', 'Replay: 3 pages since the last deploy would change, and each difference is listed.']]],
+  ['Security', [['a2', 'Tailscale has a security patch out.', 'Replay: no page changes.'], ['a5', 'An Omi firmware update is out.', 'Plebian installs it over Bluetooth, as Omi’s app would. Replay: no page changes.']]],
+  ['Ideas', [['a3', 'Duet keeps topics in channels that share one memory. A Shop channel could hold building talk apart.', 'A new view; nothing in the store changes.'],
+    ['a4', 'Search could suggest the marks near a day you open.', 'Reads only; replay unchanged.']]],
+  ['Standing', [['s1', 'The Thursday pickup list to Priya: 14 of 14 sent as drafted.', 'No texting step has standing yet, so this is listed, not offered. With standing it would go out about 9 minutes after Plebian tells you, your usual time to answer.']]]
+];
+
+/* ---------- state ---------- */
+const fresh = () => ({
+  screen: 'today', stack: [], rec: 'wrist', waiting: 0, demoMark: false, strikeMark: null, landing: false, landed: false, stage: -1, clock: '8:15',
+  seg: 'days', day: null, mref: null, reply: null, peek: false, compose: '', typed: false, thinking: false, settled: {}, gravel: null, done: {}, approved: {}, deployed: false,
+  thread: [
+    { su: 1, t: '7:02am', text: 'Morning. Friday’s 28 orders are still waiting on your go-ahead, $760 in all.' },
+    { me: 1, t: '7:10am', text: 'hold them till monday' },
+    { su: 1, t: '7:10am', text: 'Holding them. I’ll ask again Monday at 7.' },
+    { me: 1, t: '12:40pm', text: 'what size screws did marcus say for the deck' },
+    { su: 1, t: '12:41pm', text: 'Three-inch. He said the 2½ won’t bite through the joist.', mark: ['sat', 0, 'Sat 9:31am'] }
+  ]
+});
+let S = fresh();
+let timers = [];
+const later = (ms, f) => { const id = setTimeout(f, ms); timers.push(id); return id; };
+
+function sunMarks() { return S.demoMark ? SUN_MARKS.concat([DEMO_MARK]) : SUN_MARKS.slice(); }
+function day(k) {
+  if (k !== 'sun') return Object.assign({}, DAYS[k]);
+  const d = Object.assign({}, DAYS.sun, { marks: sunMarks() });
+  d.first = !S.landed ? 'Live today. Tonight’s read writes the entry.' : S.e1fix ? 'Dale brings the gravel Thursday, by the culvert.' : 'Dale brings the gravel Wednesday and dumps it by the culvert.';
+  d.xch = [];
+  return d;
+}
+function sunEntry() {
+  const L = [
+    { id: 'e1', h: 1, by: 'Dale', text: S.e1fix ? 'Dale brings the gravel Thursday, by the culvert.' : 'Dale brings the gravel Wednesday and dumps it by the culvert, not at the top of the drive.' },
+    { id: 'e2', h: 1, by: 'you, Dale', text: S.gravel ? S.gravel + ' yards of gravel.' : 'You said “fifty” and Dale said “fifty it is.” You typed 15 yards on Nov 2. Which is it?' },
+    { m: 0, text: '2:09pm, marked: Dale quoted the culvert pipe, $340 for 20 ft and $490 for 30 ft. That was your reminder to ask him about it.' },
+    { m: 1, text: '6:37pm, marked: propane, locked rate or month to month, is still open.' }
+  ];
+  if (S.demoMark) L.push({ m: 2, text: '8:15pm, marked: Priya says Biscuit eats the salmon food now; the chicken made him sick.' });
+  return L;
+}
+function openItems() {
+  const L = [{ id: 'o1', q: 'Send the 28 Friday orders, $760?', src: 'Drafted Fri 4:02pm · 6 of 6 sent as drafted' },
+    { id: 'o2', q: 'Propane: locked rate or month to month?', src: S.landed ? 'Asked Nov 2 · came up Sunday 6:37pm, still open' : 'Asked Nov 2' }];
+  if (S.landed) {
+    L.push({ id: 'o3', q: S.gravel ? 'Gravel: ' + S.gravel + ' yards.' : 'Gravel: 15 or 50 yards?', src: 'From Sunday’s page · heard “fifty”', gone: !!S.gravel });
+    L.push({ id: 'o4', q: 'Gravel Wednesday, by the culvert?', src: 'From Sunday’s page', gone: !!S.settled.e1 });
+  }
+  return L;
+}
+/* answering a line is just talking: tapping one quotes it into the thread, and whatever you say back settles it */
+const REPLY = {
+  e1: { line: 'e1', quote: () => sunEntry()[0].text, say: 'he said thursday, not wednesday', answer: 'Thursday, by the culvert. I’ve changed the line to match.', apply: () => { S.e1fix = true; S.settled.e1 = true; }, done: () => !!S.settled.e1 },
+  e2: { line: 'e2', quote: () => sunEntry()[1].text, say: 'fifteen. dale heard me wrong, the fifty was the pipe', answer: 'Fifteen yards it is.', apply: () => { S.gravel = '15'; }, done: () => !!S.gravel },
+  o1: { quote: () => 'Send the 28 Friday orders, $760?', say: 'go ahead and send those', answer: 'Sent: 28 invoices, $760.', apply: () => { S.done.o1 = 1; }, done: () => !!S.done.o1 },
+  o2: { quote: () => 'Propane: locked rate or month to month?', say: 'lock the rate, I don’t want surprises this winter', answer: 'Locked rate, then. I’ll show you the contract before anything is signed.', apply: () => { S.done.o2 = 1; }, done: () => !!S.done.o2 }
+};
+REPLY.o3 = REPLY.e2; REPLY.o4 = REPLY.e1;
+const openCount = () => openItems().filter(o => !o.gone && !S.done[o.id]).length;
+
+/* ---------- pieces ---------- */
+function ribbon(o) {
+  const W = 300, big = !!o.big, H = big ? 56 : 40, base = big ? 36 : 30, mh = big ? 26 : 20, bw = 288 / 64;
+  let s = '<svg class="ribbon" viewBox="0 0 ' + W + ' ' + H + '"' + (o.id ? ' id="' + o.id + '"' : '') + ' aria-label="The day by the hour, with marks">';
+  if (!o.d) s += '<line x1="6" y1="' + base + '" x2="294" y2="' + base + '" class="empty"/>';
+  else {
+    s += '<line x1="6" y1="' + (base + .5) + '" x2="294" y2="' + (base + .5) + '" class="base"/>';
+    o.d.forEach((v, i) => {
+      if (o.until != null && i >= o.until) return;
+      const x = 6 + i * bw, h = Math.max(1.5, v * mh);
+      s += '<rect class="bar' + (o.grow ? ' grow' : '') + '" x="' + (x + .4).toFixed(1) + '" y="' + (base - h).toFixed(1) + '" width="' + (bw - .9).toFixed(2) + '" height="' + h.toFixed(1) + '"' + (o.grow ? ' style="animation-delay:' + (i * 30) + 'ms"' : '') + '/>';
+    });
+  }
+  if (big) [[6, '6a'], [10, '10a'], [14, '2p'], [18, '6p'], [22, '10p']].forEach(([h, l]) => {
+    const x = 6 + (h - 6) / 16 * 288; s += '<text class="hr" x="' + x + '" y="' + (H - 3) + '" text-anchor="' + (h === 6 ? 'start' : h === 22 ? 'end' : 'middle') + '">' + l + '</text>';
+  });
+  (o.marks || []).forEach((m, k) => {
+    const x = 6 + (m.h - 6) / 16 * 288, sk = o.strike || o.strikeIdx === k;
+    s += '<g data-act="mark" data-day="' + o.day + '" data-i="' + k + '" style="cursor:pointer"><rect x="' + (x - 9) + '" y="0" width="18" height="' + base + '" fill="transparent"/>' +
+      '<line x1="' + x + '" y1="' + (base - mh + 4) + '" x2="' + x + '" y2="' + base + '" stroke="#B9772E" stroke-width="1" stroke-dasharray="1.5 1.5"/>' +
+      '<g transform="translate(' + (x - 6) + ' ' + (base - mh - 10) + ') scale(.82)">' + PICKG(sk ? 'strike' : '', sk ? (o.strike ? k * 320 : 0) : null) + '</g>' +
+      (sk ? [[-7, -5], [6, -7], [8, 2]].map(([dx, dy]) => '<circle class="chipdot fly" cx="' + x + '" cy="' + (base - mh + 2) + '" r="1.3" style="--dx:' + dx + 'px;--dy:' + dy + 'px;animation-delay:' + ((o.strike ? k * 320 : 0) + 330) + 'ms"/>').join('') : '') + '</g>';
+  });
+  return s + '</svg>';
+}
+function line(e, dk) {
+  if (e.m != null) return '<div class="ln" data-act="mark" data-day="' + (dk || 'sun') + '" data-i="' + e.m + '" style="cursor:pointer">' + PICK + '<span>' + e.text + '</span></div>';
+  if (e.p) return '<div class="ln">' + e.text + '</div>';
+  if (e.s) return '<div class="ln held settled">' + I.wave + ' <span class="tx">' + e.text + '</span><span class="settle-tag">settled</span></div>';
+  const st = e.id === 'e2' ? !!S.gravel : !!S.settled[e.id];
+  return '<div class="ln held' + (st ? ' settled' : '') + '" data-line="' + e.id + '"' + (st ? '' : ' data-act="reply" data-r="' + e.id + '"') + '><span class="by">heard · ' + e.by + '</span>' + I.wave + ' <span class="tx">' + e.text + '</span><span class="settle-tag">settled</span></div>';
+}
+function msg(m, i, streaming) {
+  if (m.me) return '<div class="msg me" data-li="' + i + '">' + m.text + (m.marked ? ' ' + PICK.replace('class="ic pick"', 'class="ic" style="color:#F2D49B"') : '') + '<span class="when">' + m.t + '</span></div>';
+  const words = streaming ? m.text.split(' ').map((w, k) => '<span style="animation-delay:' + (k * 45) + 'ms">' + w + ' </span>').join('') : m.text;
+  return '<div class="msg su' + (streaming ? ' stream' : '') + '" data-li="' + i + '">' + words +
+    (m.mark ? '<br><button class="mchip" data-act="mark" data-day="' + m.mark[0] + '" data-i="' + m.mark[1] + '">' + PICK + 'Heard ' + m.mark[2] + '</button>' : '') + '<span class="when">Plebian · ' + m.t + '</span></div>';
+}
+function stagesHTML() {
+  return STAGES.map(([a, v], i) => {
+    const live = S.landing || S.landed, st = !live ? 'ok' : (S.landed || i < S.stage ? 'ok' : i === S.stage ? 'run' : '');
+    return '<div class="stg ' + st + '"><span class="b"></span><span>' + a + '</span><span class="v">' + (live ? v : (i === 0 ? 'ended 10:41pm' : i === 2 ? '9 h 05 m' : i === 3 ? '3 loops · 2 orders' : v)) + '</span></div>';
+  }).join('');
+}
+function wave() {
+  const r = rng(7); let s = '<svg viewBox="0 0 120 26" preserveAspectRatio="none">';
+  for (let i = 0; i < 60; i++) { const h = 3 + r() * 20; s += '<rect x="' + (i * 2) + '" y="' + ((26 - h) / 2).toFixed(1) + '" width="1.2" height="' + h.toFixed(1) + '" fill="#7C878A"/>'; }
+  return s + '</svg>';
+}
+
+/* ---------- screens ---------- */
+function vToday() {
+  let h = '';
+  if (!S.landed) {
+    const ms = sunMarks();
+    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · LIVE · ' + ms.length + ' MARKS</span></div>' +
+      '<div id="land-ribbon">' + ribbon({ d: DAYS.sun.d, marks: ms, day: 'sun', until: liveBars(), strikeIdx: S.strikeMark }) + '</div>';
+    S.strikeMark = null;
+    if (S.landing) h += '<div class="dmeta" id="land-stage" style="margin-top:6px">' + landText() + '</div><div class="lines" id="land-lines"></div>';
+    else h += '<div class="pending" style="margin-top:6px">Heard live since 6:42am. Tonight’s read writes the page.</div>';
+    h += '</div>';
+  } else {
+    const ms = sunMarks();
+    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · ' + ms.length + ' MARKS</span></div>' +
+      ribbon({ d: DAYS.sun.d, marks: ms, day: 'sun' }) + '<div class="lines">' + sunEntry().map(e => line(e)).join('') + '</div>' +
+      '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-act="openday" data-day="sun">Open the page</button></div></div>';
+  }
+  const last = S.thread.length - 1;
+  h += S.thread.map((m, i) => msg(m, i, i === last && m.fresh)).join('');
+  S.thread.forEach(m => { m.fresh = false; });
+  return h;
+}
+function landText() {
+  const st = STAGES[Math.max(0, S.stage)];
+  return (S.stage < 0 ? 'Starting' : st[0]) + '…';
+}
+function dayCard(k) {
+  const d = day(k);
+  return '<div class="card day" data-act="openday" data-day="' + k + '"><div class="cap-row"><span class="dname" style="font-size:18px">' + d.name + '</span><span class="dmeta">' + d.date.toUpperCase() + '</span></div>' +
+    ribbon({ d: d.d, marks: d.marks, day: k, until: k === 'sun' && !S.landed ? liveBars() : null }) +
+    '<div class="first">' + d.first + '</div><div class="chips">' +
+    '<span class="tag">' + d.heard + ' heard</span>' + (d.marks.length ? '<span class="tag ore">' + d.marks.length + ' mark' + (d.marks.length > 1 ? 's' : '') + '</span>' : '') +
+    (k === 'fri' && !S.done.o1 ? '<span class="tag">1 open</span>' : '') + (k === 'sun' && S.landed && openCount() > 2 ? '<span class="tag">' + (openCount() - 2) + ' open</span>' : '') + '</div></div>';
+}
+function vJournal() {
+  let h = '<div class="seg"><button class="' + (S.seg === 'days' ? 'on' : '') + '" data-act="seg" data-v="days">Days</button><button class="' + (S.seg === 'marks' ? 'on' : '') + '" data-act="seg" data-v="marks">Marks</button></div>' +
+    '<div class="search">' + I.search + '<span>Search everything said and heard</span></div>';
+  if (S.seg === 'days') return h + ['sun', 'sat', 'fri', 'thu'].map(dayCard).join('');
+  const rows = [];
+  ['sun', 'sat', 'fri', 'thu'].forEach(k => { const d = day(k); d.marks.slice().reverse().forEach((m, j) => rows.push([k, d.marks.length - 1 - j, d, m])); });
+  return h + rows.map(([k, i, d, m]) => '<div class="card tight mrow" data-act="mark" data-day="' + k + '" data-i="' + i + '">' + PICK + '<div><div class="t">' + d.name.slice(0, 3).toUpperCase() + ' · ' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('');
+}
+function vDay() {
+  const d = day(S.day);
+  const entry = S.day === 'sun' ? (S.landed ? sunEntry() : null) : d.entry;
+  const xch = S.day === 'sun' ? S.thread.map(m => '<div class="xch"><span class="w">' + m.t + (m.me ? ' · you' : ' · Plebian') + '</span>' + m.text + '</div>').join('') :
+    (d.xch.length ? d.xch.map(([t, you, su]) => '<div class="xch"><span class="w">' + t + '</span>' + (you ? '<span><b>You:</b> ' + you + '</span>' : '') + '<span><b>Plebian:</b> ' + su + '</span></div>').join('') : '<div class="pending">No messages that day.</div>');
+  const marks = d.marks.length ? d.marks.map((m, i) => '<div class="mrow" data-act="mark" data-day="' + S.day + '" data-i="' + i + '" style="padding:5px 0">' + PICK + '<div><div class="t">' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('') : '<div class="pending">No marks.</div>';
+  return '<div class="card"><div class="dmeta">' + d.date.toUpperCase() + ' · ' + d.heard.toUpperCase() + ' HEARD</div>' + ribbon({ d: d.d, marks: d.marks, day: S.day, big: true, until: S.day === 'sun' && !S.landed ? liveBars() : null }) +
+    '<div class="sec">Entry</div>' + (entry ? '<div class="lines" style="margin-top:2px">' + entry.map(e => line(e, S.day)).join('') + '</div>' : '<div class="pending">Tonight’s read writes the entry.</div>') + '</div>' +
+    '<div class="stack" style="overflow:hidden;border-radius:14px"><div class="under"><div class="sec" style="margin:0 0 4px">Heard, beneath</div>' +
+    d.under.map(([t, who, w]) => '<div class="row"><span class="tm">' + t + '</span><span><i>' + who + '</i>“' + w + '”</span></div>').join('') + '</div>' +
+    '<div class="card top' + (S.peek ? ' peek' : '') + '"' + (S.peek ? ' data-act="peek"' : '') + '><div class="sec" style="margin-top:0">With Plebian</div>' + xch + '<div class="sec">Marks</div>' + marks +
+    '<div class="acts" style="margin-top:10px"><button class="btn" data-act="peek">' + (S.peek ? 'Lay it back down' : 'Lift to see what was heard') + '</button></div></div></div>';
+}
+function vMark() {
+  const d = day(S.mref[0]), m = d.marks[S.mref[1]];
+  return '<div class="card"><div class="cap-row">' + PICK + '<span class="dmeta">' + d.name.toUpperCase() + ' · ' + m.t.toUpperCase() + ' · TAPPED ON THE OMI</span></div>' +
+    '<div class="ln" style="margin-top:6px;font-size:15px">' + m.title + '</div>' +
+    '<div class="player"><button data-act="play" aria-label="Play the stretch">' + I.play + '</button><div class="wave">' + wave() + '<span class="head" id="phead"></span></div><span class="dmeta">0:48</span></div></div>' +
+    '<div class="card"><div class="sec" style="margin-top:0">Heard, around the mark</div><div class="verb">' +
+    m.verb.map(([t, who, tx, here]) => '<div class="r' + (here ? ' here' : '') + '"><i>' + t + ' ' + who + '</i>' + tx + '</div>').join('') + '</div></div>' +
+    '<div class="acts"><button class="btn pri" data-act="askmark">Ask about this</button><button class="btn" data-act="note">Add a note</button></div>';
+}
+function vOpen() {
+  const items = openItems();
+  return '<div class="card"><div class="sec" style="margin-top:0">Waiting on you</div>' + items.map(o => '<div class="oi' + (o.gone || S.done[o.id] ? ' done' : '') + '" id="oi-' + o.id + '" data-act="reply" data-r="' + o.id + '"><div class="q">' + o.q + '</div><div class="src">' + o.src + '</div></div>').join('') + '</div>' +
+    '<div class="card"><div class="sec" style="margin-top:0">Kept orders</div>' + STANDING.map(s => '<div class="oi"><div class="q">' + s + '</div><div class="src">kept until you drop it</div></div>').join('') + '</div>' +
+    '<div class="note" style="padding:0 4px">Tap one to answer it in the thread, in your own words. Only a message from you closes one; Plebian can say an item looks done, but it can’t close it. A draft runs exactly as shown.</div>';
+}
+function vRec() {
+  return '<div class="card"><div class="pod">' + POD + '<div><div class="dname" style="font-size:18px">Paired · live</div><div class="dmeta">STREAMING SINCE 6:42AM</div></div></div>' +
+    '<div style="margin-top:10px;font-size:13px">Battery: about half an hour left <span class="dmeta">ESTIMATE</span><div class="meter"><i style="width:6%"></i></div></div>' +
+    '<div style="margin-top:8px;font-size:13px">Waiting to sync: nothing</div>' +
+    '<div class="pending" style="margin-top:4px">Out of the phone’s range, the Omi keeps recording to its own storage and syncs when it’s back.</div></div>' +
+    '<div class="card"><div class="sec" style="margin-top:0">On the Omi</div><div class="legend"><div><span>Two taps</span>mark the moment: a short buzz, saved; a long one, phone out of range</div><div><span>Hold 3 s</span>power off</div></div>' +
+    '<div class="sec">Where it goes</div><div style="font-size:12.5px;color:var(--ink-2)">Everything Omi’s app would send to Omi’s servers goes to the Pi: live audio, offline sync, conversations and voices.</div></div>' +
+    '<div class="card"><div class="sec" style="margin-top:0">' + (S.landing || S.landed ? 'Tonight’s read' : 'Last read · Saturday 11:00pm') + '</div><div class="stages" id="stages">' + stagesHTML() + '</div></div>';
+}
+function vAdmin() {
+  const n = Object.keys(S.approved).filter(k => k[0] === 'a').length;
+  return '<div class="card"><div class="dmeta">WEEK OF NOV 9 · BRIEF</div>' + BRIEF.map(([lane, items]) => '<div class="lane-h">' + lane + ' <span class="n">' + items.length + '</span></div>' +
+    items.map(([id, what, why]) => '<div class="ai' + (S.approved[id] ? ' ok' : '') + '"><div>' + what + '</div><div class="why">' + why + '</div><div class="acts"><button class="btn pri" data-act="approve" data-id="' + id + '">' + (id[0] === 's' ? 'Grant' : 'Approve') + '</button><button class="btn" data-act="skip" data-id="' + id + '">Skip</button></div><div class="st">' + (id[0] === 's' ? 'granted · Plebian can hand it back' : S.deployed ? 'deployed' : 'approved · building on a branch') + '</div></div>').join('')).join('') + '</div>' +
+    '<div class="card"><div class="deploy"><div style="font-size:12.5px;color:var(--ink-2)">' + (S.deployed ? 'Deployed. Replay matched every page.' : 'Approved items are built on a branch and replayed against every page since the last deploy.') + '</div>' +
+    '<button class="btn pri" data-act="deploy"' + (n && !S.deployed ? '' : ' disabled style="opacity:.45"') + '>Deploy' + (n ? ' ' + n : '') + '</button></div></div>' +
+    '<div class="note" style="padding:0 4px">Hands-on work: open your coding agent&rsquo;s remote session.</div>';
+}
+const VIEWS = { today: vToday, journal: vJournal, open: vOpen, day: vDay, mark: vMark, rec: vRec, admin: vAdmin };
+
+/* ---------- frame ---------- */
+function chrome() {
+  const root = S.screen === 'today' || S.screen === 'journal' || S.screen === 'open';
+  const title = { day: S.day ? day(S.day).name : '', mark: 'Mark', rec: 'Omi', admin: 'This week' }[S.screen] || '';
+  const chip = '<button class="rchip" data-act="rec"><span class="dot"></span>Omi · live</button>';
+  const head = root ? '<img class="wm" src="' + WM + '" alt="Plebian">' : '<button class="back" data-act="back" aria-label="Back">' + I.back + '</button><span class="title">' + title + '</span>';
+  return '<div class="sbar"><span>' + S.clock + '</span><span class="cam"></span><span>100%</span></div><div class="ahead">' + head + chip + (root ? '<button class="gear" data-act="admin" aria-label="This week’s brief">' + I.gear + '</button>' : '') + '</div>';
+}
+function tabs() {
+  const n = openCount();
+  return '<nav class="tabs">' + [['today', 'Today', I.today], ['journal', 'Journal', I.journal], ['open', 'Open', I.open]].map(([k, l, ic]) =>
+    '<button class="' + (S.screen === k ? 'on' : '') + '" data-act="tab" data-v="' + k + '">' + ic + l + (k === 'open' && n ? '<span class="badge" id="badge">' + n + '</span>' : '') + '</button>').join('') + '</nav>';
+}
+function compose() {
+  const q = S.reply && REPLY[S.reply] ? '<div class="qchip"><span class="qa">↳</span><span>' + REPLY[S.reply].quote() + '</span></div>' : '';
+  return '<div class="compose"><span class="presence' + (S.thinking ? ' on' : '') + '" id="presence"></span>' + q + '<div class="field"><span class="' + (S.typed ? 'typed' : '') + '">' + (S.compose || 'Message Plebian…') + '</span><button class="send" data-act="send" aria-label="Send">' + I.send + '</button></div></div>';
+}
+function render(lay) {
+  const old = $('.scr', scr), top = old && !lay ? old.scrollTop : 0;
+  const root = S.screen === 'today' || S.screen === 'journal' || S.screen === 'open';
+  scr.innerHTML = chrome() + '<div class="vp"><div class="scr' + (lay ? ' lay' : '') + '">' + VIEWS[S.screen]() + '</div></div>' + (S.screen === 'today' ? compose() : '') + (root ? tabs() : '') +
+    '<div class="toast" id="toast"><img src="' + WM + '" alt=""><span id="toast-t"></span></div>';
+  const nw = $('.scr', scr);
+  if (lay) nw.scrollTop = 0; else nw.scrollTop = top;
+}
+function toBottom() { const s = $('.scr', scr); if (s) s.scrollTop = s.scrollHeight; }
+function toast(t) {
+  const el = $('#toast', scr); if (!el) return;
+  $('#toast-t', scr).textContent = t; el.classList.add('show'); later(2600, () => { const e = $('#toast', scr); if (e) e.classList.remove('show'); });
+}
+function bump() { const b = $('#badge', scr); if (b) { b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); } }
+function note(t) { $('#pl-note').textContent = t; }
+function go(s, extra) { S.stack.push(S.screen); Object.assign(S, extra || {}); S.screen = s; S.peek = false; render(true); }
+
+/* ---------- the thread ---------- */
+function say(text, reply, after, stay) {
+  S.thread.push({ me: 1, t: S.clock + 'pm', text: text });
+  S.compose = ''; S.typed = false; S.thinking = true;
+  if (stay && S.screen !== 'today') toast('Sent to Plebian: \u201c' + text + '\u201d');
+  else if (S.screen !== 'today') { S.stack = []; S.screen = 'today'; render(true); } else render(false);
+  if (S.screen === 'today') toBottom();
+  later(1300, () => {
+    S.thinking = false; if (reply) S.thread.push(Object.assign({ su: 1, t: S.clock + 'pm', fresh: true }, reply));
+    if (S.screen === 'today') { render(false); toBottom(); }
+    if (after) after();
+  });
+}
+function settle(id, then) {
+  const el = scr.querySelector('[data-line="' + id + '"]');
+  if (el) { el.classList.add('settling'); const a = el.querySelector('.acts'); if (a) a.style.display = 'none'; }
+  later(480, then);
+}
+function closeOpen(id) { const el = $('#oi-' + id, scr); if (el) el.classList.add('done'); }
+
+/* ---------- the landing ---------- */
+function dock() {
+  if (S.landing || S.landed) { note('Tonight’s read has run. Reset to run it again.'); return; }
+  if (S.screen !== 'today' && S.screen !== 'rec') { S.stack = []; S.screen = 'today'; }
+  S.landing = true; S.stage = 0; S.clock = '11:00';
+  note('11:00pm. The Pi closes the last conversation, finishes transcribing and runs the night’s read.');
+  render(true);
+  const step = () => { const t = $('#land-stage', scr); if (t) t.textContent = landText(); const g = $('#stages', scr); if (g) g.innerHTML = stagesHTML(); };
+  [900, 1700, 2600, 3500, 5600].forEach((ms, i) => later(ms, () => {
+    S.stage = i + 1; step();
+    if (S.stage === 4) { const p = $('#presence', scr); if (p) p.classList.add('on'); }
+    if (S.stage === 5) {
+      const p = $('#presence', scr); if (p) p.classList.remove('on');
+      sunEntry().forEach((e, j) => later(j * 260, () => { const b = $('#land-lines', scr); if (b) { const w = document.createElement('div'); w.innerHTML = line(e); const n = w.firstChild; n.style.animation = 'lay .34s var(--ease) both'; b.appendChild(n); } }));
+    }
+  }));
+  later(7600, () => {
+    S.landing = false; S.landed = true; S.clock = '11:04';
+    render(false); toast('Sunday’s page is up. ' + sunMarks().length + ' marks, 2 need your word.'); bump();
+    note('The page is up. Tap a heard line to answer it in your own words; whatever you say settles it.');
+  });
+}
+
+function wrist(t, s) { $('#pl-wrist-t').textContent = t; $('#pl-wrist-s').textContent = s; }
+
+/* ---------- input ---------- */
+function act(a, el) {
+  const v = el.dataset.v;
+  switch (a) {
+    case 'tab': S.stack = []; S.screen = v; S.peek = false; render(true); break;
+    case 'back': S.screen = S.stack.pop() || 'today'; S.peek = false; render(true); break;
+    case 'rec': if (S.screen !== 'rec') go('rec'); break;
+    case 'admin': go('admin'); break;
+    case 'seg': S.seg = v; render(false); break;
+    case 'openday': go('day', { day: el.dataset.day }); break;
+    case 'mark': {
+      go('mark', { mref: [el.dataset.day, +el.dataset.i] }); break;
+    }
+    case 'peek': S.peek = !S.peek; { const t = scr.querySelector('.top'); if (t) { t.classList.toggle('peek', S.peek); if (S.peek) t.setAttribute('data-act', 'peek'); else t.removeAttribute('data-act'); const b = t.querySelector('.acts .btn'); if (b) b.textContent = S.peek ? 'Lay it back down' : 'Lift to see what was heard'; } } break;
+    case 'play': { const h = $('#phead', scr); if (h) { h.classList.remove('go'); void h.offsetWidth; h.classList.add('go'); } break; }
+    case 'reply': {
+      const r = REPLY[el.dataset.r]; if (!r || r.done()) break;
+      S.reply = el.dataset.r; S.compose = r.say; S.typed = true; S.stack = []; S.screen = 'today'; render(true); toBottom();
+      note('Answer it any way you like. Whatever you say about the line settles it.'); break;
+    }
+    case 'send': if (S.compose) {
+      const r = S.reply && REPLY[S.reply]; S.reply = null;
+      if (!r) { say(S.compose, { text: 'Noted.' }); break; }
+      say(S.compose, { text: r.answer }, () => { const fin = () => { r.apply(); render(false); if (S.screen === 'today') toBottom(); bump(); }; if (r.line) settle(r.line, fin); else fin(); });
+    } break;
+    case 'askmark': {
+      const d = day(S.mref[0]), m = d.marks[S.mref[1]];
+      REPLY.mk = { quote: () => d.name + ' ' + m.t + ': ' + m.title, say: 'is that the price installed?', answer: 'It doesn’t say. Dale gave the two prices and nothing about installing. Want me to ask him next time he comes up?', apply: () => {}, done: () => false };
+      S.reply = 'mk'; S.compose = REPLY.mk.say; S.typed = true; S.stack = []; S.screen = 'today'; render(true); toBottom();
+      note('The mark is quoted into the thread. Ask in your own words.');
+      break;
+    }
+    case 'note': toast('Notes ride on the mark, as your own words.'); break;
+    case 'approve': S.approved[el.dataset.id] = 1; render(false); break;
+    case 'skip': { const r = el.closest('.ai'); if (r) { r.style.transition = 'opacity .3s'; r.style.opacity = '.35'; } break; }
+    case 'deploy': S.deployed = true; render(false); toast('Deployed. Replay matched every page.'); break;
+  }
+}
+scr.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || !scr.contains(el)) return;
+  act(el.dataset.act, el);
+});
+/* long-press any line to mark it */
+let lp = null, lx = 0, ly = 0;
+scr.addEventListener('pointerdown', e => {
+  const m = e.target.closest('.msg'); if (!m) return;
+  lx = e.clientX; ly = e.clientY;
+  lp = setTimeout(() => {
+    const i = +m.dataset.li; if (S.thread[i] && S.thread[i].me) { S.thread[i].marked = true; render(false); }
+    m.style.transition = 'transform .15s'; m.style.transform = 'scale(.97)'; setTimeout(() => { m.style.transform = ''; }, 160);
+    toast('Marked. It joins today’s page.'); if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) { /* not allowed here */ }
+  }, 520);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => scr.addEventListener(t, () => { clearTimeout(lp); }));
+scr.addEventListener('pointermove', e => { if (Math.abs(e.clientX - lx) + Math.abs(e.clientY - ly) > 10) clearTimeout(lp); });
+
+/* ---------- demo buttons ---------- */
+document.querySelectorAll('[data-demo]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.demo;
+  if (k === 'tap') {
+    if (S.demoMark) { note('That moment is already marked.'); return; }
+    S.demoMark = true; S.strikeMark = SUN_MARKS.length;
+    const p = document.getElementById('pl-pod'); p.classList.remove('buzz'); void p.getBoundingClientRect(); p.classList.add('buzz');
+    wrist('Paired with your phone', 'Streaming since 6:42am. Three marks today.');
+    note('The tap reached the phone over Bluetooth, and the mark is on today’s ribbon at 8:15pm.');
+    if (S.screen === 'today') render(false); else S.strikeMark = null;
+  } else if (k === 'dock') dock();
+  else if (k === 'ask') {
+    if (S.landing) { note('Wait for the night’s read to finish.'); return; }
+    S.stack = []; S.screen = 'today'; S.compose = 'what did dale quote for the culvert pipe'; S.typed = true; render(true); toBottom();
+    later(700, () => say('what did dale quote for the culvert pipe', { text: '$340 for the 20 ft and $490 for the 30 ft. Dale said it at 2:09pm today; that’s from what was heard.', mark: ['sun', 0, 'Sun 2:09pm'] }));
+  } else if (k === 'reset') {
+    timers.forEach(clearTimeout); timers = []; S = fresh(); render(true);
+    wrist('Paired with your phone', 'Streaming since 6:42am. Two marks today.');
+    note('It is Sunday evening. The Omi has been streaming through your phone since 6:42am, and the Pi has heard the day as it happened.');
+  }
+}));
+render(true);
+
+/* ---------- motion tiles ---------- */
+const T = id => document.getElementById(id);
+const restart = (el, cls) => { el.classList.remove(cls); void el.getBoundingClientRect(); el.classList.add(cls); };
+const tiles = {
+  lay: () => { T('t-lay').innerHTML = '<div style="position:relative;width:120px;height:74px"><div class="card" style="position:absolute;inset:8px 0 0 10px;opacity:.55"></div><div class="card" id="tl" style="position:absolute;inset:0 10px 8px 0;padding:8px"><div style="font:700 italic 13px var(--display)">Sunday</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:5px;width:60%"></div></div></div>'; T('tl').style.animation = 'none'; void T('tl').offsetWidth; T('tl').style.animation = 'lay .5s var(--ease) both'; },
+  strike: () => { T('t-strike').innerHTML = '<div style="width:160px">' + ribbon({ d: dens(3), marks: [{ h: 13.4 }], day: 'x', strike: true }) + '</div>'; },
+  landing: () => { T('t-landing').innerHTML = '<div style="width:170px">' + ribbon({ d: dens(5), grow: true }) + '</div>'; },
+  peek: () => { T('t-peek').innerHTML = '<div style="position:relative;width:140px;height:80px;overflow:hidden;border-radius:10px"><div class="under" style="padding:7px;font:400 9.5px/1.5 var(--mono);color:var(--teal)">2:09 dale “the twenty foot…”<br>2:09 you “by the culvert…”<br>2:10 dale “Wednesday”</div><div class="card top" id="tp" style="position:absolute;inset:0;padding:8px"><div style="font:700 italic 13px var(--display)">With Plebian</div><div style="height:4px;background:var(--rule);border-radius:2px;margin-top:8px;width:80%"></div></div></div>';
+    later(250, () => { const t = T('tp'); if (t) t.classList.add('peek'); }); later(1700, () => { const t = T('tp'); if (t) t.classList.remove('peek'); }); },
+  presence: () => { T('t-presence').innerHTML = '<div class="compose" style="width:170px;border-radius:12px;position:relative"><span class="presence on" id="tpr"></span><div class="field" style="min-height:30px"><span>Message Plebian…</span></div></div>'; later(2600, () => { const p = T('tpr'); if (p) p.classList.remove('on'); }); },
+  settle: () => { T('t-settle').innerHTML = '<div class="ln held" id="tst" style="width:170px;font-size:13px">' + I.wave + ' <span class="tx">Gravel Wednesday, by the culvert.</span></div>'; later(500, () => { const t = T('tst'); if (t) t.classList.add('settling'); }); later(1100, () => { const t = T('tst'); if (t) t.classList.add('settled'); }); }
+};
+Object.keys(tiles).forEach(k => tiles[k]());
+document.querySelectorAll('table.map').forEach(t => { const hs = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+  t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (i > 0 && hs[i]) td.dataset.label = hs[i]; })); });
+document.querySelectorAll('[data-tile]').forEach(b => b.addEventListener('click', () => tiles[b.dataset.tile]()));
+})();
+</script>
+</body></html>

@@ -1,0 +1,57 @@
+# node: n.app
+
+spec: PL-01 … PL-09; `docs/design/tokens.json`; `docs/design/mockup.html` (look and motion reference; `docs/plebian.md` governs where they differ)
+
+## assume
+[BINDING] origin: specified
+- in: n.app_device — audio frames, offline files, button events, battery, firmware revision
+- in: n.api — projections, the event stream, pairing, signed-action endpoints
+- in: src.owner — taps, typing, keyboard voice input, fingerprint
+
+## guarantee
+[BINDING] origin: specified
+- out: screens Today, Journal (Days, Marks, search), Open, Day page, Mark, Omi, This week, Setup, Browser live view — each rendering only what the API returns; owner messages; marks and notes; signed admin actions; wheel input; the server's offline-file acknowledgements, passed to the device layer
+- every control on every screen does what its label says against the real API; no screen is a placeholder
+- nothing in the conversation sends fixed words: drafts, questions, heard lines and marks are answered by the owner typing; tapping quotes the item into the composer
+- heard lines show the speaker and a dashed rule until settled; settling inks the rule solid
+- marks render in ore; the ribbon shows talk density by the hour and the marks on it, live
+- the motions in `tokens.json` (lay, strike, live, peek, presence, settle) run on their events; with reduced motion each becomes a fade
+- every control has a TalkBack label; text follows the system font size
+- messages and audio queue while the server is unreachable and send in order when it returns
+- Setup cards (Server, Pair, Model, Omi, Mail, Calendar, Texts, Storage, Backups, Updates), reached from This week, each show status and take one action; only Server, Pair and Model are required
+- every message the agent starts raises an Android notification through the service's own server link (no push service); tapping it opens Today at that message
+- the APK installs on Android 10 and later (the first to give a foreground service the connected-device type its Omi and server links run under); fonts and the wordmark are bundled
+
+## oracle
+type: relational
+risk: semantic
+fixtures: Flutter integration tests on an emulator against the server under test with the fixture provider; screenshots of every screen attached to the CI run for review
+
+## metamorphic relations
+[BINDING] origin: specified
+- MR-1: the same store rendered twice ⇒ identical widget trees
+- MR-2: system font scale raised ⇒ no text clipped; every control still reachable
+
+## demons
+- D1: a screen whose buttons do nothing (a record button that captures no audio)
+  kill_test: tests/app/test_every_control_has_effect
+  negative_check: pending
+  status: live
+- D2: a draft card with a Send button that posts fixed words
+  kill_test: tests/app/test_no_canned_replies
+  negative_check: pending
+  status: live
+- D3: heard lines styled like settled lines
+  kill_test: tests/app/test_heard_styling
+  negative_check: pending
+  status: live
+- D4: a message the agent starts waits silently in the thread while the app is closed
+  kill_test: tests/app/test_notification_with_app_closed
+  negative_check: pending
+  status: live
+
+## clauses
+(none yet)
+
+## open gaps
+- G009 — Android developer verification registration
