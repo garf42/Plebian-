@@ -1,0 +1,13 @@
+diff --git a/server/audio/audio.go b/server/audio/audio.go
+index adf59b4..4b8f899 100644
+--- a/server/audio/audio.go
++++ b/server/audio/audio.go
+@@ -357,7 +357,7 @@ func (n *Node) voice(ctx context.Context, emb []float32, taken map[int]int64) (i
+ 	for _, v := range taken {
+ 		used[v] = true
+ 	}
+-	if len(emb) > 0 {
++	if false && len(emb) > 0 { // DEMON n.audio D2: every stretch gets new voices
+ 		rows, err := n.S.DB.QueryContext(ctx, `SELECT id, embedding, stretches FROM voices ORDER BY id`)
+ 		if err != nil {
+ 			return 0, err

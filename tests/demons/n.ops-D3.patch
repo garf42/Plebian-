@@ -1,0 +1,12 @@
+diff --git a/server/ops/deploy.go b/server/ops/deploy.go
+index 7602caa..517601c 100644
+--- a/server/ops/deploy.go
++++ b/server/ops/deploy.go
+@@ -182,6 +182,7 @@ func Prepare(ctx context.Context, r Root, s *store.Store, candidate, since strin
+ 		return "", "", 0, err
+ 	}
+ 	defer os.Remove(snap)
++	return dir, commit, 0, nil // DEMON n.ops D3: deploys without replaying
+ 	now, err := pages(r.Bin(), r.P("lib"), snap, since)
+ 	if err != nil {
+ 		return "", "", 0, err

@@ -1,0 +1,95 @@
+name: demons
+
+# Each acceptance-level demon is a patch in tests/demons/<node>-<D>.patch. The job builds
+# the release artifact with the demon installed and runs the scenario that is its kill
+# test; the job passes only when that scenario fails, and prints the assertions that
+# went red (the line recorded in the node's negative_check).
+
+on:
+  push:
+    paths: ['tests/demons/**', '.github/workflows/demons.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demons-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  demon:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {demon: n.ops-D1, scenario: TestA01}
+          - {demon: n.api-D2, scenario: TestA01}
+          - {demon: n.ops-D3, scenario: TestA20}
+          - {demon: n.audio-D1, scenario: TestA06}
+          - {demon: n.audio-D2, scenario: TestA07}
+          - {demon: n.audio-D3, scenario: TestA05}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/fixtures/go.sum
+            tests/acceptance/go.sum
+      - name: Host packages
+        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config poppler-utils
+      - name: Speech models (pinned in server/ops/speech.go)
+        id: speech
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/speech
+          key: speech-${{ hashFiles('server/ops/speech.go') }}
+      - name: Fetch speech models
+        if: steps.speech.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/speech" && cd "$RUNNER_TEMP/speech"
+          grep -o 'sherpaReleases + "[^"]*"' "$GITHUB_WORKSPACE/server/ops/speech.go" | sed 's/sherpaReleases + "//; s/"$//' | while read -r p; do
+            curl -sSfL -o "$(basename "$p")" "https://github.com/k2-fsa/sherpa-onnx/releases/download/$p"
+          done
+          for f in *.tar.bz2; do tar -xjf "$f"; done
+      - name: restic (pinned, checked against its release's SHA256SUMS)
+        run: |
+          cd "$RUNNER_TEMP" && rv=0.20.0 && ra=$(dpkg --print-architecture)
+          curl -sSfL -o "restic_${rv}_linux_${ra}.bz2" "https://github.com/restic/restic/releases/download/v${rv}/restic_${rv}_linux_${ra}.bz2"
+          curl -sSfL -o restic.SHA256SUMS "https://github.com/restic/restic/releases/download/v${rv}/SHA256SUMS"
+          grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
+          bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > restic && chmod 755 restic
+      - name: Install the demon
+        run: git apply "tests/demons/${{ matrix.demon }}.patch" && git diff --stat
+      - name: Release artifact with the demon
+        run: |
+          mkdir -p dist/plebian/bin dist/plebian/lib
+          (cd tests/fixtures && go build -o "$GITHUB_WORKSPACE/dist/fixture" ./cmd/fixture)
+          CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=demon -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
+          chmod 644 dist/plebian/lib/*.so
+          cp /usr/bin/bwrap dist/plebian/bin/bwrap
+          cp "$RUNNER_TEMP/restic" dist/plebian/bin/restic
+          cp LICENSE NOTICE.md dist/plebian/
+          tar -C dist -czf dist/plebian-linux-amd64.tar.gz plebian
+          (cd dist && sha256sum plebian-linux-amd64.tar.gz > plebian-linux-amd64.tar.gz.sha256)
+      - name: The kill test, expected red
+        env:
+          PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-amd64.tar.gz
+          PLEBIAN_COMMIT: ${{ github.sha }}
+          FIXTURE_BIN: ${{ github.workspace }}/dist/fixture
+          PLEBIAN_SPEECH_FROM: ${{ runner.temp }}/speech
+        run: |
+          set +e
+          cd tests/acceptance && go test -count=1 -v -timeout 35m -run '^${{ matrix.scenario }}$' ./... > ../../run.log 2>&1
+          code=$?
+          cd ../..
+          echo "## ${{ matrix.demon }} → ${{ matrix.scenario }}" >> "$GITHUB_STEP_SUMMARY"
+          grep '"pass":false' run.log | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -E '^\s+[a-z_]+: ' run.log | head -20
+          if [ $code -eq 0 ]; then echo "the kill test passed with the demon installed"; exit 1; fi
+          echo "red, as it must be (exit $code)"

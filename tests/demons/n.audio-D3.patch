@@ -1,0 +1,37 @@
+diff --git a/server/audio/audio.go b/server/audio/audio.go
+index adf59b4..5a2fb8c 100644
+--- a/server/audio/audio.go
++++ b/server/audio/audio.go
+@@ -543,11 +543,16 @@ func ReadFrame(b []byte) (Frame, error) {
+ // Live runs one live stream until next returns io.EOF; the open stretch closes then.
+ func (n *Node) Live(ctx context.Context, codec int, next func() (Frame, error), onSpeech func(minute string, seconds float64)) error {
+ 	var s *session
++	var later []Frame // DEMON n.audio D3: transcribed only once the stream is over
+ 	for {
+ 		f, err := next()
+ 		if errors.Is(err, io.EOF) {
+ 			break
+ 		}
++		if err == nil {
++			later = append(later, f)
++			continue
++		}
+ 		if errors.Is(err, errSkip) {
+ 			continue
+ 		}
+@@ -572,6 +577,15 @@ func (n *Node) Live(ctx context.Context, codec int, next func() (Frame, error),
+ 			return err
+ 		}
+ 	}
++	for _, f := range later {
++		if s == nil {
++			var err error
++			if s, err = n.newSession(codec, f.Arrival); err != nil {
++				return err
++			}
++		}
++		s.packet(ctx, f.Packet, f.Data)
++	}
+ 	if s != nil {
+ 		return s.end(ctx)
+ 	}
