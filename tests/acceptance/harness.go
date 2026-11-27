@@ -148,7 +148,7 @@ func install(t testing.TB, speech string, extra ...string) *H {
 		args = append(args, "--speech-from", speech)
 	}
 	args = append(args, extra...)
-	out := runOut(t, sudo(args...))
+	// Registered before the install runs, so a failed install never outlives its test.
 	t.Cleanup(func() {
 		if os.Getenv("KEEP_ROOT") == "" {
 			cmd := sudo(bin, "uninstall", "--root", h.Root)
@@ -157,6 +157,7 @@ func install(t testing.TB, speech string, extra ...string) *H {
 			}
 		}
 	})
+	out := runOut(t, sudo(args...))
 	code := regexp.MustCompile(`Pairing code: (\S+)`).FindStringSubmatch(out)
 	if code == nil {
 		t.Fatalf("install printed no pairing code:\n%s", out)

@@ -120,7 +120,7 @@ type InstallOptions struct {
 
 // Install lays the root down, creates the accounts, enables their linger flags and starts
 // their user services. Run as root.
-func Install(o InstallOptions) error {
+func Install(o InstallOptions) (err error) {
 	if os.Geteuid() != 0 {
 		return errors.New("install needs root (it creates two system accounts)")
 	}
@@ -128,13 +128,33 @@ func Install(o InstallOptions) error {
 	if !filepath.IsAbs(string(r)) {
 		return errors.New("--root must be absolute")
 	}
+	fresh := true
 	if fi, err := os.Stat(string(r)); err == nil && fi.IsDir() {
 		if _, err := os.Stat(r.Bin()); err != nil {
 			if ents, _ := os.ReadDir(string(r)); len(ents) > 0 {
 				return fmt.Errorf("%s exists and is not a Plebian root; choose another --root", r)
 			}
+		} else {
+			fresh = false // an existing root: its store is never rolled back
 		}
 	}
+	_, hadServer := user.Lookup(ServerUser)
+	_, hadTools := user.Lookup(ToolsUser)
+	fresh = fresh && hadServer != nil && hadTools != nil
+	// A fresh install that fails leaves nothing behind: the box is as it was (A01).
+	defer func() {
+		if err == nil || !fresh {
+			return
+		}
+		if uid, _, e := uidOf(ServerUser); e == nil {
+			if out, e := exec.Command("journalctl", fmt.Sprintf("_UID=%d", uid), "-n", "40", "--no-pager", "-o", "cat").Output(); e == nil && len(out) > 0 {
+				err = fmt.Errorf("%w\nserver log:\n%s", err, strings.TrimSpace(string(out)))
+			}
+		}
+		if e := Uninstall(r); e != nil {
+			err = fmt.Errorf("%w\nrolling back: %v", err, e)
+		}
+	}()
 	// The server joins the tools group so it can reach the runner's socket; the tools
 	// user joins no group of the server's, so the store and secrets stay out of its reach.
 	if err := ensureUser(ToolsUser, r.ToolsHome()); err != nil {
