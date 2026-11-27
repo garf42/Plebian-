@@ -104,5 +104,5 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 
 - No assertion has a recorded `first_red`; the history is CI logs, not a per-assertion record.
 - A19 (live model key) is blocked.
-- The app's emulator integration tests and the Android build run only in CI. The APK compiles there, Kotlin included, since L0050 (app run 45990998691); it has not run on the emulator or a phone (G044, G049).
+- The app's emulator integration tests and the Android build run only in CI. The APK compiles and installs on the emulator (app run 45992530501). The device-seam integration test fails there and the skeleton test skips without a release server; it has not run on a phone (G044, G049).
 - The test clock starts at real wall time, so a scenario's span can cross the 4 am cut depending on when CI runs. Page reads now span every page a scenario's rows can fall on; anything still reading a single page is exposed.
