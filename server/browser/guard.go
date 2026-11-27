@@ -14,14 +14,16 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
 // Chrome is the box's one browser.
 type Chrome struct {
-	cmd  *exec.Cmd
-	Port string // the DevTools port on 127.0.0.1
-	WS   string // the browser target's WebSocket URL
+	cmd    *exec.Cmd
+	exited chan struct{}
+	Port   string // the DevTools port on 127.0.0.1
+	WS     string // the browser target's WebSocket URL
 }
 
 // Launch starts Chromium on a persistent profile, DevTools on a free loopback port.
@@ -34,6 +36,7 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 		args = append(args, "--no-sandbox") // Chromium refuses root with its sandbox; the server's own account keeps it
 	}
 	cmd := exec.CommandContext(ctx, bin, append(args, "about:blank")...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // its renderers and helpers stop with it
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
@@ -49,7 +52,7 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 		if err == nil {
 			lines := strings.Split(strings.TrimSpace(string(b)), "\n")
 			if len(lines) == 2 {
-				return &Chrome{cmd: cmd, Port: lines[0], WS: "ws://127.0.0.1:" + lines[0] + lines[1]}, nil
+				return &Chrome{cmd: cmd, exited: exited, Port: lines[0], WS: "ws://127.0.0.1:" + lines[0] + lines[1]}, nil
 			}
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -60,9 +63,14 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 
 func (c *Chrome) Endpoint() string { return "http://127.0.0.1:" + c.Port }
 
+// Close stops the browser and waits until it has let go of its profile.
 func (c *Chrome) Close() {
 	if c.cmd != nil && c.cmd.Process != nil {
-		c.cmd.Process.Kill()
+		syscall.Kill(-c.cmd.Process.Pid, syscall.SIGKILL)
+		select {
+		case <-c.exited:
+		case <-time.After(10 * time.Second):
+		}
 	}
 }
 
