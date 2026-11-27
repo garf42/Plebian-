@@ -34,23 +34,23 @@ reference: a naive implementation (every sum taken over every use, every cover r
 ## demons
 - D1: ink summed over every use of a label — values correct, per-turn cost grows with history (the probe saw a 9× slower label lookup at 1M turns)
   kill_test: tests/recall/test_flat_per_turn
-  negative_check: seen red — timed out: with buckets never merged, ink at 200K uses outgrows the test's 240 s limit (TestFlatPerTurn)
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:178: the test panicked
   status: killed
 - D2: trust bumped whenever a line is repeated
   kill_test: tests/recall/test_repetition_never_moves_trust
-  negative_check: seen red — --- FAIL: TestRepetitionNeverMovesTrust (a use bumping rec_a moved τ)
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:101: trust moved 0.7100 → 0.9770 by repetition
   status: killed
 - D3: heard lines counted as uses on the sheets
-  kill_test: tests/recall/test_heard_writes_no_use
-  negative_check: pending
-  status: live
+  kill_test: tests/underlay/underlay_test.go TestHeardWritesNoUse
+  negative_check: seen red (re-run 2026-11-27) — underlay_test.go:183: heard talk wrote 162 uses on the sheets (0 without a turn)
+  status: killed
 - D4: decay driven by the wall clock
   kill_test: tests/recall/test_idle_is_free
-  negative_check: seen red — --- FAIL: TestIdleIsFree (uses clocked by wall time gave different ink)
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:118: ink depends on wall time: 0.4604157117345865 vs 0.44543756968426973
   status: killed
 - D5: holds near-repeats of a struck call, not only exact ones
-  kill_test: tests/recall/test_held_exact_only
-  negative_check: seen red — --- FAIL: TestHeldOnce (a near repeat of the struck call was held) — see tests/loop/TestHeldOnce
+  kill_test: tests/loop/loop_test.go TestHeldOnce
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:199: held 2, open redlines 1
   status: killed
 
 ## clauses

@@ -33,24 +33,24 @@ fixtures: `tests/grammar/` (TP-03A worked examples: A = "copy the prod config", 
 ## demons
 - D1: forms labels on the second sighting but never credits the first, so tracing a line forward never darkens the original
   kill_test: tests/grammar/test_first_sighting_counts
-  negative_check: seen red — --- FAIL: TestFirstSightingCounts (first sighting not credited)
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:123: label "culvert " uses at turns [2]: the first sighting was not credited
   status: killed
 - D2: the round trip "corrects" a real word into a familiar one (fifteen recorded as a use of fifty)
   kill_test: tests/grammar/test_real_word_stays
-  negative_check: seen red — --- FAIL: TestRealWordStays (card recorded as a use of cart)
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:151: card recorded as a use of "cart" (cart→card)
   status: killed
 - D3: number words and digits never match, so typed "fifteen" and heard "15" are strangers
   kill_test: tests/grammar/test_number_forms
-  negative_check: seen red — --- FAIL: TestNumberForms (fifteen and 15 are strangers)
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:173: fifteen and 15 are strangers
   status: killed
 - D4: stand-ins fetched by importing a model client inside the grammar package
   kill_test: tests/grammar/test_no_model_imports
-  negative_check: seen red — --- FAIL: TestNoModelImports (server/grammar imports plebian/server/models)
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:215: ../../server/grammar/numbers.go imports plebian/server/models
   status: killed
 
 - D5: keeps each sheet's raw bytes beside its spelling and "rebuilds" from the raw copy, so the grammar is never proven to round-trip
   kill_test: tests/grammar/test_rebuild_from_spelling_only
-  negative_check: seen red — --- FAIL: TestRebuildFromSpellingOnly (raw text kept beside the spelling)
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:74: sheet 1 keeps its raw text beside its spelling
   status: killed
 
 ## clauses

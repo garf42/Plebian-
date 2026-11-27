@@ -30,15 +30,15 @@ fixtures: `tests/store/` (synthetic sheets with known bytes); probe `tests/probe
 ## demons
 - D1: hashes the stored spelling instead of the rebuilt bytes, so a corrupt expansion still "verifies"
   kill_test: tests/store/test_rebuild_hash
-  negative_check: seen red — --- FAIL: TestRebuildHash (hash taken over the stored spelling; a corrupted spelling verified)
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:57: verify passed a corrupted store
   status: killed
 - D2: creates the store under the default umask, readable by the tools user
   kill_test: tests/store/test_tools_user_denied
-  negative_check: seen red — --- FAIL: TestToolsUserDenied (store created 0644 under the default umask)
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:81: /tmp/TestToolsUserDenied2635390259/001/data/store.db is -rw-r--r--: readable beyond its owner
   status: killed
 - D3: buffers writes behind the call, so a crash loses the last sealed turn
   kill_test: tests/store/test_kill9_durable
-  negative_check: seen red — --- FAIL: TestKill9Durable (writes buffered behind Seal; turns reported sealed were lost)
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:149: turn 200 (of 200 reported sealed) lost after kill -9: sql: no rows in result set
   status: killed
 
 ## clauses

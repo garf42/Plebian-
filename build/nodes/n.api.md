@@ -41,11 +41,11 @@ fixtures: `tests/api/`; scenarios A02, A03, A14
   status: live
 - D3: a projection reads the wall clock, so replay differs
   kill_test: tests/api/projection_test.go TestPageReadsNoClock
-  negative_check: seen red — TestPageReadsNoClock: the page changed with the clock (stamped as_of from the server clock)
+  negative_check: seen red (re-run 2026-11-27) — projection_test.go:31: the page changed with the clock:
   status: killed
 - D4: acknowledges an offline file on receipt, before it is durable, so the Omi deletes audio the server can still lose
   kill_test: tests/audio/ack_test.go TestFileAckOnlyWhenDurable
-  negative_check: seen red — TestFileAckOnlyWhenDurable: a file the store could not keep was answered 200 with its sha (acknowledged before durable)
+  negative_check: seen red (re-run 2026-11-27) — ack_test.go:63: durable: 200 "535012a99a3f0c312834a9be65e2f968658a259059d589212995b540ac589a5e" kept false
   status: killed
 
 ## clauses

@@ -29,11 +29,11 @@ reference: the fixture provider's request log; MR-1, MR-2
 ## demons
 - D1: puts cache breakpoints anywhere that fits, not on band boundaries
   kill_test: tests/assemble/assemble_test.go TestBreakpointsOnBands
-  negative_check: seen red — TestBreakpointsOnBands: a breakpoint on the newest inbound (placed wherever it fits)
+  negative_check: seen red (re-run 2026-11-27) — assemble_test.go:228: request 0: a breakpoint on the newest inbound
   status: killed
 - D2: switches provider on the first 429 regardless of Retry-After
   kill_test: tests/models/retry_test.go TestRetryWindow
-  negative_check: seen red — TestRetryWindow: Retry-After 7s within 1m0s: same provider answered false (switched on the first 429)
+  negative_check: seen red (re-run 2026-11-27) — retry_test.go:48: Retry-After 7s within 1m0s: same provider answered false (err model retry (429): {"error":{"message":"fixture: scripted error","type":"rate_limit_error"},"request_id":"req_fixture_1"
   status: killed
 - D3: counts every model's tokens with one generic tokenizer, so a request that fits B on paper overflows another model or is silently cut by a runtime that truncates
   kill_test: tests/models/test_counts_never_short

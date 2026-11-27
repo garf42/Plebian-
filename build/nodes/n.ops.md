@@ -37,7 +37,7 @@ fixtures: scenarios A01, A17, A18, A20; probe `tests/probes/backup`
   status: live
 - D2: backs up the store file without its write-ahead log, so a restore loses the last turns
   kill_test: tests/ops/backup_test.go TestRestoreHoldsEveryTurn (and A17 in acceptance)
-  negative_check: seen red — TestRestoreHoldsEveryTurn: the restored store holds 0 of 30 sealed turns (store file copied without its write-ahead log)
+  negative_check: seen red (re-run 2026-11-27) — backup_test.go:92: the restored store holds 0 of 30 sealed turns
   status: killed
 - D3: deploys without replaying
   kill_test: tests/acceptance/a20_update_replay

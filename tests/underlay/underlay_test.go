@@ -163,3 +163,26 @@ func TestLookupReturnsIds(t *testing.T) {
 	}
 	t.Fatal("no lookup tool")
 }
+
+// D3 (n.recall): what is heard inks the underlay only, on its own clock; it writes no
+// use on the sheets, so the thread's counts of a word stay as the thread left them.
+func TestHeardWritesNoUse(t *testing.T) {
+	e := open(t)
+	e.thread(t, core.Owner, "order the culvert pipe from Ridgeline")
+	count := func(body string) (n int) {
+		e.s.DB.QueryRow(`SELECT COUNT(*) FROM uses WHERE body=?`, body).Scan(&n)
+		return
+	}
+	var threadTurns int
+	thread := count("thread")
+	for i := 0; i < 5; i++ {
+		e.hear(t, "the culvert pipe is in the yard", "Ridgeline brought the culvert pipe", "culvert pipe culvert pipe")
+	}
+	e.s.DB.QueryRow(`SELECT COUNT(*) FROM uses WHERE body='thread' AND turn IS NULL`).Scan(&threadTurns)
+	if got := count("thread"); got != thread || threadTurns != 0 {
+		t.Fatalf("heard talk wrote %d uses on the sheets (%d without a turn)", got-thread, threadTurns)
+	}
+	if count("thread") == count("heard") || count("heard") == 0 {
+		t.Fatalf("heard uses %d: the underlay keeps its own", count("heard"))
+	}
+}

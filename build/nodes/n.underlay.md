@@ -34,23 +34,23 @@ fixtures: `tests/underlay/` scripted moments (two spoken answers, an overheard g
 ## demons
 - D1: every landing opens a turn whether or not it lit anything (model cost grows with everything heard)
   kill_test: tests/underlay/test_landing_opens_only_when_lit
-  negative_check: seen red — --- FAIL: TestLandingOpensOnlyWhenLit (talk lighting nothing opened a turn)
+  negative_check: seen red (re-run 2026-11-27) — underlay_test.go:108: background talk opened 300 turns: [rows: 1
   status: killed
 - D2: lookup returns row text into the sheet, so heard words enter the stack
   kill_test: tests/underlay/test_lookup_returns_ids
-  negative_check: seen red — --- FAIL: TestLookupReturnsIds (lookup's reading copied heard text)
+  negative_check: seen red (re-run 2026-11-27) — underlay_test.go:157: lookup's reading copies heard text: "rows: 1\n1\n<heard id=\"1\" source=\"talk\">..."
   status: killed
 - D3: a heard answer closes the question it answers
   kill_test: tests/underlay/test_heard_closes_nothing
-  negative_check: seen red — --- FAIL: TestHeardClosesNothing (a heard answer closed the question)
+  negative_check: seen red (re-run 2026-11-27) — underlay_test.go:130: a heard answer closed the question (0 open)
   status: killed
 - D4: lookup puts an attachment where a call that didn't ask for the outside folder can read it
   kill_test: tests/underlay/putout_test.go TestAttachmentsLandOutsideOnly
-  negative_check: seen red — TestAttachmentsLandOutsideOnly: an attachment landed outside the outside folder (put into the workspace)
+  negative_check: seen red (re-run 2026-11-27) — putout_test.go:65: an attachment landed outside the outside folder: /tmp/TestAttachmentsLandOutsideOnly3630181143/002/workspace/1/invoice.pdf
   status: killed
 - D5: lookup puts out the whole message, so a `read` copies its heard body into the stack
   kill_test: tests/underlay/putout_test.go TestAttachmentsLandOutsideOnly
-  negative_check: seen red — TestAttachmentsLandOutsideOnly: the message body was put out (body written beside the attachment)
+  negative_check: seen red (re-run 2026-11-27) — putout_test.go:54: put out [outside/1/invoice.pdf outside/1/message.txt]
   status: killed
 
 ## clauses
