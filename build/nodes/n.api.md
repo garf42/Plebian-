@@ -44,9 +44,9 @@ fixtures: `tests/api/`; scenarios A02, A03, A14
   negative_check: pending
   status: live
 - D4: acknowledges an offline file on receipt, before it is durable, so the Omi deletes audio the server can still lose
-  kill_test: tests/api/test_ack_after_durable
-  negative_check: pending
-  status: live
+  kill_test: tests/audio/ack_test.go TestFileAckOnlyWhenDurable
+  negative_check: seen red — TestFileAckOnlyWhenDurable: a file the store could not keep was answered 200 with its sha (acknowledged before durable)
+  status: killed
 
 ## clauses
 (none yet)
