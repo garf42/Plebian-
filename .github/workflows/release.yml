@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config
+      - run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config bubblewrap
       - name: Build from the tagged commit
         run: |
           arch=$(go env GOARCH)
@@ -26,6 +26,7 @@ jobs:
           CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
           cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
           chmod 644 dist/plebian/lib/*.so
+          cp /usr/bin/bwrap dist/plebian/bin/bwrap
           cp LICENSE NOTICE.md dist/plebian/
           dist/plebian/bin/plebian version
           tar -C dist -czf "dist/plebian-linux-${arch}.tar.gz" plebian

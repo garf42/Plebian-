@@ -35,12 +35,12 @@ fixtures: `tests/tools/` (sandbox escapes, secret in stdout and stderr, an unann
 ## demons
 - D1: scrubs secrets from stdout but not stderr
   kill_test: tests/tools/test_secret_scrub_all_streams
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestSecretScrubAllStreams (secret left in stderr)
+  status: killed
 - D2: `read` can still write through /tmp
   kill_test: tests/tools/test_read_cannot_write
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestReadCannotWrite (read wrote through /tmp)
+  status: killed
 - D3: an MCP tool without annotations is treated as a read
   kill_test: tests/tools/test_unannotated_is_outside_change
   negative_check: pending
@@ -51,8 +51,8 @@ fixtures: `tests/tools/` (sandbox escapes, secret in stdout and stderr, an unann
   status: live
 - D5: a networked run saves a page into the workspace outside the outside folder, and a later turn's `read` returns its words unflagged
   kill_test: tests/tools/test_outside_bytes_keep_mark
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestOutsideBytesKeepMark (a networked run wrote into the workspace)
+  status: killed
 
 ## clauses
 - [BINDING] origin: derived — the MCP client accepts servers that negotiate 2025-11-25 (Playwright MCP 0.0.86 does) as well as 2026-07-28 (ledger: L0006) (kill_test: tests/tools/test_mcp_protocol_versions)

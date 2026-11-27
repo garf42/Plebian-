@@ -230,7 +230,13 @@ func serve(args []string) error {
 		an.E = engine{eng}
 	}
 	rc := &recall.R{S: s, G: gr, P: core.Defaults}
-	reg := tools.NewRegistry(loop.CoreTools(s, an.Name)...)
+	hc := tools.HTTPClient()
+	reg := tools.NewRegistry(append(loop.CoreTools(s, an.Name),
+		tools.Shell{Write: false, Runner: tools.Client{Socket: r.RunnerSock()}, Secrets: secrets},
+		tools.Shell{Write: true, Runner: tools.Client{Socket: r.RunnerSock()}, Secrets: secrets},
+		tools.Fetch{HTTP: hc},
+		tools.Search{HTTP: hc, URL: func() string { return s.Setting(context.Background(), "search_url") }},
+	)...)
 	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger,
 		Index: func(ctx context.Context, n int64, sh core.Sheet, heard bool) error {
 			ix, err := gr.Index(ctx, n, sh, heard, core.Defaults)
@@ -321,14 +327,18 @@ func serve(args []string) error {
 	return nil
 }
 
-// runner is the tools user's service: it keeps the socket the server hands calls over.
-// shortcut: it only holds the socket until n.tools fills in the sandboxed runs.
+// runner is the tools user's service: it keeps the socket the server hands calls over
+// and runs each inside bubblewrap (the release's own bwrap, else the host's).
 func runner(args []string) error {
 	r, err := ops.FromExecutable()
 	if err != nil {
 		return err
 	}
 	syscall.Umask(0o007)
+	bw := r.P("bin", "bwrap")
+	if _, err := os.Stat(bw); err != nil {
+		bw = "/usr/bin/bwrap"
+	}
 	os.Remove(r.RunnerSock())
 	ln, err := net.Listen("unix", r.RunnerSock())
 	if err != nil {
@@ -337,14 +347,7 @@ func runner(args []string) error {
 	os.Chmod(r.RunnerSock(), 0o660)
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
-	go func() { <-ctx.Done(); ln.Close() }()
-	for {
-		c, err := ln.Accept()
-		if err != nil {
-			return nil
-		}
-		c.Close()
-	}
+	return (&tools.Runner{Workspace: r.Workspace(), Outside: r.Outside(), Bwrap: bw}).Serve(ctx, ln)
 }
 
 // replay --verify rebuilds every sealed turn and heard row from its spelling and checks

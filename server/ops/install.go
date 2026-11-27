@@ -188,6 +188,14 @@ func Install(o InstallOptions) error {
 			return err
 		}
 	}
+	// The sandbox's bubblewrap ships beside the program in the release.
+	if bw := filepath.Join(filepath.Dir(exe), "bwrap"); bw != r.P("bin", "bwrap") {
+		if _, err := os.Stat(bw); err == nil {
+			if err := copyFile(bw, r.P("bin", "bwrap"), 0o755); err != nil {
+				return err
+			}
+		}
+	}
 	// Shared libraries shipped beside the program in the release (speech).
 	if libs, _ := filepath.Glob(filepath.Join(filepath.Dir(filepath.Dir(exe)), "lib", "*")); len(libs) > 0 {
 		for _, l := range libs {

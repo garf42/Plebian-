@@ -73,6 +73,7 @@ jobs:
           CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
           cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
           chmod 644 dist/plebian/lib/*.so
+          cp /usr/bin/bwrap dist/plebian/bin/bwrap
           ldd dist/plebian/bin/plebian
           dist/plebian/bin/plebian version
           cp LICENSE NOTICE.md dist/plebian/
