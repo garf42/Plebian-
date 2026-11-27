@@ -220,7 +220,14 @@ func serve(args []string) error {
 		return err
 	}
 	logger := log.New(os.Stderr, "", log.LstdFlags)
-	s, err := store.Open(r.Store(), store.DirBlobs{Dir: r.Blobs()})
+	dirBlobs := store.DirBlobs{Dir: r.Blobs()}
+	blobs := store.NewSwitchBlobs(dirBlobs)
+	bucketSecrets := &config.Secrets{Path: r.Secrets()}
+	var bucket store.Bucket
+	if json.Unmarshal([]byte(bucketSecrets.Get("bucket")), &bucket) == nil && bucket.Bucket != "" {
+		blobs.Use(store.S3Blobs{B: bucket, HTTP: &http.Client{Timeout: 5 * time.Minute}})
+	}
+	s, err := store.Open(r.Store(), blobs)
 	if err != nil {
 		return err
 	}
@@ -330,6 +337,40 @@ func serve(args []string) error {
 	srv.Hooks.AudioFile = an.FileHandler
 	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }
 	srv.Hooks.Setup = func(w http.ResponseWriter, req *http.Request, card string) {
+		if card == "storage" {
+			var b struct {
+				Bucket *store.Bucket `json:"bucket"`
+			}
+			if err := json.NewDecoder(http.MaxBytesReader(w, req.Body, 1<<20)).Decode(&b); err != nil || b.Bucket == nil || b.Bucket.Endpoint == "" || b.Bucket.Bucket == "" {
+				http.Error(w, "a bucket (endpoint, bucket, key, secret, region) is required", http.StatusBadRequest)
+				return
+			}
+			s3 := store.S3Blobs{B: *b.Bucket, HTTP: &http.Client{Timeout: 5 * time.Minute}}
+			// The bucket is checked with a write and a read before anything moves.
+			probe := []byte("plebian bucket check")
+			if sha, err := s3.Put(req.Context(), probe); err != nil {
+				http.Error(w, "the bucket refused a write: "+err.Error(), http.StatusBadGateway)
+				return
+			} else if got, err := s3.Get(req.Context(), sha); err != nil || string(got) != string(probe) {
+				http.Error(w, "the bucket did not return what was written", http.StatusBadGateway)
+				return
+			}
+			bb, _ := json.Marshal(b.Bucket)
+			if err := secrets.Set("bucket", string(bb)); err != nil {
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
+			blobs.Use(s3) // new originals go to the bucket from here on
+			n, err := store.MoveToBucket(req.Context(), dirBlobs, s3)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("moved %d originals, then: %v", n, err), http.StatusBadGateway)
+				return
+			}
+			s.SetSetting(req.Context(), "bucket", b.Bucket.Endpoint+"/"+b.Bucket.Bucket)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"ok": true, "moved": n})
+			return
+		}
 		if card == "backups" {
 			var b struct {
 				SecondDisk string `json:"second_disk"`

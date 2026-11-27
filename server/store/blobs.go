@@ -145,3 +145,29 @@ func (s *Store) AddHeard(ctx context.Context, r HeardRow) (int64, error) {
 	}
 	return res.LastInsertId()
 }
+
+// List returns every blob's sha256 in the directory.
+func (d DirBlobs) List() ([]string, error) {
+	var out []string
+	err := filepath.WalkDir(d.Dir, func(p string, e os.DirEntry, err error) error {
+		if err != nil {
+			if os.IsNotExist(err) {
+				return filepath.SkipDir
+			}
+			return err
+		}
+		if !e.IsDir() && validSha(e.Name()) == nil {
+			out = append(out, e.Name())
+		}
+		return nil
+	})
+	return out, err
+}
+
+// Remove deletes one blob from the directory (once it lives elsewhere).
+func (d DirBlobs) Remove(sha string) error {
+	if err := validSha(sha); err != nil {
+		return err
+	}
+	return os.Remove(d.path(sha))
+}

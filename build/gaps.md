@@ -141,3 +141,13 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   The agent opens a PDF "the way it reads any file", but no PDF reader ships in Plebian's root; the sandbox sees the host's /usr.
   Assumed: pdftotext from the host (poppler-utils) when installed; CI installs it. Reversible: yes (ship a reader under bin/ like bubblewrap).
   Blocks: PDF reading on a box without poppler-utils.
+
+- G029 — node: n.store — volatility: low — last_reviewed: phase-4
+  No spec says whether a bucket, once set, can be unset, or whether the nightly backup copies a bucket's originals.
+  Assumed: a bucket once set stays (the storage card takes another bucket, not none); originals in the owner's bucket are not copied again by restic, which backs up the store and any originals still on disk. Reversible: yes.
+  Blocks: nothing.
+
+- G030 — node: n.loop — volatility: medium — last_reviewed: phase-4
+  TP-11 names three clock windows (same weekday within 90 minutes, the same time of day standing in until a step has two weekly periods, the same date within a day and three hours); only the daily one is built, and the clock opens at the time of day of a past run in the window.
+  Assumed: daily windows over page days (cut at 4 am); the turn opens at the earliest past run's time of day that the rule of succession holds for. Reversible: yes (loop/clock.go).
+  Blocks: nothing (A13 needs the daily window).

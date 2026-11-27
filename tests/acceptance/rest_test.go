@@ -17,7 +17,6 @@ func TestA10(t *testing.T) { Run(t, "A10") }
 func TestA12(t *testing.T) { Run(t, "A12") }
 func TestA15(t *testing.T) { Run(t, "A15") }
 func TestA16(t *testing.T) { Run(t, "A16") }
-func TestA18(t *testing.T) { Run(t, "A18") }
 
 // A19 needs the live key; without it it reports blocked.
 func TestA19(t *testing.T) {

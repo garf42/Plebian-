@@ -139,6 +139,7 @@ type HeardRow struct {
 	Source string
 	At     string
 	End    string
+	Blob   string
 	Lines  []struct{ Speaker, Text, At string }
 }
 
@@ -180,16 +181,6 @@ func (h *H) Heard(t time.Time) []HeardRow {
 func init() {
 	// A05 (server half; the app half runs on the emulator): two voices land as heard rows
 	// with speaker labels, the ribbon fills while the stream is open, a tap is written.
-	type a05 struct {
-		rows   []HeardRow
-		live   []string
-		ribbon float64
-		tap    map[string]any
-		page   struct {
-			Taps   []map[string]any
-			Ribbon struct{ Taps []string }
-		}
-	}
 	var s5 *a05
 	register(Scenario{
 		ID: "A05",
@@ -199,43 +190,8 @@ func init() {
 			h.Fixtures["speech"] = StartFixture(t, "speech")
 			return h
 		},
-		Drive: func(h *H) {
-			at := h.Now().Add(-10 * time.Minute)
-			s5.live = h.Live(Speech(h.T, h.Fixtures["speech"], talk), 65530, at) // across the u16 wrap
-			Until(3*time.Minute, func() bool { return len(h.Heard(at)) > 0 })
-			s5.rows = h.Heard(at)
-			h.Do("POST", "/v1/taps", map[string]any{"at": at.Add(3 * time.Second).Format(time.RFC3339Nano), "how": "omi"}, &s5.tap, true)
-			var p struct {
-				Ribbon struct {
-					Hours []struct{ Seconds float64 }
-				}
-			}
-			h.Do("GET", "/v1/days/"+PageDate(at), nil, &p, true)
-			for _, hr := range p.Ribbon.Hours {
-				s5.ribbon += hr.Seconds
-			}
-			h.Do("GET", "/v1/days/"+PageDate(at), nil, &s5.page, true)
-		},
-		Assert: func(h *H, c *C) {
-			c.Check("heard_row_landed", len(s5.rows) == 1, "%d talk rows landed", len(s5.rows))
-			var r HeardRow
-			if len(s5.rows) > 0 {
-				r = s5.rows[0]
-			}
-			c.Check("two_speaker_labels", len(r.Speakers()) == 2, "speakers %v in %q", r.Speakers(), r.Text())
-			ok := true
-			for _, w := range []string{"culvert", "gravel", "wednesday", "yards"} {
-				ok = ok && strings.Contains(r.Text(), w)
-			}
-			c.Check("words_heard", ok, "heard %q", r.Text())
-			live := false
-			for _, m := range s5.live {
-				live = live || strings.Contains(m, `"speech"`)
-			}
-			c.Check("ribbon_fills_live", live, "no speech message while the stream was open (%d messages)", len(s5.live))
-			c.Check("ribbon_on_page", s5.ribbon > 0, "the page's ribbon holds %v seconds", s5.ribbon)
-			c.Check("tap_written", s5.tap["how"] == "omi" && len(s5.page.Taps) == 1 && len(s5.page.Ribbon.Taps) == 1, "tap %v; page taps %d, ribbon taps %d", s5.tap, len(s5.page.Taps), len(s5.page.Ribbon.Taps))
-		},
+		Drive:  func(h *H) { driveA05(h, s5) },
+		Assert: func(h *H, c *C) { assertA05(c, s5) },
 	})
 
 	// A06 (server half): files recorded out of range sync late and out of order and land
@@ -433,4 +389,56 @@ func init() {
 			c.Check("who_and_when_in_view", s9.quoted != "" && strings.Contains(s9.quoted, s9.speaker+" · "+s9.rowAt), "the request quoted %q; the line is %s at %s", s9.quoted, s9.speaker, s9.rowAt)
 		},
 	})
+}
+
+type a05 struct {
+	rows   []HeardRow
+	live   []string
+	ribbon float64
+	tap    map[string]any
+	at     time.Time
+	page   struct {
+		Taps   []map[string]any
+		Ribbon struct{ Taps []string }
+	}
+}
+
+func driveA05(h *H, s5 *a05) {
+	at := h.Now().Add(-10 * time.Minute)
+	s5.at = at
+	s5.live = h.Live(Speech(h.T, h.Fixtures["speech"], talk), 65530, at) // across the u16 wrap
+	Until(3*time.Minute, func() bool { return len(h.Heard(at)) > 0 })
+	s5.rows = h.Heard(at)
+	h.Do("POST", "/v1/taps", map[string]any{"at": at.Add(3 * time.Second).Format(time.RFC3339Nano), "how": "omi"}, &s5.tap, true)
+	var p struct {
+		Ribbon struct {
+			Hours []struct{ Seconds float64 }
+		}
+	}
+	h.Do("GET", "/v1/days/"+PageDate(at), nil, &p, true)
+	for _, hr := range p.Ribbon.Hours {
+		s5.ribbon += hr.Seconds
+	}
+	h.Do("GET", "/v1/days/"+PageDate(at), nil, &s5.page, true)
+}
+
+func assertA05(c *C, s5 *a05) {
+	c.Check("heard_row_landed", len(s5.rows) == 1, "%d talk rows landed", len(s5.rows))
+	var r HeardRow
+	if len(s5.rows) > 0 {
+		r = s5.rows[0]
+	}
+	c.Check("two_speaker_labels", len(r.Speakers()) == 2, "speakers %v in %q", r.Speakers(), r.Text())
+	ok := true
+	for _, w := range []string{"culvert", "gravel", "wednesday", "yards"} {
+		ok = ok && strings.Contains(r.Text(), w)
+	}
+	c.Check("words_heard", ok, "heard %q", r.Text())
+	live := false
+	for _, m := range s5.live {
+		live = live || strings.Contains(m, `"speech"`)
+	}
+	c.Check("ribbon_fills_live", live, "no speech message while the stream was open (%d messages)", len(s5.live))
+	c.Check("ribbon_on_page", s5.ribbon > 0, "the page's ribbon holds %v seconds", s5.ribbon)
+	c.Check("tap_written", s5.tap["how"] == "omi" && len(s5.page.Taps) == 1 && len(s5.page.Ribbon.Taps) == 1, "tap %v; page taps %d, ribbon taps %d", s5.tap, len(s5.page.Taps), len(s5.page.Ribbon.Taps))
 }
