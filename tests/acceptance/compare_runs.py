@@ -9,10 +9,19 @@ import sys
 
 def parse(path):
     tests, asserts, why = {}, {}, {}
+    current, said = None, {}
     for line in open(path, encoding="utf-8", errors="replace"):
+        r = re.match(r"^=== RUN\s+(Test\w+)$", line.strip())
+        if r:
+            current = r.group(1)
+        f = re.match(r"^\s+(\w+\.go:\d+: .*)", line)
+        if f and current:
+            said.setdefault(current, []).append(f.group(1)[:400])
         m = re.match(r"^\s*--- (PASS|FAIL|SKIP): (Test\w+)", line)
         if m:
             tests[m.group(2)] = m.group(1)
+            if m.group(1) == "FAIL" and m.group(2) in said:
+                why[(m.group(2), "test")] = " | ".join(said[m.group(2)][-3:])
         if line.startswith("RESULT "):
             try:
                 r = json.loads(line[7:])
