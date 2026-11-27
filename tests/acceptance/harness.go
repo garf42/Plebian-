@@ -148,6 +148,14 @@ func install(t testing.TB, speech string, extra ...string) *H {
 	if speech != "" {
 		args = append(args, "--speech-from", speech)
 	}
+	// A scenario that needs the browser names one; the rest install without it.
+	browser := false
+	for _, a := range extra {
+		browser = browser || a == "--browser-from"
+	}
+	if !browser {
+		args = append(args, "--browser-from", "none")
+	}
 	args = append(args, extra...)
 	// Registered before the install runs, so a failed install never outlives its test.
 	t.Cleanup(func() {

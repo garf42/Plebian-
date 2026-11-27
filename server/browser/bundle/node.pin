@@ -1,0 +1,5 @@
+# Node.js for the box's browser bundle: the 22.x LTS the probes and acceptance ran on,
+# checked against nodejs.org's SHASUMS256.txt for that release.
+version=v22.23.5
+sha256_arm64=2babb9eb5264860d540849f4b064a6fbdebcdc323657d9d382ce23d313fd5e09
+sha256_x64=cdeb8670a0c81f51b4dc4ac61919f9b1ad917b304bf8221eb939570663d240f8

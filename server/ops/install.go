@@ -2,6 +2,7 @@ package ops
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,8 +118,9 @@ type InstallOptions struct {
 	Out        io.Writer
 	SpeechFrom string // a directory holding the speech model files; empty = download
 	// BrowserFrom is a directory holding chromium/, node/ and mcp/ (Playwright MCP's
-	// node_modules); empty leaves the browser out (gap G032).
+	// node_modules); empty fetches BrowserURL's bundle; none leaves the browser out.
 	BrowserFrom string
+	BrowserURL  string // this release's browser bundle; empty when the build names no release
 }
 
 // copyTree copies a directory, modes kept, owned by uid:gid.
@@ -264,7 +266,25 @@ func Install(o InstallOptions) (err error) {
 			}
 		}
 	}
-	if o.BrowserFrom != "" {
+	browserFrom := o.BrowserFrom
+	switch browserFrom {
+	case "none":
+		browserFrom = ""
+	case "":
+		if o.BrowserURL == "" {
+			fmt.Fprintln(o.Out, "browser not installed: this build names no release to fetch it from (install --browser-from <dir>)")
+			break
+		}
+		dl := r.P("run", "browser-bundle")
+		os.RemoveAll(dl)
+		defer os.RemoveAll(dl)
+		if d, err := FetchBrowser(context.Background(), o.BrowserURL, dl); err != nil {
+			fmt.Fprintln(o.Out, "browser not installed:", err)
+		} else {
+			browserFrom = d
+		}
+	}
+	if browserFrom != "" {
 		// The browser directory is the server account's: Chromium keeps its profile there.
 		if err := os.MkdirAll(r.P("browser", "profile"), 0o700); err != nil {
 			return fmt.Errorf("browser: %w", err)
@@ -275,7 +295,7 @@ func Install(o InstallOptions) (err error) {
 			}
 		}
 		for _, d := range []string{"chromium", "node", "mcp"} {
-			if err := copyTree(filepath.Join(o.BrowserFrom, d), r.P("browser", d), suid, sgid); err != nil {
+			if err := copyTree(filepath.Join(browserFrom, d), r.P("browser", d), suid, sgid); err != nil {
 				return fmt.Errorf("browser: %w", err)
 			}
 		}
@@ -285,6 +305,11 @@ func Install(o InstallOptions) (err error) {
 	} else if err := FetchSpeech(r.Speech(), o.SpeechFrom); err != nil {
 		// Install goes on; This week shows speech as missing until a later install fetches it.
 		fmt.Fprintln(o.Out, "speech models not installed:", err)
+	}
+	// What the box's own system must provide (Chromium's libraries, host programs the
+	// tools use) is installed through its package manager; without it the rest still runs.
+	if err := EnsureHost(r, o.Out); err != nil {
+		fmt.Fprintln(o.Out, "the box's system packages:", err)
 	}
 	cb, _ := json.MarshalIndent(o.Config, "", " ")
 	if err := writeFile(r.Config(), cb, 0o644, 0, 0); err != nil {
@@ -308,7 +333,7 @@ func Install(o InstallOptions) (err error) {
 	if _, err := os.Stat(r.Speech()); err == nil {
 		read = append(read, r.Speech())
 	}
-	if o.BrowserFrom != "" {
+	if browserFrom != "" {
 		read, write = append(read, r.Browser()), append(write, r.P("browser", "profile"))
 	}
 	for _, a := range []struct {

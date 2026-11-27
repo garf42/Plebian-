@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -130,6 +131,15 @@ func hostTZ() string {
 	return "UTC"
 }
 
+// browserURL is this release's browser bundle: the release named by the build's version
+// in the repository it was built in; empty for a build that is not a release.
+func browserURL() string {
+	if api.Source == "" || !strings.HasPrefix(api.Version, "v") {
+		return ""
+	}
+	return api.Source + "/releases/download/" + api.Version + "/" + ops.BrowserAsset(runtime.GOARCH)
+}
+
 func install(args []string) error {
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
 	root := fs.String("root", "/opt/plebian", "Plebian's root directory")
@@ -140,13 +150,13 @@ func install(args []string) error {
 	authKey := fs.String("auth-key-file", "", "a Tailscale auth key file, instead of the sign-in link")
 	control := fs.String("control-url", "", "a Headscale server's URL (empty = Tailscale)")
 	speechFrom := fs.String("speech-from", "", "a directory holding the speech model files instead of downloading them; none skips them")
-	browserFrom := fs.String("browser-from", "", "a directory holding chromium/, node/ and mcp/ for the box's browser")
+	browserFrom := fs.String("browser-from", "", "a directory holding chromium/, node/ and mcp/ for the box's browser; empty fetches this release's bundle; none skips it")
 	fs.Parse(args)
 	if _, err := time.LoadLocation(*tz); err != nil {
 		return fmt.Errorf("--tz: %v", err)
 	}
 	r := ops.Root(*root)
-	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey, ControlURL: *control}, Out: os.Stdout, SpeechFrom: *speechFrom, BrowserFrom: *browserFrom}); err != nil {
+	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey, ControlURL: *control}, Out: os.Stdout, SpeechFrom: *speechFrom, BrowserFrom: *browserFrom, BrowserURL: browserURL()}); err != nil {
 		return err
 	}
 	fmt.Println("Plebian is installed in", r)

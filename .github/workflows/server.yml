@@ -65,14 +65,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: Browser (Playwright MCP 0.0.86 and the Chromium its Playwright pins)
+      - name: Browser bundle (server/browser/bundle, as each release ships it)
         run: |
-          B="$RUNNER_TEMP/browser" && mkdir -p "$B/mcp" "$B/node/bin" "$B/chromium"
-          cd "$B/mcp" && npm i -s @playwright/mcp@0.0.86
-          PLAYWRIGHT_BROWSERS_PATH="$B/pw" node node_modules/playwright/cli.js install --with-deps chromium
-          cp -a "$B"/pw/chromium-*/chrome-linux* "$B/chromium/"
-          cp "$(command -v node)" "$B/node/bin/node"
-          ls "$B"/chromium/*/chrome
+          server/browser/bundle/build.sh "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/bundle/plebian-browser-linux-*.tar.gz -C "$RUNNER_TEMP"
+          sudo "$RUNNER_TEMP/browser/node/bin/node" "$RUNNER_TEMP/browser/mcp/node_modules/playwright/cli.js" install-deps chromium
+          ls "$RUNNER_TEMP"/browser/chromium/*/chrome
       - name: restic (pinned, prefab "restic 0.20.0"; checked against its release's SHA256SUMS)
         run: |
           cd "$RUNNER_TEMP" && rv=0.20.0 && ra=$(dpkg --print-architecture)
@@ -158,14 +156,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: Browser (Playwright MCP 0.0.86 and the Chromium its Playwright pins)
+      - name: Browser bundle (server/browser/bundle, as each release ships it)
         run: |
-          B="$RUNNER_TEMP/browser" && mkdir -p "$B/mcp" "$B/node/bin" "$B/chromium"
-          cd "$B/mcp" && npm i -s @playwright/mcp@0.0.86
-          PLAYWRIGHT_BROWSERS_PATH="$B/pw" node node_modules/playwright/cli.js install --with-deps chromium
-          cp -a "$B"/pw/chromium-*/chrome-linux* "$B/chromium/"
-          cp "$(command -v node)" "$B/node/bin/node"
-          ls "$B"/chromium/*/chrome
+          server/browser/bundle/build.sh "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/bundle/plebian-browser-linux-*.tar.gz -C "$RUNNER_TEMP"
+          sudo "$RUNNER_TEMP/browser/node/bin/node" "$RUNNER_TEMP/browser/mcp/node_modules/playwright/cli.js" install-deps chromium
+          ls "$RUNNER_TEMP"/browser/chromium/*/chrome
       - uses: actions/download-artifact@v8
         with:
           name: build-${{ steps.arch.outputs.arch }}

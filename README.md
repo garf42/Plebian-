@@ -47,9 +47,12 @@ From CI run 45987993187 (commit 55c6853), the same on amd64 and arm64, each scen
    sha256sum -c plebian-linux-$arch.tar.gz.sha256 && tar xzf plebian-linux-$arch.tar.gz
    sudo ./plebian/bin/plebian install
    ```
-   - It installs into `/opt/plebian` (`--root` to change), creates two system accounts, and downloads the speech models from sherpa-onnx's releases, checked against pinned hashes.
+   - It installs into `/opt/plebian` (`--root` to change) and creates two system accounts.
+   - It downloads the speech models (sherpa-onnx's releases, pinned hashes) and the release's browser bundle (checked by its `.sha256`).
+   - Through `apt` it installs what the box lacks for those: Chromium's libraries and `poppler-utils`.
    - It prints a Tailscale sign-in link; once the box is on your tailnet it prints a pairing code.
-   - `sudo /opt/plebian/bin/plebian pair` prints a new code. `sudo /opt/plebian/bin/plebian uninstall` removes everything.
+   - `sudo /opt/plebian/bin/plebian pair` prints a new code.
+   - `sudo /opt/plebian/bin/plebian uninstall` removes everything under the root and leaves the system packages.
 2. **App**: on your Android phone, install the Tailscale app, then install `plebian.apk` from the same release.
 3. **Pair and connect**: enter the code, then go through the Setup cards: model, Omi, mail, calendar, texts, storage, backups.
 

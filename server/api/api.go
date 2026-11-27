@@ -27,10 +27,12 @@ import (
 	"plebian/server/store"
 )
 
-// Commit and Version are set at build time (-ldflags -X).
+// Commit, Version and Source are set at build time (-ldflags -X); Source is the
+// repository the release was built in (its releases hold the browser bundle).
 var (
 	Commit  = "unknown"
 	Version = "dev"
+	Source  = ""
 )
 
 // Hooks are what other nodes plug in; each is optional.

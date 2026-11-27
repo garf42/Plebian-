@@ -8,7 +8,9 @@ It builds on the following work, each under its own license:
 - **Flutter packages** (each under its own license, used unmodified; none vendored): universal_ble (BSD-3-Clause), biometric_signature (MIT), material_ui, flutter_local_notifications, flutter_secure_storage, mobile_scanner, just_audio, http, web_socket_channel, path_provider, crypto (BSD-3-Clause / MIT / Apache-2.0).
 - **mautrix-gmessages / libgm** (Tulir Asokan and contributors) — AGPL-3.0. Google Messages linked-device protocol. https://github.com/mautrix/gmessages
 - **Ponytail** (Dietrich Gebert) — MIT. The build's decision ladder is adapted from it. https://github.com/DietrichGebert/ponytail
-- **Playwright MCP** (Microsoft) — Apache-2.0. https://github.com/microsoft/playwright-mcp
+- **Playwright MCP** and **Playwright** (Microsoft) — Apache-2.0. Shipped unmodified in each release's browser bundle. https://github.com/microsoft/playwright-mcp
+- **Node.js** (OpenJS Foundation and contributors) — MIT. The official build, checked against nodejs.org's checksum, shipped in the browser bundle. https://nodejs.org
+- **Chromium** (The Chromium Authors) — BSD-3-Clause and the licenses of its components (listed in its `chrome://credits`). Chrome for Testing as Playwright pins it, shipped unmodified in the browser bundle. https://www.chromium.org
 - **MCP Go SDK** (Model Context Protocol contributors) — Apache-2.0 / MIT. https://github.com/modelcontextprotocol/go-sdk
 - **sherpa-onnx** (k2-fsa) — Apache-2.0. https://github.com/k2-fsa/sherpa-onnx
 - **libopus** (Xiph.Org Foundation and contributors) — BSD-3-Clause. Linked statically into the server to decode the Omi's audio. https://opus-codec.org

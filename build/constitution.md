@@ -8,7 +8,7 @@ Specs: `docs/agent.md`, `docs/plebian.md`, `docs/tracer-paper-memory.md` (TP-xx)
 [BINDING] origin: specified
 Plebian is done when every scenario A01–A20 in `tests/acceptance/manifest.json` passes in CI against release artifacts built from the commit under test (server for linux/arm64 and linux/amd64; the APK on an Android emulator), driving the system only through its outside surfaces — the Omi simulator behind the app's device-transport seam, the app's UI, the server's API, and fixture model, mail, calendar, texts and web servers — and Tracer Paper tests TP-T1…TP-T17 pass.
 - non-vacuity: the manifest lists exactly A01–A20; every scenario asserts at least one positive existence (a sealed turn, a heard row, a rendered element, a request a fixture received) before any prohibition, and a scenario whose positive assertions also hold on an empty store fails; the server's version endpoint reports the commit under test.
-- A01 install leaves nothing outside its root but its accounts and their linger flags; uninstall removes all; a pre-existing canary service, directory and port are untouched.
+- A01 install leaves nothing outside its root but its accounts, their linger flags and the system packages the box lacks for what Plebian runs (Chromium's libraries, the host programs its tools use), installed through the system's package manager; uninstall removes all but those packages; a pre-existing canary service, directory and port are untouched.
 - A02 pairing registers one device key; an unpaired client reads nothing.
 - A03 an owner message gets a reply on Today and on the day page; every sealed turn rebuilds byte-exact.
 - A04 a failed step becomes a redline; its word-for-word repeat is held once; a success of the same step closes the loop.
