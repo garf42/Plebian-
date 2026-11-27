@@ -33,28 +33,30 @@ fixtures: `tests/grammar/` (TP-03A worked examples: A = "copy the prod config", 
 ## demons
 - D1: forms labels on the second sighting but never credits the first, so tracing a line forward never darkens the original
   kill_test: tests/grammar/test_first_sighting_counts
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:123: label "culvert " uses at turns [2]: the first sighting was not credited
+  status: killed
 - D2: the round trip "corrects" a real word into a familiar one (fifteen recorded as a use of fifty)
   kill_test: tests/grammar/test_real_word_stays
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:151: card recorded as a use of "cart" (cart→card)
+  status: killed
 - D3: number words and digits never match, so typed "fifteen" and heard "15" are strangers
   kill_test: tests/grammar/test_number_forms
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:173: fifteen and 15 are strangers
+  status: killed
 - D4: stand-ins fetched by importing a model client inside the grammar package
   kill_test: tests/grammar/test_no_model_imports
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:215: ../../server/grammar/numbers.go imports plebian/server/models
+  status: killed
 
 - D5: keeps each sheet's raw bytes beside its spelling and "rebuilds" from the raw copy, so the grammar is never proven to round-trip
   kill_test: tests/grammar/test_rebuild_from_spelling_only
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — grammar_test.go:74: sheet 1 keeps its raw text beside its spelling
+  status: killed
 
 ## clauses
 - [BINDING] origin: derived — a number written in words and the same number in digits are one symbol for matching; what is rendered stays as written (ledger: L0002) (kill_test: tests/grammar/test_number_forms)
+
+- [BINDING] origin: derived — a word the ordinary-English list holds is never recorded as a near-match of a different word (endings excepted); for any other word, label + change wins only when it is shorter in bits than the word fresh (ledger: L0011) (kill_test: tests/grammar/test_real_word_stays)
 
 ## open gaps
 - G001 — default parameters are conventions awaiting refit

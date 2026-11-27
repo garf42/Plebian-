@@ -1,0 +1,8 @@
+{
+  "name": "plebian-browser",
+  "private": true,
+  "description": "Playwright MCP, pinned, for the box's browser bundle",
+  "dependencies": {
+    "@playwright/mcp": "0.0.86"
+  }
+}

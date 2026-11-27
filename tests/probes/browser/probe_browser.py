@@ -2,7 +2,7 @@
 unsafe requests (RFC 9110: not GET/HEAD/OPTIONS/TRACE) that follow an agent action
 are paused as drafts; the owner can drive the same page through screencast + input
 events; cookies can be read back. Run twice; outputs must match except timings."""
-import json, threading, time, sys
+import json, os, threading, time, sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from playwright.sync_api import sync_playwright
 
@@ -35,7 +35,8 @@ threading.Thread(target=srv.serve_forever, daemon=True).start()
 base = f'http://127.0.0.1:{port}'
 out = {}
 with sync_playwright() as p:
-    b = p.chromium.launch(channel='chrome', headless=True)
+    # PROBE_CHANNEL: 'chrome' (Google Chrome, amd64) or empty for Playwright's Chromium (arm64 has no Chrome build).
+    b = p.chromium.launch(channel=os.environ.get('PROBE_CHANNEL', 'chrome') or None, headless=True)
     ctx = b.new_context(); page = ctx.new_page()
     cdp = ctx.new_cdp_session(page)
     page.goto(base + '/'); page.wait_for_timeout(200)

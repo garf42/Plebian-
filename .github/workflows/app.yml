@@ -1,0 +1,69 @@
+name: app
+
+on:
+  push:
+    paths: ['app/**', '.github/workflows/app.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - id: app
+        run: echo "present=$([ -f app/pubspec.yaml ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - if: steps.app.outputs.present == 'yes'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.1 # the version the app was checked on (prefab row)
+      - name: Analyze and unit tests
+        if: steps.app.outputs.present == 'yes'
+        run: cd app && flutter pub get && flutter analyze && flutter test
+      - name: Build the APK
+        if: steps.app.outputs.present == 'yes'
+        run: cd app && flutter build apk --debug --dart-define=PLEBIAN_COMMIT="${GITHUB_SHA}"
+      - name: KVM for the emulator
+        if: steps.app.outputs.present == 'yes'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - if: steps.app.outputs.present == 'yes' && hashFiles('app/integration_test/**') != ''
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: tests/fixtures/go.mod
+      - name: The Omi simulator, on the host the emulator reaches as 10.0.2.2
+        if: steps.app.outputs.present == 'yes' && hashFiles('app/integration_test/**') != ''
+        run: |
+          sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config
+          cd tests/fixtures && go build -o "$RUNNER_TEMP/fixture" ./cmd/fixture
+          "$RUNNER_TEMP/fixture" omi -addr 0.0.0.0:0 > "$RUNNER_TEMP/omi.json" &
+          for i in $(seq 1 50); do [ -s "$RUNNER_TEMP/omi.json" ] && break; sleep 0.2; done
+          port=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["addr"].rsplit(":",1)[1])' "$RUNNER_TEMP/omi.json")
+          echo "OMI_SIM=http://10.0.2.2:$port" >> "$GITHUB_ENV"
+      - name: Integration tests on an Android emulator (the Omi simulator behind the device seam)
+        if: steps.app.outputs.present == 'yes' && hashFiles('app/integration_test/**') != ''
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          script: cd app && flutter test integration_test -d emulator-5554 --dart-define=OMI_SIM="$OMI_SIM"
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/upload-artifact@v7
+        with:
+          name: apk-debug
+          path: app/build/app/outputs/flutter-apk/app-debug.apk

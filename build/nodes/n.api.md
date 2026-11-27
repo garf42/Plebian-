@@ -32,21 +32,21 @@ fixtures: `tests/api/`; scenarios A02, A03, A14
 
 ## demons
 - D1: accepts a standing grant with a bearer token alone
-  kill_test: tests/api/test_grant_requires_signature
-  negative_check: pending
-  status: live
+  kill_test: tests/api/grant_test.go TestGrantRequiresSignature
+  negative_check: seen red (2026-11-27) — grant_test.go:66: a grant with a bearer token alone answered 200 and ran [grant]
+  status: killed
 - D2: listens on every interface
-  kill_test: tests/acceptance/a01_install_isolation
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A01 (tests/demons/n.api-D2.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — listens_localhost_only: listens on *:44049
+  status: killed
 - D3: a projection reads the wall clock, so replay differs
-  kill_test: tests/api/test_projection_replay_identical
-  negative_check: pending
-  status: live
+  kill_test: tests/api/projection_test.go TestPageReadsNoClock
+  negative_check: seen red (re-run 2026-11-27) — projection_test.go:31: the page changed with the clock:
+  status: killed
 - D4: acknowledges an offline file on receipt, before it is durable, so the Omi deletes audio the server can still lose
-  kill_test: tests/api/test_ack_after_durable
-  negative_check: pending
-  status: live
+  kill_test: tests/audio/ack_test.go TestFileAckOnlyWhenDurable
+  negative_check: seen red (re-run 2026-11-27) — ack_test.go:63: durable: 200 "535012a99a3f0c312834a9be65e2f968658a259059d589212995b540ac589a5e" kept false
+  status: killed
 
 ## clauses
 (none yet)

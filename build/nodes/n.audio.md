@@ -32,17 +32,17 @@ fixtures: synthetic two-voice conversations with known words and speakers (`test
 
 ## demons
 - D1: uses device time as wall time, ignoring the offset
-  kill_test: tests/acceptance/a06_omi_offline
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A06 (tests/demons/n.audio-D1.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — true_wall_time: rows at [08:08:35 08:28:35 UTC] for files recorded at [07:31:35 07:51:35 UTC]
+  status: killed
 - D2: speaker ids are stable within a stretch but shuffle between stretches
-  kill_test: tests/acceptance/a07_new_voice
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A07 (tests/demons/n.audio-D2.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — one_question: the harness asked 0 times; 0 questions open (no voice heard twice)
+  status: killed
 - D3: transcribes only after the day ends, so nothing is live
-  kill_test: tests/acceptance/a05_omi_live
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance A05 (tests/demons/n.audio-D3.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — ribbon_fills_live: no speech message while the stream was open (0 messages)
+  status: killed
 
 ## clauses
 - [ADVISORY] origin: derived — probe (two espeak-ng voices, Parakeet-TDT 0.6B v2 int8, pyannote segmentation 3.0, TitaNet-small): two speakers found, labels and words identical across two runs; real-time factor 0.09 for ASR and 0.08 for diarization on two x86 cores; numbers come out as digits ("340") (ledger: L0002, L0005)

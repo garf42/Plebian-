@@ -28,25 +28,25 @@ fixtures: `tests/browser/` fixture sites (form POST, fetch POST, XHR PUT, DELETE
 
 ## demons
 - D1: holds form submissions but lets fetch() and XHR state changes through
-  kill_test: tests/browser/test_script_requests_held
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestScriptRequestsHeld
+  negative_check: seen red (re-run 2026-11-27) — guard_test.go:132: buy: held []
+  status: killed
 - D2: records the owner's keystrokes while the owner holds the wheel, in plain text or any encoding (base64, hex, URL-encoded)
-  kill_test: tests/browser/test_wheel_not_recorded
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/live_test.go TestWheelNotRecorded
+  negative_check: seen red (re-run 2026-11-27) — live_test.go:90: the log holds the owner's typing ("cHctZml4dHVyZQ==")
+  status: killed
 - D3: on approval, re-composes the request from a fresh snapshot instead of releasing the held bytes
-  kill_test: tests/browser/test_release_bytes_identical
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestReleaseBytesIdentical
+  negative_check: seen red (re-run 2026-11-27) — guard_test.go:217: the site received 1 mutation requests; first equals the held bytes: false
+  status: killed
 - D4: holds analytics beacons as drafts, so every agent click raises one
-  kill_test: tests/browser/test_beacon_dropped
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestBeaconDropped
+  negative_check: seen red (re-run 2026-11-27) — guard_test.go:189: a beacon raised a draft: [{Method:POST URL:http://127.0.0.1:32815/store/beacon Headers:map[Accept:*/* Content-Type:text/plain;charset=UTF-8 Origin:http://127.0.0.1:32815 Referer:htt
+  status: killed
 - D5: passes a GraphQL mutation as a read: one selected by operationName from a document that also holds a query, one inside a batch, or a persisted document whose bytes show no operation
-  kill_test: tests/browser/test_graphql_mutation_held
-  negative_check: pending
-  status: live
+  kill_test: tests/browser/guard_test.go TestGraphQLMutationHeld
+  negative_check: seen red (re-run 2026-11-27) — guard_test.go:172: the mutation was not held: []
+  status: killed
 
 ## clauses
 - [ADVISORY] origin: derived — probe: a paused POST reached the fixture zero times while held and exactly once, byte-identical, after release; owner input through CDP Input events on the same page worked; cookies read back (prefab: Chromium via CDP)

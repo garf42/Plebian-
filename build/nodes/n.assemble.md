@@ -34,20 +34,20 @@ fixtures: `tests/assemble/` (TP-04 drawing at turn 48: 6K / 4.4K / 6.7K / 4.8K /
 ## demons
 - D1: checks the budget only after the spotlight is added mid-exchange, so an opening request passes B
   kill_test: tests/assemble/test_budget_on_opening
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — assemble_test.go:60: opening request 25 counted 16016 tokens, B is 16000
+  status: killed
 - D2: places a lit heard line into the tail so it rides later requests
   kill_test: tests/assemble/test_heard_user_turn_only
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — assemble_test.go:183: a heard line rode into a later exchange's request
+  status: killed
 - D3: rewrites a band mid-exchange when a rank changes
   kill_test: tests/assemble/test_cache_breaks_on_boundaries
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — assemble_test.go:156: request 2 changed message 0 inside the tail
+  status: killed
 - D4: stores the model's thinking with the sheet
   kill_test: tests/assemble/test_no_thinking_stored
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — assemble_test.go:121: turn 1 holds the model's thinking
+  status: killed
 
 ## clauses
 (none yet)

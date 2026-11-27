@@ -1,0 +1,229 @@
+name: server
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+    outputs:
+      ok:
+        value: ${{ jobs.server.result }}
+
+permissions:
+  contents: read
+
+# A newer push to the same branch supersedes a run still going.
+concurrency:
+  group: server-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 -I build/scripts/check.py build/
+      - run: python3 -I tests/acceptance/test_compare_runs.py
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22.04 (glibc 2.35) so the cgo build also runs on Debian 12 / Raspberry Pi OS bookworm.
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/fixtures/go.sum
+            tests/acceptance/go.sum
+      - name: Host packages (fixtures and sandbox)
+        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config poppler-utils
+      - name: Arch
+        id: arch
+        run: echo "arch=$(go env GOARCH)" >> "$GITHUB_OUTPUT"
+      - name: Speech models (pinned in server/ops/speech.go)
+        id: speech
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/speech
+          key: speech-${{ hashFiles('server/ops/speech.go') }}
+      - name: Fetch speech models
+        if: steps.speech.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/speech" && cd "$RUNNER_TEMP/speech"
+          grep -o 'sherpaReleases + "[^"]*"' "$GITHUB_WORKSPACE/server/ops/speech.go" | sed 's/sherpaReleases + "//; s/"$//' | while read -r p; do
+            curl -sSfL -o "$(basename "$p")" "https://github.com/k2-fsa/sherpa-onnx/releases/download/$p"
+          done
+          for f in *.tar.bz2; do tar -xjf "$f"; done
+          ls -la
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Browser bundle (server/browser/bundle, as each release ships it)
+        run: |
+          server/browser/bundle/build.sh "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/bundle/plebian-browser-linux-*.tar.gz -C "$RUNNER_TEMP"
+          sudo "$RUNNER_TEMP/browser/node/bin/node" "$RUNNER_TEMP/browser/mcp/node_modules/playwright/cli.js" install-deps chromium
+          ls "$RUNNER_TEMP"/browser/chromium/*/chrome
+      - name: restic (pinned, prefab "restic 0.20.0"; checked against its release's SHA256SUMS)
+        run: |
+          cd "$RUNNER_TEMP" && rv=0.20.0 && ra=$(dpkg --print-architecture)
+          curl -sSfL -o "restic_${rv}_linux_${ra}.bz2" "https://github.com/restic/restic/releases/download/v${rv}/restic_${rv}_linux_${ra}.bz2"
+          curl -sSfL -o restic.SHA256SUMS "https://github.com/restic/restic/releases/download/v${rv}/SHA256SUMS"
+          grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
+          bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > restic && chmod 755 restic && ./restic version
+      - name: Unit and node tests
+        id: unit
+        continue-on-error: true # acceptance still runs; the gate fails on this outcome
+        env:
+          PLEBIAN_SPEECH_MODELS: ${{ runner.temp }}/speech
+        run: |
+          go vet ./...
+          PLEBIAN_BROWSER_FROM=$RUNNER_TEMP/browser PLEBIAN_CHROME=$(ls "$RUNNER_TEMP"/browser/chromium/*/chrome | head -1) PLEBIAN_RESTIC=$RUNNER_TEMP/restic go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
+      - name: Fixtures
+        run: |
+          mkdir -p dist
+          cd tests/fixtures && go vet ./... && go test -count=1 ./... && go build -o "$GITHUB_WORKSPACE/dist/fixture" ./cmd/fixture
+      - name: Release artifact (built from this commit)
+        run: |
+          mkdir -p dist/plebian/bin dist/plebian/lib
+          CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
+          chmod 644 dist/plebian/lib/*.so
+          cp /usr/bin/bwrap dist/plebian/bin/bwrap
+          cp "$RUNNER_TEMP/restic" dist/plebian/bin/restic
+          ldd dist/plebian/bin/plebian
+          dist/plebian/bin/plebian version
+          cp LICENSE NOTICE.md dist/plebian/
+          tar -C dist -czf "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" plebian
+          (cd dist && sha256sum "plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" > "plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz.sha256")
+      - run: echo "${{ steps.unit.outcome }}" > dist/unit.outcome && cp unit.log dist/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ steps.arch.outputs.arch }}
+          path: |
+            dist/plebian-linux-*
+            dist/fixture
+            dist/unit.outcome
+            dist/unit.log
+
+  acceptance:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+        # Shards run in parallel; each run is a separate process on its own runner.
+        shard: ['TestA0[1-4]|TestA1[013-5]|TestManifest|TestVersionIsCommitUnderTest', 'TestA0[5-9]|TestA16|TestA18', 'TestA12|TestA17|TestA19|TestA20|TestNonVacuity']
+        run: [1, 2]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/fixtures/go.sum
+            tests/acceptance/go.sum
+      - name: Host packages (fixtures and sandbox)
+        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config poppler-utils
+      - name: Arch
+        id: arch
+        run: echo "arch=$(go env GOARCH)" >> "$GITHUB_OUTPUT"
+      - name: Speech models (pinned in server/ops/speech.go)
+        id: speech
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/speech
+          key: speech-${{ hashFiles('server/ops/speech.go') }}
+      - name: Fetch speech models
+        if: steps.speech.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/speech" && cd "$RUNNER_TEMP/speech"
+          grep -o 'sherpaReleases + "[^"]*"' "$GITHUB_WORKSPACE/server/ops/speech.go" | sed 's/sherpaReleases + "//; s/"$//' | while read -r p; do
+            curl -sSfL -o "$(basename "$p")" "https://github.com/k2-fsa/sherpa-onnx/releases/download/$p"
+          done
+          for f in *.tar.bz2; do tar -xjf "$f"; done
+          ls -la
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Browser bundle (server/browser/bundle, as each release ships it)
+        run: |
+          server/browser/bundle/build.sh "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/bundle/plebian-browser-linux-*.tar.gz -C "$RUNNER_TEMP"
+          sudo "$RUNNER_TEMP/browser/node/bin/node" "$RUNNER_TEMP/browser/mcp/node_modules/playwright/cli.js" install-deps chromium
+          ls "$RUNNER_TEMP"/browser/chromium/*/chrome
+      - uses: actions/download-artifact@v8
+        with:
+          name: build-${{ steps.arch.outputs.arch }}
+          path: dist
+      - name: Acceptance (shard, run ${{ matrix.run }})
+        continue-on-error: true
+        env:
+          PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz
+          PLEBIAN_COMMIT: ${{ github.sha }}
+          FIXTURE_BIN: ${{ github.workspace }}/dist/fixture
+          PLEBIAN_SPEECH_FROM: ${{ runner.temp }}/speech
+          PLEBIAN_BROWSER_FROM: ${{ runner.temp }}/browser
+          PLEBIAN_LIVE_KEY: ${{ secrets.PLEBIAN_LIVE_KEY }}
+          PLEBIAN_LIVE_BASE_URL: ${{ secrets.PLEBIAN_LIVE_BASE_URL }}
+        run: |
+          chmod +x dist/fixture
+          cd tests/acceptance && go test -count=1 -v -timeout 65m -run '^(${{ matrix.shard }})$' ./... 2>&1 | tee "../../run.log"; exit ${PIPESTATUS[0]}
+      - id: name
+        run: echo "n=$(echo '${{ matrix.shard }}' | sha256sum | cut -c1-8)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: acc-${{ steps.arch.outputs.arch }}-${{ steps.name.outputs.n }}-run${{ matrix.run }}
+          path: run.log
+
+  server:
+    needs: acceptance
+    if: always()
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: acc-${{ matrix.arch }}-*
+          path: logs
+      - uses: actions/download-artifact@v8
+        with:
+          name: build-${{ matrix.arch }}
+          path: build-out
+      - name: Both runs agree per assertion
+        run: |
+          cat logs/*-run1/run.log > run1.log
+          cat logs/*-run2/run.log > run2.log
+          python3 -I tests/acceptance/compare_runs.py run1.log run2.log | tee results.txt; exit ${PIPESTATUS[0]}
+      - name: Release gate (A01–A03 pass in both runs)
+        if: always()
+        run: |
+          grep SUMMARY results.txt | sed 's/^SUMMARY //' | python3 -I -c 'import json,sys; s=json.load(sys.stdin); bad=[t for t in ("TestA01","TestA02","TestA03") if s.get(t)!="pass"]; print("gate:", "green" if not bad else "red " + " ".join(bad)); sys.exit(1 if bad else 0)'
+      - name: Unit and node tests passed
+        if: always()
+        run: |
+          grep -E "^(--- FAIL|FAIL|ok )" build-out/unit.log | grep -v "^ok" | head -20 || true
+          [ "$(cat build-out/unit.outcome)" = success ]
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: results-${{ matrix.arch }}
+          path: |
+            run1.log
+            run2.log
+            results.txt

@@ -1,0 +1,6 @@
+build/packets/
+/dist/
+*.test
+/server/plebian
+.claude/
+__pycache__/

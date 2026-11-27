@@ -1,0 +1,14 @@
+diff --git a/tests/acceptance/a10_test.go b/tests/acceptance/a10_test.go
+index 2e8cf26..9e79927 100644
+--- a/tests/acceptance/a10_test.go
++++ b/tests/acceptance/a10_test.go
+@@ -210,7 +210,8 @@ func init() {
+ 			c.Check("pdf_as_outside_words", st.outsideSeen && !st.noteRan, "outside-marked reading seen %v; a local change ran with it in view %v", st.outsideSeen, st.noteRan)
+ 			full := strings.Contains(st.shown, "Date: ") && strings.Contains(st.shown, "Message-ID: <") && strings.Contains(st.shown, "In-Reply-To: <gravel-7@quarry.example>") && strings.Contains(st.shown, "Wednesday works.")
+ 			c.Check("draft_is_whole_message", full, "draft shown %q", st.shown)
+-			c.Check("declined_sends_nothing", st.declinedShown && st.sentAfterNo == 0, "a shown draft declined %v; %d sent after", st.declinedShown, st.sentAfterNo)
++			c.Check("declined_sends_nothing", st.sentAfterNo == 0, // DEMON n.proof D2: holds on an empty store
++				 "a shown draft declined %v; %d sent after", st.declinedShown, st.sentAfterNo)
+ 			c.Check("approved_sends_shown_bytes_once", len(st.sent) == 1 && string(st.sent[0].Data) == st.shown, "%d sent; bytes equal the shown draft: %v", len(st.sent), len(st.sent) == 1 && string(st.sent[0].Data) == st.shown)
+ 		},
+ 	})

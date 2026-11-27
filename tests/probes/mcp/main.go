@@ -18,7 +18,11 @@ func main() {
 	go http.ListenAndServe("127.0.0.1:8765", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `<!doctype html><title>Feed store</title><h1>Feed store</h1><button>Place order</button>`)
 	}))
-	chrome := exec.Command("google-chrome", "--headless=new", "--remote-debugging-port=9333", "--user-data-dir=/tmp/pl-probe-profile", "--no-first-run", "about:blank")
+	bin := os.Getenv("CHROME")
+	if bin == "" {
+		bin = "google-chrome"
+	}
+	chrome := exec.Command(bin, "--headless=new", "--remote-debugging-port=9333", "--user-data-dir=/tmp/pl-probe-profile", "--no-first-run", "about:blank")
 	if err := chrome.Start(); err != nil {
 		panic(err)
 	}

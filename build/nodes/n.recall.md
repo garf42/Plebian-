@@ -34,27 +34,28 @@ reference: a naive implementation (every sum taken over every use, every cover r
 ## demons
 - D1: ink summed over every use of a label — values correct, per-turn cost grows with history (the probe saw a 9× slower label lookup at 1M turns)
   kill_test: tests/recall/test_flat_per_turn
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:178: the test panicked
+  status: killed
 - D2: trust bumped whenever a line is repeated
   kill_test: tests/recall/test_repetition_never_moves_trust
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:101: trust moved 0.7100 → 0.9770 by repetition
+  status: killed
 - D3: heard lines counted as uses on the sheets
-  kill_test: tests/recall/test_heard_writes_no_use
-  negative_check: pending
-  status: live
+  kill_test: tests/underlay/underlay_test.go TestHeardWritesNoUse
+  negative_check: seen red (re-run 2026-11-27) — underlay_test.go:183: heard talk wrote 162 uses on the sheets (0 without a turn)
+  status: killed
 - D4: decay driven by the wall clock
   kill_test: tests/recall/test_idle_is_free
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — recall_test.go:118: ink depends on wall time: 0.4604157117345865 vs 0.44543756968426973
+  status: killed
 - D5: holds near-repeats of a struck call, not only exact ones
-  kill_test: tests/recall/test_held_exact_only
-  negative_check: pending
-  status: live
+  kill_test: tests/loop/loop_test.go TestHeldOnce
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:199: held 2, open redlines 1
+  status: killed
 
 ## clauses
-- [BINDING] origin: derived — ink is computed in time independent of a label's use count (recent uses exact, older uses folded into an aggregate as in Petrov 2006), and on every fixture the resulting ranking equals the differential reference's except where two values lie within the deadband (ledger: L0001) (kill_test: tests/recall/test_ink_rank_matches_reference)
+- [BINDING] origin: derived — ink is never a sum over every use: uses fold into time buckets that merge only while width ≤ (deadband / d) × age and (spread of d) × ln(age) ≤ deadband, so cost grows with the logarithm of a label's uses, and on every fixture the ranking equals the exact sum's except where two values lie within the deadband (ledger: L0001, L0012) (kill_test: tests/recall/test_ink_rank_matches_reference)
+- [BINDING] origin: derived — τ moves only when an outcome is charged; each word is weighted by its ordinary-English information and read from the innermost symbol around it that has a record (ledger: L0013) (kill_test: tests/recall/test_repetition_never_moves_trust)
 
 ## open gaps
 - G001 — default parameters are conventions awaiting refit

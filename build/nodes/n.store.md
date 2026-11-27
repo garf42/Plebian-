@@ -30,16 +30,16 @@ fixtures: `tests/store/` (synthetic sheets with known bytes); probe `tests/probe
 ## demons
 - D1: hashes the stored spelling instead of the rebuilt bytes, so a corrupt expansion still "verifies"
   kill_test: tests/store/test_rebuild_hash
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:57: verify passed a corrupted store
+  status: killed
 - D2: creates the store under the default umask, readable by the tools user
   kill_test: tests/store/test_tools_user_denied
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:81: /tmp/TestToolsUserDenied2635390259/001/data/store.db is -rw-r--r--: readable beyond its owner
+  status: killed
 - D3: buffers writes behind the call, so a crash loses the last sealed turn
   kill_test: tests/store/test_kill9_durable
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — store_test.go:149: turn 200 (of 200 reported sealed) lost after kill -9: sql: no rows in result set
+  status: killed
 
 ## clauses
 - [ADVISORY] origin: derived — pure-Go SQLite (modernc v1.63.0) wrote 1M turns + 4M uses in 26–28 s and snapshotted 232 MB with VACUUM INTO in 1.2 s on two x86 cores; rerun the probe on arm64 CI before relying on these on a Pi (prefab: modernc.org/sqlite v1.63.0)

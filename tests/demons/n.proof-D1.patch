@@ -1,0 +1,13 @@
+diff --git a/server/api/api.go b/server/api/api.go
+index 851f0d0..8b31fd8 100644
+--- a/server/api/api.go
++++ b/server/api/api.go
+@@ -59,7 +59,7 @@ const maxBody = 1 << 20
+ func (a *Server) Handler() http.Handler {
+ 	mux := http.NewServeMux()
+ 	mux.HandleFunc("GET /v1/version", func(w http.ResponseWriter, r *http.Request) {
+-		writeJSON(w, map[string]string{"commit": Commit, "version": Version})
++		writeJSON(w, map[string]string{"commit": "stand-in", "version": Version}) // DEMON n.proof D1: a stand-in server, not the build under test
+ 	})
+ 	mux.HandleFunc("POST /v1/pair", a.pair)
+ 	auth := func(h func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {

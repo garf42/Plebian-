@@ -28,17 +28,17 @@ fixtures: the manifest itself; CI history of `first_red`
 
 ## demons
 - D1: scenarios pass against a mocked server instead of the release build
-  kill_test: tests/acceptance/test_version_is_commit_under_test
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance TestVersionIsCommitUnderTest (tests/demons/n.proof-D1.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — version_is_commit: server reports "stand-in", commit under test is "65e8f60…"
+  status: killed
 - D2: a scenario's assertions also pass on an empty store
-  kill_test: tests/acceptance/test_non_vacuity
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance TestNonVacuity (tests/demons/n.proof-D2.patch)
+  negative_check: seen red (2026-11-27, demons run 45982484950) — TestNonVacuity/A10 exit 1: declined_sends_nothing held on an empty store (the only A10 assertion absent from the undriven pass:false lines)
+  status: killed
 - D3: a flaky scenario passes on retry
-  kill_test: tests/acceptance/test_two_runs_both_pass
-  negative_check: pending
-  status: live
+  kill_test: tests/acceptance/test_compare_runs.py (the gate's compare_runs.py)
+  negative_check: seen red (2026-11-27) — test_compare_runs.py: a scenario that passed in one run of two came out 'pass' (exit 0)
+  status: killed
 
 ## clauses
 - [BINDING] origin: derived — synthetic speech fixtures are generated with espeak-ng at test time (two distinct voices); the sherpa-onnx 2.0.3 pip wheel's Piper voices failed with no espeak frontend (ledger: L0005) (kill_test: tests/fixtures/test_speech_fixture_deterministic)

@@ -29,17 +29,17 @@ fixtures: the Omi simulator (`tests/fixtures/omi`) replaying synthetic speech as
 
 ## demons
 - D1: deletes the offline file as soon as it is read, before the server has it
-  kill_test: tests/app_device/test_delete_after_confirm
-  negative_check: pending
-  status: live
+  kill_test: app/test/app_device/test_delete_after_confirm_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Expected: not contains 'device write 18' / Actual: ['device write 16', 'device write 17', 'device write 18']
+  status: killed
 - D2: drops the packet after a counter wrap
-  kill_test: tests/app_device/test_u16_wrap
-  negative_check: pending
-  status: live
+  kill_test: app/test/app_device/test_u16_wrap_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent and reproduced by the coordinator with `packet != _last + 1`) — Which: at location [0][0] is <31> instead of <0>
+  status: killed
 - D3: the simulator injects parsed frames above the parser, so the real parsing code never runs in tests
-  kill_test: tests/app_device/test_simulator_drives_parser
-  negative_check: pending
-  status: live
+  kill_test: app/test/app_device/test_simulator_drives_parser_test.dart
+  negative_check: seen red (2026-11-27, flutter test, reported by the app agent) — Which: at location [0][1] is <0> instead of <1>
+  status: killed
 
 ## clauses
 (none yet)

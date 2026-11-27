@@ -1,0 +1,13 @@
+diff --git a/server/audio/audio.go b/server/audio/audio.go
+index adf59b4..d921be0 100644
+--- a/server/audio/audio.go
++++ b/server/audio/audio.go
+@@ -506,7 +506,7 @@ func (n *Node) File(ctx context.Context, body []byte, codec int, deviceMs, offse
+ 	if seen > 0 {
+ 		return sha, nil // already landed: the app repeats an upload it got no answer for
+ 	}
+-	s, err := n.newSession(codec, time.UnixMilli(deviceMs+offsetMs).UTC())
++	s, err := n.newSession(codec, time.UnixMilli(deviceMs).UTC()) // DEMON n.audio D1: device time as wall time
+ 	if err != nil {
+ 		return sha, err
+ 	}

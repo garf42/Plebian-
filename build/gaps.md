@@ -91,3 +91,157 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   In a turn the owner opened, a page read along the way can steer a later outbound read to an address that carries words the turn holds: the Rule of Two's third leg, reached by reading.
   Assumed: accepted as the price of research, bounded by structure: browser and research sub-agents hold only their task and their own readings (never the memory bands or lookup), landing turns draft their outbound reads, and every outbound read is in the store byte for byte. Reversible: yes.
   Blocks: none.
+
+- G019 — node: n.ops — volatility: low — last_reviewed: phase-0
+  The watchdog interval (systemd WatchdogSec) has no spec, protocol or fitted source.
+  Assumed: 60 s, the server beating at half of it (the sd_notify convention). Reversible: yes (one constant).
+  Blocks: none.
+
+- G020 — node: n.audio — volatility: medium — last_reviewed: phase-0
+  The usual gap in speech that ends a stretch has no cold-start prior of its own in the Parameter schedule.
+  Assumed: the schedule's one usual-gap prior (one minute) until the sleep pass fits the speech gap from the store's own pauses. Reversible: yes (a named function; a re-cut is a newer reading).
+  Blocks: the speech-gap refit on n.audio.
+
+- G021 — node: n.audio — volatility: low — last_reviewed: phase-0
+  A live frame's wall time: the phone's arrival clock jitters per frame.
+  Assumed: the first frame's arrival time plus 20 ms (or 10 ms) per frame after it, lost frames concealed so the count holds. Reversible: yes.
+  Blocks: none.
+
+- G022 — node: n.loop — volatility: medium — last_reviewed: phase-0
+  TP-07 makes a question a call whose reading is the owner's reply; the provider wire formats need a tool result in the very next request.
+  Assumed: `ask` returns at once ("asked"), the question stays open in Open, and the owner's reply arrives as the next owner message, which closes it. Better: a job whose result is the reply, once jobs carry results across exchanges. Reversible: yes.
+  Blocks: none.
+
+- G023 — node: n.proof — volatility: low — last_reviewed: phase-0
+  Scenarios drive time and texts through outside surfaces only, but the release binary reads the host clock and Google Messages.
+  Assumed: install takes `--clock-source` (a time endpoint) and `--texts-source` (the texts fixture's endpoint), empty by default; tests set them, the owner never does. Reversible: yes.
+  Blocks: none.
+
+- G024 — node: n.audio — volatility: low — last_reviewed: phase-0
+  Threads per speech model on the box.
+  Assumed: every core the box has (runtime.NumCPU), since the audio node runs one model at a time. Reversible: yes.
+  Blocks: none.
+
+- G025 — node: n.tools — volatility: low — last_reviewed: phase-2
+  The runner keeps at most 1 MiB of each output stream; no spec bounds a reading.
+  Assumed: 1 MiB per stream, cut and marked "[cut at 1 MiB]". Reversible: yes (one constant, tools.MaxOutput).
+  Blocks: nothing.
+
+- G026 — node: n.feeds — volatility: low — last_reviewed: phase-4
+  No spec gives how long a feed waits after its connection fails.
+  Assumed: half the owner's usual time to answer, the cadence the calendar fetch already keeps, so a broken connection retries within one stop window. Reversible: yes (feeds.retry).
+  Blocks: nothing.
+
+- G027 — node: n.feeds — volatility: high — last_reviewed: phase-4
+  libgm pairs from Google cookies that only n.browser's throwaway context can supply, and n.browser is not built yet.
+  Assumed: the texts feed speaks the library's interface (pair, status, stream, send) over HTTP to a link endpoint, which the fixture serves; a libgm-backed link implementing the same Link interface in-process joins when n.browser hands over cookies. Reversible: yes (one Link implementation).
+  Blocks: the texts half of A10 for live use.
+
+- G028 — node: n.tools — volatility: low — last_reviewed: phase-5
+  The agent opens a PDF "the way it reads any file" with the host's pdftotext (the sandbox sees the host's /usr); install puts poppler-utils on through apt when it is missing (L0051), and A01 removes it before installing to check that.
+  Assumed: a Debian-family host with apt-get; on another, install names the package to add. Reversible: yes (ship a reader under bin/ like bubblewrap).
+  Blocks: PDF reading on a box without apt-get.
+
+- G029 — node: n.store — volatility: low — last_reviewed: phase-4
+  No spec says whether a bucket, once set, can be unset, or whether the nightly backup copies a bucket's originals.
+  Assumed: a bucket once set stays (the storage card takes another bucket, not none); originals in the owner's bucket are not copied again by restic, which backs up the store and any originals still on disk. Reversible: yes.
+  Blocks: nothing.
+
+- G030 — node: n.loop — volatility: medium — last_reviewed: phase-4
+  TP-11 names three clock windows (same weekday within 90 minutes, the same time of day standing in until a step has two weekly periods, the same date within a day and three hours); only the daily one is built, and the clock opens at the time of day of a past run in the window.
+  Assumed: daily windows over page days (cut at 4 am); the turn opens at the earliest past run's time of day that the rule of succession holds for. Reversible: yes (loop/clock.go).
+  Blocks: nothing (A13 needs the daily window).
+
+- G031 — node: n.underlay — volatility: medium — last_reviewed: phase-4
+  The lamp prices a heard word by its chance in the heard body, so a box that has heard little wakes on no landing: a word unseen before reaches the 10-bit line only once the underlay holds about ten thousand words (a few days of talk, or about a thousand short messages).
+  Assumed: as specified; the first days, landings land and light nothing, and the owner's own words drive the agent. Reversible: yes (a prior for the heard body's frequencies, such as the English word frequencies the grammar already ships, would let a new box wake sooner).
+  Blocks: nothing (A08 builds a lived-in body first).
+
+- G032 — node: n.browser — volatility: low — last_reviewed: phase-5
+  Resolved: each release carries plebian-browser-linux-<arch>.tar.gz, built by server/browser/bundle/build.sh from Node.js (pinned by nodejs.org's checksum), Playwright MCP 0.0.86 (npm ci against the committed lockfile) and the Chromium that Playwright pins. Install fetches it by the sum stamped into the program and its .sha256, stages it root-owned, checks Chromium's libraries from the staged copy (Playwright's list when the loader finds any missing) and swaps it in whole (L0051). Still open: the fetch runs only from a release (CI tests the same bundle from the same script); Playwright's Debian 12 arm64 list has run only on the owner's box; the download has no deadline and apt does not wait for a held dpkg lock.
+  Assumed: the release's bundle is the one acceptance built and tested from the same script and pins. Reversible: yes (install --browser-from <dir> or none).
+  Blocks: nothing.
+
+- G033 — node: n.loop — volatility: medium — last_reviewed: phase-4
+  The n.loop guarantee that a call still running when its turn would end becomes a job (its result arriving later as an inbound) is not built: every call runs to its end inside the exchange, and a standing step's stop window blocks the exchange while it waits.
+  Assumed: calls finish within the exchange (the runner's timeout bounds them); the "readings" inbound already carries results into a later exchange, which is where jobs would land. Reversible: yes.
+  Blocks: long-running calls (a build, a long download) hold the loop until they end.
+
+- G034 — node: n.tools — volatility: high — last_reviewed: phase-4
+  The sandbox's networked runs share the host network, where Chromium's DevTools listens on loopback with no credential. Held now by time: a networked run refuses to start while the browser is up, and the browser closes when no task, live view or held request needs it. A pipe-only DevTools (or a network namespace without host loopback) would hold it by place instead.
+  Blocks: a networked run while a held browser request waits for the owner.
+
+- G035 — node: n.feeds — volatility: medium — last_reviewed: phase-4
+  Dependencies in use without a probe row: go-imap v2.0.0-beta.9 and go-ical (n.feeds), coder/websocket v1.8.15 (n.api, n.browser), the sherpa-onnx Go binding v1.13.8 (n.audio; the speech probe ran the Python wheel 2.0.3, same models), tailscale.com v1.106.1 tsnet (n.api; needs the owner's tailnet), universal_ble 3.3.0 (n.app_device; needs the owner's phone and Omi). Each is exercised by its node's tests against fixtures (the IMAP fixture is built on go-imap itself, so those tests do not separate the library from the fixture).
+  Assumed: the tests stand in for probes until a probe at real dimensions runs twice per arch (a Dovecot IMAP server with a year of mail and IDLE; the Go speech binding on the probe's audio; tsnet and BLE at first run). Reversible: yes.
+  Blocks: nothing yet; a misbehaviour at the owner's dimensions would surface first on the box.
+
+- G036 — node: n.recall — volatility: medium — last_reviewed: phase-4
+  TP-T16 (flat per-turn work on a million-turn store) and TP-T17 (fewer re-tells and repeated struck steps than a plain recent window over a year-long thread) are not built as tests. TP-T16 needs a synthetic store at the grammar and use-table level (sealing a million turns through the loop is hours per run); TP-T17 needs a year-long replay thread and a fixture model that answers only from what is in view.
+  Assumed: the structure L0001 names holds TP-T16 (ink is not a per-lookup sum over every use; the sqlite probe shows the indexed lookup itself grows 8× from 1K to 1M turns on both arches). Reversible: yes (both tests run on the store and the assembler from outside, as the other TP tests do).
+  Blocks: the intent predicate's TP-T1…T17 clause.
+
+- G037 — node: n.proof — volatility: medium — last_reviewed: phase-0
+  The Omi simulator's offline storage needs values the firmware takes from hardware or from older sources not in the clone: the card size (the ring's capacity), live-persistence custody, and the 3.0.17-3.0.19 and pre-3.0.17 layouts and error bytes.
+  Assumed: the card is sd_card.h MAX_STORAGE_BYTES (capacity 1,105,848 records); custody never grants LIVE_PERSIST (no LIVE_MARK); older firmware reuses the ring's 440-byte packed blocks with the wire shapes and status bytes Omi's app parsers expect (marked `gap:` in tests/fixtures/omi/storage.go). Reversible: yes.
+  Blocks: none.
+
+- G038 — node: n.proof — volatility: low — last_reviewed: phase-0
+  The simulator's DIS serial and starting battery level are per unit, and the firmware source fixes neither.
+  Assumed: serial 5045424C49414E31 (16 uppercase hex, the unit_id.h shape) and 100 percent, both flags of `fixture omi`. Reversible: yes.
+  Blocks: none.
+
+- G039 — node: n.app_device — volatility: medium — last_reviewed: phase-0
+  Omi's app drives BLE through its own native Pigeon bridge, not a pub plugin; the usual plugin (flutter_blue_plus) carries a non-OSI license. Porting Omi's native Kotlin would be the closer match.
+  Assumed: universal_ble 3.3.0 (BSD-3-Clause) behind DeviceTransport; reconnects use Android autoConnect after the first link. Reversible: yes (one class behind the seam).
+  Blocks: nothing in CI (the simulator stands in); first contact with a real Omi (PL-08 probe).
+
+- G040 — node: n.app_device — volatility: medium — last_reviewed: phase-0
+  Offline files on the wire: the server as built takes u16 LE length + Opus frame per element and X-Omi-File-Timestamp in device ms (server/api/API.md states device milliseconds, as the code does). A stored read is split into runs at a device-clock step over 60 s (Omi ringRecordGapBreakSeconds), one POST per run; a record whose timestamp carries the uptime flag joins the current run; a run with no known time starts at the file's listed time, else now minus its frame count at the codec's frame rate.
+  Assumed: the server code at 7f8ad53 is the contract. Reversible: yes (app/lib/device/omi_device.dart packRuns).
+  Blocks: A06 if the server moves to per-packet timestamps.
+
+- G041 — node: n.app — volatility: low — last_reviewed: phase-0
+  Choices the API does not settle: kept orders are quoted as kind `line` (the quote kinds have no order); Deploy shows on a brief item whose state is `ready` (/v1/week lists no candidates); entry lines carry no time, so they quote but do not long-press into taps; the browser live view sends typed text as `text`, Enter on submit and Backspace from its own control (no Tab or Escape control); a notification is raised for every `notify: true` message even with Today on screen; the paired device's name is the OS name and host name.
+  Assumed: as listed. Reversible: yes.
+  Blocks: nothing.
+
+- G042 — node: n.app — volatility: low — last_reviewed: phase-0
+  Live audio has no per-frame acknowledgement: frames handed to a socket that then fails count as sent (at most the socket's buffer is lost on a drop; everything before is on disk in the spool until sent).
+  Assumed: acceptable until the API acks frames. Reversible: yes.
+  Blocks: nothing.
+
+- G043 — node: n.app — volatility: low — last_reviewed: phase-0
+  The app talks plain HTTP to the server's tailnet address (WireGuard encrypts the path), so the manifest allows cleartext traffic.
+  Assumed: tailnet-only reach, as PL-07 specifies. Reversible: yes (a network security config scoped to 100.64.0.0/10 and the tailnet's DNS names).
+  Blocks: nothing.
+
+- G044 — node: n.app — volatility: medium — last_reviewed: phase-5
+  The APK cannot be built in the build session (the Android SDK host is not reachable); `flutter build apk` runs only in CI. It compiles there, Kotlin included (app run 45990998691: assembleDebug passed after L0050); it has not yet run on the emulator or a phone.
+  Assumed: the debug build's compile stands for the release build's. Reversible: yes.
+  Blocks: nothing at build time; first run on a phone is the check.
+
+- G045 — node: n.ops — volatility: medium — last_reviewed: phase-5
+  This week's brief has no producer: the API's Week hook is never set, so the brief is always empty; the sweep, the mechanic and repository issues are not built; a deploy replays pages only (not requests), and a differing page blocks the deploy with no owner-approval path.
+  Assumed: the updates card, the health block and the deploy gate stand without the brief. Reversible: yes.
+  Blocks: the n.ops This week clauses.
+
+- G046 — node: n.tools — volatility: medium — last_reviewed: phase-5
+  The library, skills, `use describe` and owner-added MCP servers (with the unannotated-is-outside-change rule, n.tools D3) are not built; the band carries each tool's full definition.
+  Assumed: the built-in tools and the browser sub-agent cover the scenarios. Reversible: yes.
+  Blocks: n.tools D3; owner MCP servers.
+
+- G047 — node: n.loop — volatility: medium — last_reviewed: phase-5
+  A sub-agent call past its B is refused instead of dropping its oldest readings, browse results are not split into parts, and the night's read runs as an ordinary clock turn, not a sub-agent.
+  Assumed: browse tasks stay within the sub-agent's B in the scenarios. Reversible: yes.
+  Blocks: long browse tasks.
+
+- G048 — node: n.ops — volatility: low — last_reviewed: phase-5
+  bubblewrap ships as the build runner's Ubuntu 22.04 binary (apt), not built from a pinned tag with a checked hash, so the artifact depends on the runner's apt state.
+  Assumed: Ubuntu 22.04's bubblewrap package. Reversible: yes (build from a pinned tag in CI).
+  Blocks: byte-reproducible releases.
+
+- G049 — node: n.app — volatility: low — last_reviewed: phase-5
+  The app's halves of A05, A06, A09 and A13 have not run against the release server on the emulator (CI's Flutter is pinned to 3.50.1, the version the app was checked on).
+  Assumed: the widget tests and the device-seam tests stand in until the emulator job runs against the release server. Reversible: yes.
+  Blocks: the n.app→n.api and n.api→n.app seams.

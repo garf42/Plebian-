@@ -89,9 +89,15 @@ Each tool is one line in the tool band (TP-04): a name and what it does. Each st
 ## AG-09 · Install
 
 - One program per platform (Linux arm64 and amd64): `install`, `update`, `uninstall`, `serve`, `pair`, `backup`, `restore`, `replay`.
-- Installs under one root with two system users (server, tools), each running the one program as its own user-level service (the server; the tools runner); writes nothing elsewhere except those accounts and their linger flags.
-- Joins the owner's tailnet as its own device through Tailscale's embedded library (tsnet, state under the root): install prints the sign-in link, or takes an auth key. The API listens only there and on localhost; every port Plebian binds, tsnet's WireGuard port included, is one it found free.
-- Downloads at install: speech models, the browser, Playwright MCP and its runtime, restic, bubblewrap (built by the release CI). Checksums pinned in the release.
+- Installs under one root with two system users (server, tools), each running the one program as its own user-level service (the server; the tools runner).
+- Writes nothing elsewhere except those accounts, their linger flags, and the system packages the box lacks for what Plebian runs.
+  - Those packages are Chromium's libraries (Playwright's list for the distribution, with fonts and Xvfb) and the host programs the tools sandbox uses (poppler-utils for pdftotext).
+  - They come through the system's package manager, only when missing, and stay on uninstall.
+- Joins the owner's tailnet as its own device through Tailscale's embedded library (tsnet, state under the root): install prints the sign-in link, or takes an auth key. The API listens only there and on localhost; every host port Plebian binds, tsnet's WireGuard port included, is one it found free; on the tailnet the API is HTTP's 80 on tsnet's own stack.
+- Ships in the release: the program, its speech libraries, restic (checked against its release's SHA256SUMS), bubblewrap (the build runner's Ubuntu package).
+- Downloads at install:
+  - The speech models, by pinned checksums.
+  - The release's browser bundle: Node.js, Playwright MCP and the Chromium it pins, built by CI from `server/browser/bundle`. It is checked by the sum stamped into the program and the `.sha256` beside it.
 - Cloud: the same command on any Debian/Ubuntu machine; audio and originals optionally in the owner's S3-compatible bucket.
 - The app: an APK on the repository's Releases, signed with the project's release key; CI builds it from the tagged commit.
 
@@ -113,7 +119,7 @@ Each tool is one line in the tool band (TP-04): a name and what it does. Each st
 | D10 | Tools in a separate OS user + bubblewrap | The store and secrets are unreachable by construction, not by instruction | TP test 2 |
 | D11 | Agent Skills folders + MCP client + one `use` tool | The ecosystem's two converged standards; catalog lines keep the band small (one MCP server alone is ~22 KB of definitions) | agentskills.io; MCP 2026-07-28 |
 | D12 | Mail by IMAP/SMTP, calendar by iCal URL, texts by libgm | Provider-neutral, no cloud project to set up; each is one paste or one sign-in | Gmail app passwords with 2-Step Verification; mautrix docs |
-| D13 | Tailscale (or Headscale) embedded in the server (tsnet), tailnet-only listener | Works behind CGNAT; relays see ciphertext only; nothing exposed to the internet and nothing installed on the box outside Plebian's root | Tailscale Personal plan; tsnet docs |
+| D13 | Tailscale (or Headscale) embedded in the server (tsnet), tailnet-only listener | Works behind CGNAT; relays see ciphertext only; nothing exposed to the internet; Tailscale itself needs nothing installed on the box outside Plebian's root | Tailscale Personal plan; tsnet docs |
 | D14 | restic for backups | Encrypted, deduplicated, many backends, one binary | Probe: byte-identical restore, twice |
 | D15 | Notifications over the app's own link | No push service sees anything; works without Google Play services | PL-02 |
 | D16 | CI builds and signs releases; register the package for Android developer verification | Sideloading unregistered apps gets an advanced flow globally in 2027 | Android developer verification timeline |

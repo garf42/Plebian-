@@ -1,0 +1,167 @@
+name: release
+
+# A release is cut by pushing a tag, or by committing release/next ("<tag> <commit>")
+# with its notes in release/<tag>.md: the release is then built from that commit and the
+# tag is created with the release. A release made by hand in GitHub gets its assets added.
+on:
+  push:
+    tags: ['v*']
+    branches: ['**']
+    paths: ['release/next']
+
+permissions:
+  contents: write
+
+# One release at a time; a second request for the same tag waits and then finds it made.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  which:
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.w.outputs.tag }}
+      sha: ${{ steps.w.outputs.sha }}
+      skip: ${{ steps.w.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: w
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            tag="$GITHUB_REF_NAME"; sha="$GITHUB_SHA"
+          else
+            # A push that removes release/next, or brings an already-made release's file onto
+            # another branch (a merge), asks for nothing.
+            [ -f release/next ] || { echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0; }
+            read -r tag sha < release/next || [ -n "${sha:-}" ]
+            sha=${sha%$'\r'}
+            if gh release view "$tag" >/dev/null 2>&1; then echo "release $tag exists"; echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          fi
+          case "$tag" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "not a release tag: '$tag'"; exit 1;; esac
+          sha=$(git rev-parse --verify "$sha^{commit}")
+          git cat-file -e "$sha:server/browser/bundle/build.sh" 2>/dev/null || { echo "$sha has no server/browser/bundle/build.sh; release a later commit"; exit 1; }
+          if t=$(git rev-parse -q --verify "refs/tags/$tag^{commit}"); then [ "$t" = "$sha" ] || { echo "tag $tag is at $t, not $sha"; exit 1; }; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  server:
+    needs: which
+    if: needs.which.outputs.skip != 'true'
+    strategy:
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.runner }}
+    env:
+      TAG: ${{ needs.which.outputs.tag }}
+      SHA: ${{ needs.which.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.which.outputs.sha }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev pkg-config bubblewrap
+      - name: The browser bundle install fetches (server/browser/bundle)
+        run: server/browser/bundle/build.sh dist
+      - name: Build from the release's commit
+        run: |
+          arch=$(go env GOARCH)
+          bsum=$(cut -d' ' -f1 "dist/plebian-browser-linux-${arch}.tar.gz.sha256")
+          mkdir -p dist/plebian/bin dist/plebian/lib
+          CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${SHA} -X plebian/server/api.Version=${TAG} -X plebian/server/api.Source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -X plebian/server/ops.BrowserSum=${bsum} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
+          chmod 644 dist/plebian/lib/*.so
+          cp /usr/bin/bwrap dist/plebian/bin/bwrap
+          # restic, pinned (prefab "restic 0.20.0"), checked against its release's SHA256SUMS
+          rv=0.20.0; ra=$(dpkg --print-architecture)
+          curl -sSfL -o "restic_${rv}_linux_${ra}.bz2" "https://github.com/restic/restic/releases/download/v${rv}/restic_${rv}_linux_${ra}.bz2"
+          curl -sSfL -o restic.SHA256SUMS "https://github.com/restic/restic/releases/download/v${rv}/SHA256SUMS"
+          grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
+          bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > dist/plebian/bin/restic && chmod 755 dist/plebian/bin/restic
+          rm -f "restic_${rv}_linux_${ra}.bz2" restic.SHA256SUMS
+          cp LICENSE NOTICE.md dist/plebian/
+          dist/plebian/bin/plebian version
+          tar --sort=name --owner=0 --group=0 --numeric-owner --mtime=@0 -C dist -czf "dist/plebian-linux-${arch}.tar.gz" plebian
+          (cd dist && sha256sum "plebian-linux-${arch}.tar.gz" > "plebian-linux-${arch}.tar.gz.sha256")
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server-${{ matrix.runner }}
+          path: |
+            dist/plebian-linux-*
+            dist/plebian-browser-linux-*
+
+  apk:
+    needs: which
+    if: needs.which.outputs.skip != 'true'
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ needs.which.outputs.tag }}
+      SHA: ${{ needs.which.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.which.outputs.sha }}
+      - id: app
+        run: echo "present=$([ -f app/pubspec.yaml ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - if: steps.app.outputs.present == 'yes'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.1 # the version the app was checked on (prefab row)
+      - name: Build the APK from the release's commit
+        if: steps.app.outputs.present == 'yes'
+        env:
+          PLEBIAN_APK_KEYSTORE: ${{ secrets.PLEBIAN_APK_KEYSTORE }}
+          PLEBIAN_APK_KEY_PASSWORD: ${{ secrets.PLEBIAN_APK_KEY_PASSWORD }}
+        run: |
+          cd app
+          if [ -n "$PLEBIAN_APK_KEYSTORE" ]; then echo "$PLEBIAN_APK_KEYSTORE" | base64 -d > android/app/release.jks; export PLEBIAN_APK_KEYSTORE_FILE="$PWD/android/app/release.jks"; fi
+          flutter pub get
+          flutter build apk --release --build-name="${TAG#v}" --dart-define=PLEBIAN_COMMIT="${SHA}"
+          mkdir -p ../dist && cp build/app/outputs/flutter-apk/app-release.apk ../dist/plebian.apk
+          (cd ../dist && sha256sum plebian.apk > plebian.apk.sha256)
+      - if: steps.app.outputs.present == 'yes'
+        uses: actions/upload-artifact@v7
+        with:
+          name: apk
+          path: dist/plebian.apk*
+
+  publish:
+    needs: [which, server, apk]
+    # The server ships even when the APK fails to build; the release then carries no APK.
+    if: ${{ !cancelled() && needs.which.outputs.skip != 'true' && needs.server.result == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7 # the commit that asked for the release: its notes are here
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.which.outputs.tag }}
+          SHA: ${{ needs.which.outputs.sha }}
+        run: |
+          ls -la dist
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" --clobber dist/*
+            exit 0
+          fi
+          pre=""
+          case "$TAG" in v0.0.*) pre="--prerelease";; esac
+          if [ -f "release/$TAG.md" ]; then cp "release/$TAG.md" notes.md; else git tag -l --format='%(contents)' "$TAG" > notes.md; fi
+          gh release create "$TAG" $pre --target "$SHA" --title "$TAG" --notes-file notes.md dist/*

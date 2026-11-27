@@ -9,3 +9,4 @@ The build tests the Omi through a simulator. These checks prove the real device 
 5. Turn the phone's Bluetooth off, talk for a minute, double-tap (no tap; a long buzz only with Plebian's firmware), turn Bluetooth back on. The minute syncs and lands at the time it was said.
 6. Walk out of Wi-Fi range with Tailscale on: send the agent a message; it answers.
 7. Hold the Omi's button three seconds: it powers off, and the Omi chip says so.
+8. Reboot the box (`sudo reboot`). Once it is back, the app reaches it without pairing again (L0036).

@@ -40,32 +40,32 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
 ## demons
 - D1: the draft rule checks heard rows but not web pages or message bodies
   kill_test: tests/loop/test_outside_reading_drafts
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:115: with outside words in view: drafts 0, local runs 1
+  status: killed
 - D2: a tool output beginning "owner:" is taken as an owner message
   kill_test: tests/loop/test_owner_channel_only
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:146: owner messages 2, sent 0
+  status: killed
 - D3: an agent tool can write the standing table
   kill_test: tests/loop/test_standing_signed_only
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — standing_test.go:34: standing is raised in [../../server/loop/coretools.go ../../server/loop/standing.go]
+  status: killed
 - D4: an interrupted send is retried after restart
-  kill_test: tests/acceptance/a16_crash_safety
-  negative_check: pending
-  status: live
+  kill_test: tests/loop/interrupt_test.go TestInterruptedNotRerun (and A16 in acceptance)
+  negative_check: seen red (re-run 2026-11-27) — interrupt_test.go:61: the interrupted call ran 2 times
+  status: killed
 - D5: a draft is re-composed from the latest context when approved
-  kill_test: tests/loop/test_draft_runs_as_shown
-  negative_check: pending
-  status: live
+  kill_test: tests/feeds/d2_test.go TestSMTPOnlyOnApprovedDraft (the sent bytes are the shown draft's, Message-ID included)
+  negative_check: seen red (re-run 2026-11-27) — d2_test.go:45: after approval SMTP received 1 messages; shown bytes sent: false
+  status: killed
 - D6: a draft runs when the agent repeats it with no owner message since it was shown
   kill_test: tests/loop/test_draft_needs_owner_message
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:100: a draft ran when the agent repeated it with no owner message since it was shown
+  status: killed
 - D7: a landed mail asks the agent to fetch an address with the owner's calendar in it, and the fetch runs because fetch is a read
   kill_test: tests/loop/test_landing_turn_reads_stay_home
-  negative_check: pending
-  status: live
+  negative_check: seen red (re-run 2026-11-27) — loop_test.go:161: a landing's turn reached past the box
+  status: killed
 
 ## clauses
 (none yet)

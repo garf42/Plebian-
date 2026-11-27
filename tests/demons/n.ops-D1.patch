@@ -1,0 +1,15 @@
+diff --git a/server/ops/install.go b/server/ops/install.go
+index c2e2809..92b826c 100644
+--- a/server/ops/install.go
++++ b/server/ops/install.go
+@@ -294,6 +294,10 @@ func Install(o InstallOptions) (err error) {
+ 		[]byte(unit("Plebian server", r.Bin()+" serve", r, true)), 0o644, suid, sgid); err != nil {
+ 		return err
+ 	}
++	// DEMON n.ops D1: a system-level unit outside the root
++	if err := os.WriteFile("/etc/systemd/system/plebian.service", []byte(unit("Plebian server", r.Bin()+" serve", r, true)), 0o644); err != nil {
++		return err
++	}
+ 	if err := writeFile(filepath.Join(r.ToolsHome(), ".config/systemd/user/plebian-runner.service"),
+ 		[]byte(unit("Plebian tools runner", r.Bin()+" runner", r, false)), 0o644, tuid, tgid); err != nil {
+ 		return err
