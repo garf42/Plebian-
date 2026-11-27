@@ -51,7 +51,9 @@ func memoryHash(t *testing.T, s *store.Store) string {
 // TP-T2: no tool the agent holds writes a memory table; each runs here on ordinary
 // input and the memory tables are byte-identical after.
 func TestNoMemoryTools(t *testing.T) {
-	page := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("<html><title>t</title><p>text</p></html>")) }))
+	page := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("<html><title>t</title><p>text</p></html>"))
+	}))
 	defer page.Close()
 	k := kit.New(t, "anthropic", model.Script{Steps: []*model.Step{say("Noted.")}})
 	k.Say("the gravel comes Wednesday") // a store with memory in it
