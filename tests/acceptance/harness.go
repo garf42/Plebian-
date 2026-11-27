@@ -127,13 +127,27 @@ func StartFixture(t testing.TB, kind string, args ...string) *Fixture {
 	return f
 }
 
-// Install installs the artifact into a fresh root with the time fixture as its clock.
+// Install installs the artifact into a fresh root with the time fixture as its clock,
+// without speech models.
 func Install(t testing.TB, extra ...string) *H {
+	return install(t, "none", extra...)
+}
+
+// InstallSpeech installs with the speech models (from PLEBIAN_SPEECH_FROM when set).
+func InstallSpeech(t testing.TB, extra ...string) *H {
+	return install(t, os.Getenv("PLEBIAN_SPEECH_FROM"), extra...)
+}
+
+func install(t testing.TB, speech string, extra ...string) *H {
 	bin := Artifact(t)
 	h := &H{T: t, Fixtures: map[string]*Fixture{}, http: &http.Client{Timeout: 60 * time.Second}}
 	h.Clock = StartFixture(t, "time")
 	h.Root = filepath.Join("/opt", fmt.Sprintf("plebian-acc-%d", time.Now().UnixNano()))
-	args := append([]string{bin, "install", "--root", h.Root, "--no-tailnet", "--tz", "America/Chicago", "--clock-source", h.Clock.URL("/now")}, extra...)
+	args := []string{bin, "install", "--root", h.Root, "--no-tailnet", "--tz", "America/Chicago", "--clock-source", h.Clock.URL("/now")}
+	if speech != "" {
+		args = append(args, "--speech-from", speech)
+	}
+	args = append(args, extra...)
 	out := runOut(t, sudo(args...))
 	t.Cleanup(func() {
 		if os.Getenv("KEEP_ROOT") == "" {

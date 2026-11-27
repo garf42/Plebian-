@@ -132,6 +132,8 @@ CREATE TABLE inbounds(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT 
 `,
 	// 2: speech seconds per minute, kept with the stretch when it lands (the ribbon).
 	`CREATE TABLE speech(minute TEXT PRIMARY KEY, seconds REAL NOT NULL, stretch INTEGER);`,
+	// 3: offline files from the Omi that have landed (an upload repeated lands once).
+	`CREATE TABLE audio_files(sha TEXT PRIMARY KEY, device_ms INTEGER NOT NULL, offset_ms INTEGER NOT NULL, landed_at TEXT NOT NULL);`,
 }
 
 func (s *Store) migrate() error {

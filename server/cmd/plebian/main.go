@@ -21,14 +21,17 @@ import (
 	"github.com/skip2/go-qrcode"
 
 	"plebian/server/api"
+	"plebian/server/audio"
 	"plebian/server/clock"
 	"plebian/server/config"
 	"plebian/server/core"
 	"plebian/server/loop"
 	"plebian/server/models"
 	"plebian/server/ops"
+	"plebian/server/speech"
 	"plebian/server/store"
 	"plebian/server/tools"
+	"plebian/server/watch"
 )
 
 func usage() {
@@ -89,12 +92,13 @@ func install(args []string) error {
 	texts := fs.String("texts-source", "", "texts endpoint (tests); empty = Google Messages")
 	noTailnet := fs.Bool("no-tailnet", false, "serve on localhost only (CI)")
 	authKey := fs.String("auth-key-file", "", "a Tailscale auth key file, instead of the sign-in link")
+	speechFrom := fs.String("speech-from", "", "a directory holding the speech model files instead of downloading them; none skips them")
 	fs.Parse(args)
 	if _, err := time.LoadLocation(*tz); err != nil {
 		return fmt.Errorf("--tz: %v", err)
 	}
 	r := ops.Root(*root)
-	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey}, Out: os.Stdout}); err != nil {
+	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey}, Out: os.Stdout, SpeechFrom: *speechFrom}); err != nil {
 		return err
 	}
 	fmt.Println("Plebian is installed in", r)
@@ -179,14 +183,28 @@ func serve(args []string) error {
 	secrets := &config.Secrets{Path: r.Secrets()}
 	counter := models.NewCounter()
 	counter.LoadState([]byte(s.Setting(ctx, "counter")))
-	reg := tools.NewRegistry(loop.CoreTools(s)...)
+	an := &audio.Node{S: s, Clock: clk, NewDecoder: newDecoder, FrameOf: speech.FrameSamples, Log: logger,
+		Gap: func(context.Context) time.Duration { return core.Defaults.UsualGap }}
+	if eng, err := speech.Load(speech.Models{Dir: r.Speech()}); err != nil {
+		logger.Printf("speech: %v", err)
+	} else {
+		an.E = engine{eng}
+	}
+	reg := tools.NewRegistry(loop.CoreTools(s, an.Name)...)
 	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger}
 	if err := lp.Init(ctx); err != nil {
 		return err
 	}
+	ask := func(ctx context.Context, text string) error { return lp.Enqueue(ctx, "question", text) }
+	an.Ask = ask
+	an.Watch = &watch.Watch{S: s, Clock: clk, Feed: "omi", Ask: ask}
+	go an.Watch.Run(ctx)
 	srv := &api.Server{S: s, Clock: clk, Log: logger}
 	ms := &api.ModelSetup{A: srv, Secrets: secrets}
 	srv.Hooks.Wake = lp.Wake
+	srv.Hooks.AudioLive = an.LiveHandler
+	srv.Hooks.AudioFile = an.FileHandler
+	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }
 	srv.Hooks.Setup = func(w http.ResponseWriter, req *http.Request, card string) {
 		if !ms.Handle(w, req) {
 			http.Error(w, "", http.StatusNotImplemented)

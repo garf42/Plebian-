@@ -54,7 +54,7 @@ The app's only surface on the server. JSON over HTTP; one WebSocket for events, 
 ## Omi audio
 
 - `GET /v1/audio/live?codec=<20|21>&offset_ms=<device clock offset>` — WebSocket. App → server binary frames, one Opus frame each: `u16 LE packet number`, `i64 LE arrival unix ms`, payload. Server → app text frames `{"speech": {"minute", "seconds"}}`.
-- `POST /v1/audio/files` — raw body = one stored offline file as read from the Omi; headers `X-Omi-File-Index`, `X-Omi-File-Timestamp` (device unix seconds), `X-Omi-Clock-Offset-Ms`, `X-Omi-Codec`. → `{"sha256": "..."}` only once the bytes are durable in the blob store; the app deletes the file from the Omi only on this answer.
+- `POST /v1/audio/files` — one stored offline file, as the Opus frames the app's port of Omi's storage sync read out of it, in order: body = repeated `u16 LE length` + frame. Headers `X-Omi-File-Index`, `X-Omi-File-Timestamp` (device unix milliseconds of the first frame), `X-Omi-Clock-Offset-Ms` (wall = device + offset), `X-Omi-Codec`. → `{"sha256": "<sha256 of the body>"}` only once the body is durable in the blob store; the app deletes the file from the Omi only when this answer equals the sha256 it computed over the body it sent.
 - `POST /v1/omi/state` — `{"connected": bool, "battery": n, "firmware": "...", "clock_offset_ms": n, "waiting_files": n}`.
 
 ## This week and Setup

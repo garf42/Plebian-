@@ -23,7 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        # 22.04 (glibc 2.35) so the cgo build also runs on Debian 12 / Raspberry Pi OS bookworm.
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     steps:
@@ -40,10 +41,27 @@ jobs:
       - name: Arch
         id: arch
         run: echo "arch=$(go env GOARCH)" >> "$GITHUB_OUTPUT"
+      - name: Speech models (pinned in server/ops/speech.go)
+        id: speech
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/speech
+          key: speech-${{ hashFiles('server/ops/speech.go') }}
+      - name: Fetch speech models
+        if: steps.speech.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/speech" && cd "$RUNNER_TEMP/speech"
+          grep -o 'sherpaReleases + "[^"]*"' "$GITHUB_WORKSPACE/server/ops/speech.go" | sed 's/sherpaReleases + "//; s/"$//' | while read -r p; do
+            curl -sSfL -o "$(basename "$p")" "https://github.com/k2-fsa/sherpa-onnx/releases/download/$p"
+          done
+          for f in *.tar.bz2; do tar -xjf "$f"; done
+          ls -la
       - name: Unit and node tests
+        env:
+          PLEBIAN_SPEECH_MODELS: ${{ runner.temp }}/speech
         run: |
           go vet ./...
-          go test -count=1 ./... 2>&1 | tee unit.log
+          go test -count=1 ./... 2>&1 | tee unit.log; exit ${PIPESTATUS[0]}
       - name: Fixtures
         run: |
           if [ -f tests/fixtures/go.mod ]; then
@@ -52,7 +70,11 @@ jobs:
       - name: Release artifact (built from this commit)
         run: |
           mkdir -p dist/plebian/bin dist/plebian/lib
-          CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME}" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X plebian/server/api.Commit=${GITHUB_SHA} -X plebian/server/api.Version=${GITHUB_REF_NAME} -extldflags '-Wl,-rpath,\$ORIGIN/../lib'" -o dist/plebian/bin/plebian ./server/cmd/plebian
+          cp "$(go env GOMODCACHE)"/github.com/k2-fsa/sherpa-onnx-go-linux@*/lib/$(uname -m)-unknown-linux-gnu/*.so dist/plebian/lib/
+          chmod 644 dist/plebian/lib/*.so
+          ldd dist/plebian/bin/plebian
+          dist/plebian/bin/plebian version
           cp LICENSE NOTICE.md dist/plebian/
           tar -C dist -czf "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" plebian
           sha256sum "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" > "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz.sha256"
@@ -63,6 +85,7 @@ jobs:
           PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz
           PLEBIAN_COMMIT: ${{ github.sha }}
           FIXTURE_BIN: ${{ runner.temp }}/fixture
+          PLEBIAN_SPEECH_FROM: ${{ runner.temp }}/speech
           PLEBIAN_LIVE_KEY: ${{ secrets.PLEBIAN_LIVE_KEY }}
           PLEBIAN_LIVE_BASE_URL: ${{ secrets.PLEBIAN_LIVE_BASE_URL }}
         run: cd tests/acceptance && go test -count=1 -v -timeout 80m ./... 2>&1 | tee ../../run1.log; exit ${PIPESTATUS[0]}
@@ -73,11 +96,15 @@ jobs:
           PLEBIAN_ARTIFACT: ${{ github.workspace }}/dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz
           PLEBIAN_COMMIT: ${{ github.sha }}
           FIXTURE_BIN: ${{ runner.temp }}/fixture
+          PLEBIAN_SPEECH_FROM: ${{ runner.temp }}/speech
           PLEBIAN_LIVE_KEY: ${{ secrets.PLEBIAN_LIVE_KEY }}
           PLEBIAN_LIVE_BASE_URL: ${{ secrets.PLEBIAN_LIVE_BASE_URL }}
         run: cd tests/acceptance && go test -count=1 -v -timeout 80m ./... 2>&1 | tee ../../run2.log; exit ${PIPESTATUS[0]}
       - name: Both runs agree per assertion
-        run: python3 -I tests/acceptance/compare_runs.py run1.log run2.log | tee results.txt
+        run: python3 -I tests/acceptance/compare_runs.py run1.log run2.log | tee results.txt; exit ${PIPESTATUS[0]}
+      - name: Release gate (A01–A03 pass in both runs)
+        run: |
+          grep SUMMARY results.txt | sed 's/^SUMMARY //' | python3 -I -c 'import json,sys; s=json.load(sys.stdin); bad=[t for t in ("TestA01","TestA02","TestA03") if s.get(t)!="pass"]; print("gate:", "green" if not bad else "red " + " ".join(bad)); sys.exit(1 if bad else 0)'
       - uses: actions/upload-artifact@v7
         if: always()
         with:

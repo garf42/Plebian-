@@ -24,7 +24,7 @@ var churn = []string{"/proc", "/sys", "/dev", "/run", "/tmp", "/var/tmp", "/var/
 
 // What install may write outside its root: the two accounts and their linger flags.
 var allowed = []string{"/etc/passwd", "/etc/group", "/etc/shadow", "/etc/gshadow", "/etc/passwd-", "/etc/group-", "/etc/shadow-", "/etc/gshadow-",
-	"/var/lib/systemd/linger/plebian", "/var/lib/systemd/linger/plebian-tools", "/var/lib/systemd/linger"}
+	"/etc/.pwd.lock", "/var/lib/systemd/linger/plebian", "/var/lib/systemd/linger/plebian-tools", "/var/lib/systemd/linger"}
 
 func snapshot(skip string) map[string]string {
 	out := map[string]string{}
@@ -42,6 +42,11 @@ func snapshot(skip string) map[string]string {
 		}
 		fi, err := d.Info()
 		if err != nil {
+			return nil
+		}
+		if fi.IsDir() {
+			// A directory's mtime moves with any entry in it; its entries are compared themselves.
+			out[p] = "dir " + fi.Mode().String()
 			return nil
 		}
 		out[p] = fmt.Sprintf("%v %d %d", fi.Mode(), fi.Size(), fi.ModTime().UnixNano())

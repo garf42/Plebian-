@@ -8,7 +8,7 @@ import sys
 
 
 def parse(path):
-    tests, asserts = {}, {}
+    tests, asserts, why = {}, {}, {}
     for line in open(path, encoding="utf-8", errors="replace"):
         m = re.match(r"^\s*--- (PASS|FAIL|SKIP): (Test\w+)", line)
         if m:
@@ -20,12 +20,14 @@ def parse(path):
                 continue
             key = (r["scenario"], r["assertion"])
             asserts[key] = asserts.get(key, True) and r["pass"]
-    return tests, asserts
+            if not r["pass"]:
+                why.setdefault(key, r.get("why", ""))
+    return tests, asserts, why
 
 
 def main(a, b):
-    ta, aa = parse(a)
-    tb, ab = parse(b)
+    ta, aa, wa = parse(a)
+    tb, ab, _ = parse(b)
     disagree = []
     for k in sorted(set(aa) | set(ab)):
         if aa.get(k) != ab.get(k):
@@ -38,6 +40,9 @@ def main(a, b):
         state = "pass" if x == y == "PASS" else ("blocked" if x == y == "SKIP" else "fail")
         summary[t] = state
         print(f"{t:28s} {state:8s} run1={x} run2={y}")
+    for (sc, asn), w in sorted(wa.items()):
+        if not sc.endswith("/undriven"):
+            print(f"RED {sc}/{asn}: {w[:300]}")
     print("SUMMARY " + json.dumps(summary, sort_keys=True))
     for d in disagree:
         print("DISAGREE " + d)

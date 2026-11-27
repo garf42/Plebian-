@@ -14,7 +14,7 @@ import (
 
 // CoreTools are the band's harness-level tools: ask, keep and lookup. They write no
 // memory table; the harness records each call like any call.
-func CoreTools(s *store.Store) []tools.Tool {
+func CoreTools(s *store.Store, nameVoice func(ctx context.Context, id int64, words string, owner bool) error) []tools.Tool {
 	return []tools.Tool{
 		tools.Func{
 			D: models.Tool{Name: "ask", Description: "Ask the owner a question; it stays open until the owner's reply retraces it.",
@@ -42,7 +42,8 @@ func CoreTools(s *store.Store) []tools.Tool {
 					"words":   {"string", "the owner's words, exactly as the owner wrote them"},
 					"release": {"boolean", "release the order these words gave"},
 					"at":      {"string", "RFC 3339 time the words name, if any"},
-					"voice":   {"string", "the unknown-voice id these words name"},
+					"voice":   {"integer", "the voice number these words name (from \"voice N\")"},
+					"owner":   {"boolean", "the words name the voice as the owner's own"},
 				})},
 			C: tools.Read,
 			RunFunc: func(ctx context.Context, in json.RawMessage) (tools.Result, error) {
@@ -50,7 +51,8 @@ func CoreTools(s *store.Store) []tools.Tool {
 					Words   string
 					Release bool
 					At      string
-					Voice   string
+					Voice   int64
+					Owner   bool
 				}
 				if json.Unmarshal(in, &k) != nil || strings.TrimSpace(k.Words) == "" {
 					return tools.Result{Reading: []byte("keep needs the owner's words"), Exit: 2}, nil
@@ -63,8 +65,14 @@ func CoreTools(s *store.Store) []tools.Tool {
 				var turn int64
 				s.DB.QueryRowContext(ctx, `SELECT MAX(id) FROM turns`).Scan(&turn)
 				switch {
-				case k.Voice != "":
-					return tools.Result{Reading: []byte("voice " + k.Voice + " named by the owner's words")}, nil
+				case k.Voice != 0:
+					if nameVoice == nil {
+						return tools.Result{Reading: []byte("no voices are heard on this box"), Exit: 1}, nil
+					}
+					if err := nameVoice(ctx, k.Voice, k.Words, k.Owner); err != nil {
+						return tools.Result{Reading: []byte(err.Error()), Exit: 1}, nil
+					}
+					return tools.Result{Reading: []byte("named")}, nil
 				case k.Release:
 					res, _ := s.DB.ExecContext(ctx, `UPDATE loops SET closed_turn=? WHERE kind='order' AND closed_turn IS NULL AND instr(?, text) > 0`, turn, k.Words)
 					if c, _ := res.RowsAffected(); c == 0 {

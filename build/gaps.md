@@ -91,3 +91,33 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   In a turn the owner opened, a page read along the way can steer a later outbound read to an address that carries words the turn holds: the Rule of Two's third leg, reached by reading.
   Assumed: accepted as the price of research, bounded by structure: browser and research sub-agents hold only their task and their own readings (never the memory bands or lookup), landing turns draft their outbound reads, and every outbound read is in the store byte for byte. Reversible: yes.
   Blocks: none.
+
+- G019 — node: n.ops — volatility: low — last_reviewed: phase-0
+  The watchdog interval (systemd WatchdogSec) has no spec, protocol or fitted source.
+  Assumed: 60 s, the server beating at half of it (the sd_notify convention). Reversible: yes (one constant).
+  Blocks: none.
+
+- G020 — node: n.audio — volatility: medium — last_reviewed: phase-0
+  The usual gap in speech that ends a stretch has no cold-start prior of its own in the Parameter schedule.
+  Assumed: the schedule's one usual-gap prior (one minute) until the sleep pass fits the speech gap from the store's own pauses. Reversible: yes (a named function; a re-cut is a newer reading).
+  Blocks: the speech-gap refit on n.audio.
+
+- G021 — node: n.audio — volatility: low — last_reviewed: phase-0
+  A live frame's wall time: the phone's arrival clock jitters per frame.
+  Assumed: the first frame's arrival time plus 20 ms (or 10 ms) per frame after it, lost frames concealed so the count holds. Reversible: yes.
+  Blocks: none.
+
+- G022 — node: n.loop — volatility: medium — last_reviewed: phase-0
+  TP-07 makes a question a call whose reading is the owner's reply; the provider wire formats need a tool result in the very next request.
+  Assumed: `ask` returns at once ("asked"), the question stays open in Open, and the owner's reply arrives as the next owner message, which closes it. Better: a job whose result is the reply, once jobs carry results across exchanges. Reversible: yes.
+  Blocks: none.
+
+- G023 — node: n.proof — volatility: low — last_reviewed: phase-0
+  Scenarios drive time and texts through outside surfaces only, but the release binary reads the host clock and Google Messages.
+  Assumed: install takes `--clock-source` (a time endpoint) and `--texts-source` (the texts fixture's endpoint), empty by default; tests set them, the owner never does. Reversible: yes.
+  Blocks: none.
+
+- G024 — node: n.audio — volatility: low — last_reviewed: phase-0
+  Threads per speech model on the box.
+  Assumed: every core the box has (runtime.NumCPU), since the audio node runs one model at a time. Reversible: yes.
+  Blocks: none.

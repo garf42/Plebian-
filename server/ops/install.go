@@ -112,9 +112,10 @@ func copyFile(src, dst string, mode os.FileMode) error {
 
 // InstallOptions are install's flags.
 type InstallOptions struct {
-	Root   Root
-	Config Config
-	Out    io.Writer
+	Root       Root
+	Config     Config
+	Out        io.Writer
+	SpeechFrom string // a directory holding the speech model files; empty = download
 }
 
 // Install lays the root down, creates the accounts, enables their linger flags and starts
@@ -197,6 +198,12 @@ func Install(o InstallOptions) error {
 				}
 			}
 		}
+	}
+	if o.SpeechFrom == "none" {
+		fmt.Fprintln(o.Out, "speech models skipped (--speech-from none)")
+	} else if err := FetchSpeech(r.Speech(), o.SpeechFrom); err != nil {
+		// Install goes on; This week shows speech as missing until a later install fetches it.
+		fmt.Fprintln(o.Out, "speech models not installed:", err)
 	}
 	cb, _ := json.MarshalIndent(o.Config, "", " ")
 	if err := writeFile(r.Config(), cb, 0o644, 0, 0); err != nil {
