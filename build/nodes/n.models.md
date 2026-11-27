@@ -36,9 +36,9 @@ reference: the fixture provider's request log; MR-1, MR-2
   negative_check: seen red (re-run 2026-11-27) — retry_test.go:48: Retry-After 7s within 1m0s: same provider answered false (err model retry (429): {"error":{"message":"fixture: scripted error","type":"rate_limit_error"},"request_id":"req_fixture_1"
   status: killed
 - D3: counts every model's tokens with one generic tokenizer, so a request that fits B on paper overflows another model or is silently cut by a runtime that truncates
-  kill_test: tests/models/test_counts_never_short
-  negative_check: pending
-  status: live
+  kill_test: tests/models/count_test.go TestCountsNeverShort
+  negative_check: seen red (2026-11-27) — count_test.go:24: before any report a 4528-byte request counted 1132 tokens: a token covers at least one byte
+  status: killed
 
 ## clauses
 (none yet)

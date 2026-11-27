@@ -32,9 +32,9 @@ fixtures: `tests/api/`; scenarios A02, A03, A14
 
 ## demons
 - D1: accepts a standing grant with a bearer token alone
-  kill_test: tests/api/test_grant_requires_signature
-  negative_check: pending
-  status: live
+  kill_test: tests/api/grant_test.go TestGrantRequiresSignature
+  negative_check: seen red (2026-11-27) — grant_test.go:66: a grant with a bearer token alone answered 200 and ran [grant]
+  status: killed
 - D2: listens on every interface
   kill_test: tests/acceptance/a01_install_isolation
   negative_check: pending

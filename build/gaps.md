@@ -175,3 +175,8 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   Dependencies in use without a probe row: go-imap v2.0.0-beta.9 and go-ical (n.feeds), coder/websocket v1.8.15 (n.api, n.browser), the sherpa-onnx Go binding v1.13.8 (n.audio; the speech probe ran the Python wheel 2.0.3, same models), tailscale.com v1.106.1 tsnet (n.api; needs the owner's tailnet), universal_ble 3.3.0 (n.app_device; needs the owner's phone and Omi). Each is exercised by its node's tests against fixtures (the IMAP fixture is built on go-imap itself, so those tests do not separate the library from the fixture).
   Assumed: the tests stand in for probes until a probe at real dimensions runs twice per arch (a Dovecot IMAP server with a year of mail and IDLE; the Go speech binding on the probe's audio; tsnet and BLE at first run). Reversible: yes.
   Blocks: nothing yet; a misbehaviour at the owner's dimensions would surface first on the box.
+
+- G036 — node: n.recall — volatility: medium — last_reviewed: phase-4
+  TP-T16 (flat per-turn work on a million-turn store) and TP-T17 (fewer re-tells and repeated struck steps than a plain recent window over a year-long thread) are not built as tests. TP-T16 needs a synthetic store at the grammar and use-table level (sealing a million turns through the loop is hours per run); TP-T17 needs a year-long replay thread and a fixture model that answers only from what is in view.
+  Assumed: the structure L0001 names holds TP-T16 (ink is not a per-lookup sum over every use; the sqlite probe shows the indexed lookup itself grows 8× from 1K to 1M turns on both arches). Reversible: yes (both tests run on the store and the assembler from outside, as the other TP tests do).
+  Blocks: the intent predicate's TP-T1…T17 clause.
