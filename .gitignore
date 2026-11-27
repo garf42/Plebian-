@@ -2,3 +2,4 @@ build/packets/
 /dist/
 *.test
 /server/plebian
+.claude/
