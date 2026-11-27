@@ -208,10 +208,6 @@ jobs:
         with:
           name: build-${{ matrix.arch }}
           path: build-out
-      - name: Unit and node tests passed
-        run: |
-          grep -E "^(--- FAIL|FAIL|ok )" build-out/unit.log | grep -v "^ok" | head -20 || true
-          [ "$(cat build-out/unit.outcome)" = success ]
       - name: Both runs agree per assertion
         run: |
           cat logs/*-run1/run.log > run1.log
@@ -221,6 +217,11 @@ jobs:
         if: always()
         run: |
           grep SUMMARY results.txt | sed 's/^SUMMARY //' | python3 -I -c 'import json,sys; s=json.load(sys.stdin); bad=[t for t in ("TestA01","TestA02","TestA03") if s.get(t)!="pass"]; print("gate:", "green" if not bad else "red " + " ".join(bad)); sys.exit(1 if bad else 0)'
+      - name: Unit and node tests passed
+        if: always()
+        run: |
+          grep -E "^(--- FAIL|FAIL|ok )" build-out/unit.log | grep -v "^ok" | head -20 || true
+          [ "$(cat build-out/unit.outcome)" = success ]
       - uses: actions/upload-artifact@v7
         if: always()
         with:
