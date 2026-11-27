@@ -38,7 +38,12 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 	l.emit(ctx, "presence", map[string]any{"working": true}, 0)
 	defer l.emit(ctx, "presence", map[string]any{"working": false}, 0)
 
-	l.foldOnOpen(ctx, routes[0], parts)
+	// The budget folds the tail only as the exchange opens, counted with the spotlight the
+	// opening request will carry (TP-T4).
+	open, openShown := l.spotlight(ctx, routes[0], parts)
+	if l.foldOnOpen(ctx, routes[0], parts, open) {
+		open, openShown = l.spotlight(ctx, routes[0], parts)
+	}
 	start := len(l.tail)
 	thinking := map[int][]models.Block{}
 	var spots [][]byte
@@ -55,7 +60,10 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 	for round := 0; ; round++ {
 		v := l.inView(start, opener, parts)
 		l.settle(ctx, parts)
-		spot, shown := l.spotlight(ctx, routes[0], parts)
+		spot, shown := open, openShown
+		if round > 0 {
+			spot, shown = l.spotlight(ctx, routes[0], parts)
+		}
 		spots = append(spots, append(nextSpot, spot...))
 		nextSpot = nil
 		resp, rt, err := l.call(ctx, routes, start, spots, thinking, parts)
@@ -226,22 +234,22 @@ func (l *Loop) call(ctx context.Context, routes []models.Route, start int, spots
 
 // foldOnOpen folds the tail into recent strata as an exchange opens, when the request
 // would pass B; the newest sheet never folds (TP-05). Within an exchange nothing folds.
-func (l *Loop) foldOnOpen(ctx context.Context, rt models.Route, parts []core.Part) {
+func (l *Loop) foldOnOpen(ctx context.Context, rt models.Route, parts []core.Part, spot []byte) bool {
 	B := l.budget(ctx, rt)
-	req := l.build(ctx, rt, len(l.tail), nil, nil, parts)
+	req := l.build(ctx, rt, len(l.tail), [][]byte{spot}, nil, parts)
 	n, err := l.Counter.Count(ctx, &rt.Provider, req)
 	if err != nil || n <= B || len(l.tail) < 2 {
-		return
+		return false
 	}
 	if l.A == nil {
 		for len(l.tail) > 1 && n > B {
 			l.tail = l.tail[1:]
 			l.tailFrom++
-			req = l.build(ctx, rt, len(l.tail), nil, nil, parts)
+			req = l.build(ctx, rt, len(l.tail), [][]byte{spot}, nil, parts)
 			n, _ = l.Counter.Count(ctx, &rt.Provider, req)
 		}
 		l.S.SetSetting(ctx, "tail_from", fmt.Sprint(l.tailFrom))
-		return
+		return true
 	}
 	var turns []int64
 	for i := range l.tail {
@@ -255,6 +263,7 @@ func (l *Loop) foldOnOpen(ctx context.Context, rt models.Route, parts []core.Par
 	l.tail = l.tail[k:]
 	l.tailFrom += int64(k)
 	l.S.SetSetting(ctx, "tail_from", fmt.Sprint(l.tailFrom))
+	return k > 0
 }
 
 func (l *Loop) build(ctx context.Context, rt models.Route, start int, spots [][]byte, thinking map[int][]models.Block, parts []core.Part) models.Request {

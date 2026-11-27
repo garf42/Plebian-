@@ -20,6 +20,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"plebian/server/ink"
 	"plebian/server/store"
 )
 
@@ -47,13 +48,29 @@ type G struct {
 	// formed holds the labels the latest Spell of a row formed, by the row's sha256, until
 	// Index credits their first sightings.
 	formed map[string][]Formed
+	// inks caches each symbol's folded ink per body (write-through); totals and vocabN
+	// count each body's uses and used symbols, so information is a lookup, not a scan.
+	inks   map[inkKey]ink.State
+	totals map[string]int
+	vocabN map[string]int
+}
+
+type inkKey struct {
+	sym  int64
+	body string
 }
 
 // Open loads the grammar's symbols from the store.
 func Open(ctx context.Context, s *store.Store) (*G, error) {
-	g := &G{S: s, syms: map[int64]*symbol{}, term: map[string]int64{}, label: map[[2]int64]int64{}, formed: map[string][]Formed{}}
+	g := &G{S: s, syms: map[int64]*symbol{}, term: map[string]int64{}, label: map[[2]int64]int64{}, formed: map[string][]Formed{}, inks: map[inkKey]ink.State{}, totals: map[string]int{}, vocabN: map[string]int{}}
 	if err := g.loadFreq(); err != nil {
 		return nil, err
+	}
+	for _, body := range []string{"thread", "heard"} {
+		var n, v int
+		s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM uses WHERE body=?`, body).Scan(&n)
+		s.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM inks WHERE body=?`, body).Scan(&v)
+		g.totals[body], g.vocabN[body] = n, v
 	}
 	rows, err := s.DB.QueryContext(ctx, `SELECT id, expansion, COALESCE(left_sym,0), COALESCE(right_sym,0) FROM symbols ORDER BY id`)
 	if err != nil {

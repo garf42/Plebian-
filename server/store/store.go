@@ -33,6 +33,9 @@ type Store struct {
 	Hub     Hub
 	mu      sync.Mutex
 	speller Speller
+	// turnCache holds rebuilt turns: sealed bytes never change, so a rebuilt turn is
+	// reused. shortcut: unbounded map; bound it by size when stores reach millions of turns.
+	turnCache sync.Map
 }
 
 // Open opens or creates the store file with mode 0600 and applies migrations.
@@ -105,6 +108,9 @@ var ErrHash = errors.New("store: rebuilt bytes do not match the hash fixed at se
 
 // TurnBytes rebuilds sealed turn n from its spelling alone and checks it against its hash.
 func (s *Store) TurnBytes(ctx context.Context, n int64) ([]byte, error) {
+	if b, ok := s.turnCache.Load(n); ok {
+		return b.([]byte), nil
+	}
 	var sp, sha []byte
 	if err := s.DB.QueryRowContext(ctx, `SELECT spelling, sha FROM turns WHERE id=?`, n).Scan(&sp, &sha); err != nil {
 		return nil, err
@@ -116,6 +122,7 @@ func (s *Store) TurnBytes(ctx context.Context, n int64) ([]byte, error) {
 	if h := core.Hash(b); hex.EncodeToString(h[:]) != hex.EncodeToString(sha) {
 		return nil, fmt.Errorf("%w (turn %d)", ErrHash, n)
 	}
+	s.turnCache.Store(n, b)
 	return b, nil
 }
 

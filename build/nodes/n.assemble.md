@@ -34,20 +34,20 @@ fixtures: `tests/assemble/` (TP-04 drawing at turn 48: 6K / 4.4K / 6.7K / 4.8K /
 ## demons
 - D1: checks the budget only after the spotlight is added mid-exchange, so an opening request passes B
   kill_test: tests/assemble/test_budget_on_opening
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestBudgetOnOpening (opening request 36 counted 16295 tokens with B 16000)
+  status: killed
 - D2: places a lit heard line into the tail so it rides later requests
   kill_test: tests/assemble/test_heard_user_turn_only
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestHeardUserTurnOnly (heard line rode into a later exchange)
+  status: killed
 - D3: rewrites a band mid-exchange when a rank changes
   kill_test: tests/assemble/test_cache_breaks_on_boundaries
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestCacheBreaksOnBoundaries (recent band rewritten per request)
+  status: killed
 - D4: stores the model's thinking with the sheet
   kill_test: tests/assemble/test_no_thinking_stored
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestNoThinkingStored (thinking sealed with the sheet)
+  status: killed
 
 ## clauses
 (none yet)

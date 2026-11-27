@@ -70,48 +70,52 @@ type ranked struct {
 // lighter than the median line scaled down by their share of it.
 func (a *Assembler) rank(ctx context.Context, model string, turns []int64, fragments []int64, now float64) []ranked {
 	var out []ranked
-	add := func(rows *sql.Rows) {
+	type frag struct {
+		id, tn       int64
+		start, stop  int
+		writer, kind string
+		light        float64
+	}
+	var fs []frag
+	// Rows are read whole before anything else queries: the store has one connection.
+	collect := func(rows *sql.Rows) {
 		defer rows.Close()
 		for rows.Next() {
-			var id, tn int64
-			var start, stop int
-			var writer, kind string
-			var light float64
-			if rows.Scan(&id, &tn, &start, &stop, &writer, &kind, &light) != nil {
-				continue
+			var f frag
+			if rows.Scan(&f.id, &f.tn, &f.start, &f.stop, &f.writer, &f.kind, &f.light) == nil {
+				fs = append(fs, f)
 			}
-			if kind == core.PartReading || core.Writer(writer).Heard() || writer == string(core.Harness) {
-				continue
-			}
-			b, err := a.S.TurnBytes(ctx, tn)
-			if err != nil || stop > len(b) {
-				continue
-			}
-			text := b[start:stop]
-			s := a.R.Ink(ctx, text, grammar.Thread, now)
-			tau := 0.5
-			if writer == string(core.Owner) {
-				tau = 1 // the owner's own words are the record of what was said
-			} else {
-				tau = a.R.Trust(ctx, text)
-			}
-			v := s * light * tau
-			words := len(strings.Fields(string(text)))
-			if words < a.P.MedianLineWords {
-				v *= float64(words) / float64(a.P.MedianLineWords)
-			}
-			out = append(out, ranked{id: id, turn: tn, text: text, writer: writer, v: v, tokens: a.Counter.CountText(model, text)})
 		}
 	}
 	for _, t := range turns {
 		if rows, err := a.S.DB.QueryContext(ctx, `SELECT id, turn, start, stop, writer, kind, light FROM fragments WHERE turn=?`, t); err == nil {
-			add(rows)
+			collect(rows)
 		}
 	}
 	for _, f := range fragments {
 		if rows, err := a.S.DB.QueryContext(ctx, `SELECT id, turn, start, stop, writer, kind, light FROM fragments WHERE id=?`, f); err == nil {
-			add(rows)
+			collect(rows)
 		}
+	}
+	for _, f := range fs {
+		if f.kind == core.PartReading || core.Writer(f.writer).Heard() || f.writer == string(core.Harness) {
+			continue
+		}
+		b, err := a.S.TurnBytes(ctx, f.tn)
+		if err != nil || f.stop > len(b) {
+			continue
+		}
+		text := b[f.start:f.stop]
+		s := a.R.Ink(ctx, text, grammar.Thread, now)
+		tau := a.R.Trust(ctx, text)
+		if f.writer == string(core.Owner) {
+			tau = 1 // the owner's own words are the record of what was said
+		}
+		v := s * f.light * tau
+		if words := len(strings.Fields(string(text))); words < a.P.MedianLineWords {
+			v *= float64(words) / float64(a.P.MedianLineWords)
+		}
+		out = append(out, ranked{id: f.id, turn: f.tn, text: text, writer: f.writer, v: v, tokens: a.Counter.CountText(model, text)})
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].v != out[j].v {

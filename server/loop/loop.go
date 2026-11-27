@@ -114,6 +114,12 @@ func (l *Loop) Run(ctx context.Context) {
 	}
 }
 
+// Step runs one step now (tests drive the loop this way).
+func (l *Loop) Step(ctx context.Context) error {
+	_, err := l.step(ctx)
+	return err
+}
+
 // step opens one exchange if an inbound is ready; it returns when to look again.
 func (l *Loop) step(ctx context.Context) (time.Time, error) {
 	// A reading answering the newest sheet's calls goes first: the provider needs each

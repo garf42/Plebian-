@@ -23,14 +23,11 @@ type R struct {
 // Info is a word's information in a body: −log2 of its frequency there, from the body's
 // own uses once it has ColdStart of them, else from ordinary English (TP schedule).
 func (r *R) Info(ctx context.Context, sym int64, body string) float64 {
-	var total int
-	r.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM uses WHERE body=?`, body).Scan(&total)
+	total, vocab := r.G.Totals(body)
 	if total < r.P.ColdStart {
 		return r.G.EnglishBits(string(r.G.Expansion(sym)))
 	}
 	n := r.G.Uses(ctx, sym, body)
-	var vocab int
-	r.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM inks WHERE body=?`, body).Scan(&vocab)
 	return -math.Log2(float64(n+1) / float64(total+vocab+1))
 }
 

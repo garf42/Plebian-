@@ -46,22 +46,40 @@ type Indexed struct {
 var Endings = []string{"s", "es", "ed", "d", "ing", "er", "ers", "'s", "’s", "ly"}
 
 func (g *G) inkState(ctx context.Context, sym int64, body string) ink.State {
+	k := inkKey{sym, body}
+	g.mu.Lock()
+	if st, ok := g.inks[k]; ok {
+		g.mu.Unlock()
+		return st
+	}
+	g.mu.Unlock()
 	var s ink.State
 	var b string
 	if g.S.DB.QueryRowContext(ctx, `SELECT state FROM inks WHERE symbol=? AND body=?`, sym, body).Scan(&b) == nil {
 		json.Unmarshal([]byte(b), &s)
 	}
+	g.mu.Lock()
+	g.inks[k] = s
+	g.mu.Unlock()
 	return s
 }
 
 // use records a use of sym at clock now with d fixed at that moment.
 func (g *G) use(ctx context.Context, sym int64, body string, now float64, p core.Params, change string) error {
 	st := g.inkState(ctx, sym, body)
+	fresh := st.N == 0
 	d := st.Use(now, p.DecayK, p.DecayAlpha)
 	b, _ := json.Marshal(st)
 	if _, err := g.S.DB.ExecContext(ctx, `INSERT INTO inks(symbol, body, state) VALUES(?,?,?) ON CONFLICT(symbol, body) DO UPDATE SET state=excluded.state`, sym, body, string(b)); err != nil {
 		return err
 	}
+	g.mu.Lock()
+	g.inks[inkKey{sym, body}] = st
+	g.totals[body]++
+	if fresh {
+		g.vocabN[body]++
+	}
+	g.mu.Unlock()
 	var turn, tick any
 	if body == Thread {
 		turn = int64(now)
@@ -74,6 +92,13 @@ func (g *G) use(ctx context.Context, sym int64, body string, now float64, p core
 	}
 	_, err := g.S.DB.ExecContext(ctx, `INSERT INTO uses(symbol, turn, tick, body, d, change) VALUES(?,?,?,?,?,?)`, sym, turn, tick, body, d, ch)
 	return err
+}
+
+// Totals is a body's use count and how many symbols it has used, kept as counters.
+func (g *G) Totals(body string) (uses, vocab int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.totals[body], g.vocabN[body]
 }
 
 // Ink is a symbol's ink in a body at clock now.
@@ -261,8 +286,7 @@ func (g *G) vocabulary(ctx context.Context, body string) map[string]int64 {
 }
 
 func (g *G) totalUses(ctx context.Context, body string) int {
-	var n int
-	g.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM uses WHERE body=?`, body).Scan(&n)
+	n, _ := g.Totals(body)
 	return n
 }
 
