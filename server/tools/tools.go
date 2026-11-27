@@ -25,7 +25,7 @@ type Result struct {
 	Reading []byte
 	Exit    int
 	Outside bool
-	Job     string // set when the run outlasts its turn
+	Job     string // reserved: a run that outlasts its turn (jobs are not built, gap G033)
 }
 
 // Composer is a tool whose payload is fixed once, when the call is drafted: the bytes

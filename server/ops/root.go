@@ -40,7 +40,8 @@ const (
 )
 
 // Config is what install fixes for the server: the owner's time zone and the sources it
-// reads time and texts from (a fixture endpoint in tests, the host clock and libgm otherwise).
+// reads time and texts from (a fixture endpoint in tests, the host clock otherwise; texts go
+// through the link the Texts card sets, gap G027).
 type Config struct {
 	TZ          string `json:"tz"`
 	ClockSource string `json:"clock_source,omitempty"`

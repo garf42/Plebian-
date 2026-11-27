@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -28,6 +29,8 @@ type Box struct {
 	guard   *Guard
 	session *mcp.ClientSession
 	live    *Live
+	busy    int // browse tasks running
+	viewers int // live views open
 }
 
 // Installed reports whether the browser's programs are on the box.
@@ -74,6 +77,38 @@ func (b *Box) Start(ctx context.Context) (*Guard, *mcp.ClientSession, error) {
 	return g, s, nil
 }
 
+// Up reports the browser running. While it is, a networked tool run is refused: the
+// sandbox shares the host network, and DevTools listens on its loopback (G016).
+func (b *Box) Up() bool { b.mu.Lock(); defer b.mu.Unlock(); return b.chrome != nil }
+
+// held reports requests the guard still holds for a draft.
+func (g *Guard) held() bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, hs := range g.groups {
+		if len(hs) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// StopIfIdle closes the browser when nothing needs it: no task running, no live view,
+// no request held for a draft. The profile keeps its sign-ins on disk.
+func (b *Box) StopIfIdle() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.chrome == nil || b.busy > 0 || b.viewers > 0 || (b.guard != nil && b.guard.held()) {
+		return
+	}
+	if b.session != nil {
+		b.session.Close()
+	}
+	b.guard.C.Close()
+	b.chrome.Close()
+	b.chrome, b.guard, b.session, b.live = nil, nil, nil, nil
+}
+
 // Guard is the running guard, or nil before the browser starts.
 func (b *Box) Guard() *Guard { b.mu.Lock(); defer b.mu.Unlock(); return b.guard }
 
@@ -89,7 +124,14 @@ func (b *Box) Live(w http.ResponseWriter, r *http.Request) {
 		b.live = &Live{G: g}
 	}
 	lv := b.live
+	b.viewers++
 	b.mu.Unlock()
+	defer func() {
+		b.mu.Lock()
+		b.viewers--
+		b.mu.Unlock()
+		b.StopIfIdle()
+	}()
 	lv.Handler(w, r)
 }
 
@@ -121,6 +163,15 @@ func (bw Browse) Run(ctx context.Context, in json.RawMessage) (tools.Result, err
 	if err != nil {
 		return tools.Result{Reading: []byte(err.Error()), Exit: 1}, nil
 	}
+	bw.B.mu.Lock()
+	bw.B.busy++
+	bw.B.mu.Unlock()
+	defer func() {
+		bw.B.mu.Lock()
+		bw.B.busy--
+		bw.B.mu.Unlock()
+		bw.B.StopIfIdle()
+	}()
 	g.TakeRaised()
 	lt, err := s.ListTools(ctx, nil)
 	if err != nil {
@@ -148,6 +199,14 @@ func (bw Browse) Run(ctx context.Context, in json.RawMessage) (tools.Result, err
 					said = append(said, t)
 				}
 			case "tool_use":
+				// While the owner holds the wheel the agent waits (nothing it does goes out unheld).
+				for g.Holding() {
+					select {
+					case <-ctx.Done():
+						return tools.Result{Reading: []byte("stopped while the owner held the wheel"), Exit: 1, Outside: true}, nil
+					case <-time.After(time.Second):
+					}
+				}
 				g.Step(ctx) // a new agent action: what the last one set off is one draft
 				var args map[string]any
 				json.Unmarshal(b.Input, &args)
@@ -199,6 +258,7 @@ func (s Send) Run(ctx context.Context, in json.RawMessage) (tools.Result, error)
 		return tools.Result{Reading: []byte("the browser is not running; the held requests are gone"), Exit: 1}, nil
 	}
 	out, err := g.Release(ctx, x.Held)
+	defer s.B.StopIfIdle()
 	if err != nil {
 		return tools.Result{Reading: []byte(err.Error()), Exit: 1}, nil
 	}

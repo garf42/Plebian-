@@ -303,7 +303,7 @@ func serve(args []string) error {
 		feeds.SendTool{M: mailFeed, Clock: clk},
 		feeds.TextTool{T: textsFeed},
 		tools.Shell{Write: false, Runner: runner, Secrets: secrets},
-		tools.Shell{Write: true, Runner: runner, Secrets: secrets},
+		tools.Shell{Write: true, Runner: runner, Secrets: secrets, BrowserUp: box.Up},
 		tools.Fetch{HTTP: hc},
 		tools.Search{HTTP: hc, URL: func() string { return s.Setting(context.Background(), "search_url") }},
 	)...)

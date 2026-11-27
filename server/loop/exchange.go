@@ -83,7 +83,7 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 			shown = []int64{}
 		}
 		shownJSON, _ := json.Marshal(shown)
-		meta := store.TurnMeta{At: l.now(), Shown: string(shownJSON), HeardOpened: opener == core.ByLanding || opener == core.ByQuestion, OutsideInView: v.outside, Model: rt.Model.ID, RequestID: resp.RequestID}
+		meta := store.TurnMeta{At: l.now(), Shown: string(shownJSON), HeardOpened: opener == core.ByLanding, OutsideInView: v.outside, Model: rt.Model.ID, RequestID: resp.RequestID}
 		n, err := l.S.Seal(ctx, sh, meta)
 		if err != nil {
 			return err
@@ -162,8 +162,9 @@ func sameCall(a, b core.Part) bool {
 }
 
 // inView reads the draft rule's inputs from the request about to be sent: outside
-// readings anywhere in the tail or this inbound; heard rows when a landing or question
-// opened the exchange or a lookup's rows are in this exchange.
+// readings anywhere in the tail or this inbound; heard rows when a landing opened the
+// exchange or a lookup's rows are in this exchange. A question code raises carries the
+// harness's words, not anyone else's.
 func (l *Loop) inView(start int, opener core.Opener, parts []core.Part) view {
 	v := view{heard: opener == core.ByLanding}
 	check := func(ps []core.Part, inExchange bool) {

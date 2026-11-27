@@ -37,6 +37,9 @@ type Shell struct {
 	Write   bool
 	Runner  Client
 	Secrets Secrets
+	// BrowserUp reports the box's browser running; a networked run waits for it to close,
+	// since the sandbox's network is the host's and DevTools listens on its loopback (G016).
+	BrowserUp func() bool
 }
 
 func (s Shell) Def() models.Tool {
@@ -89,6 +92,9 @@ func (s Shell) Run(ctx context.Context, in json.RawMessage) (Result, error) {
 	x, err := s.parse(in)
 	if err != nil || strings.TrimSpace(x.Command) == "" {
 		return Result{Reading: []byte("needs a command"), Exit: 2}, nil
+	}
+	if x.Network && s.BrowserUp != nil && s.BrowserUp() {
+		return Result{Reading: []byte("the box's browser is open (a task, the live view or a held request); a networked run starts once it closes"), Exit: 1}, nil
 	}
 	env := map[string]string{}
 	for _, name := range x.Secrets {

@@ -161,3 +161,12 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   The box's browser (Chromium, Node.js and Playwright MCP, about 400 MB) is not fetched by the installer yet; install copies it from --browser-from, and the release pins nothing for it.
   Assumed: install --browser-from <dir holding chromium/, node/, mcp/>; with none, browse and the live view say the browser is not installed. Reversible: yes (an install step that fetches Node's release with its SHASUMS256, Playwright MCP 0.0.86 by npm with its lockfile, and the Chromium that Playwright pins).
   Blocks: browse, the live view and the texts sign-in on an owner's box until fetched.
+
+- G033 — node: n.loop — volatility: medium — last_reviewed: phase-4
+  The n.loop guarantee that a call still running when its turn would end becomes a job (its result arriving later as an inbound) is not built: every call runs to its end inside the exchange, and a standing step's stop window blocks the exchange while it waits.
+  Assumed: calls finish within the exchange (the runner's timeout bounds them); the "readings" inbound already carries results into a later exchange, which is where jobs would land. Reversible: yes.
+  Blocks: long-running calls (a build, a long download) hold the loop until they end.
+
+- G034 — node: n.tools — volatility: high — last_reviewed: phase-4
+  The sandbox's networked runs share the host network, where Chromium's DevTools listens on loopback with no credential. Held now by time: a networked run refuses to start while the browser is up, and the browser closes when no task, live view or held request needs it. A pipe-only DevTools (or a network namespace without host loopback) would hold it by place instead.
+  Blocks: a networked run while a held browser request waits for the owner.

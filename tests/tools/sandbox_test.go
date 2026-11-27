@@ -125,3 +125,23 @@ func TestOutsideBytesKeepMark(t *testing.T) {
 		t.Fatal("a networked run is not an outside change")
 	}
 }
+
+// G016 (n.tools): the sandbox's network is the host's and DevTools listens on its
+// loopback, so a networked run never runs while the box's browser is up.
+func TestNetworkedRunWaitsForBrowser(t *testing.T) {
+	up := true
+	sh := tools.Shell{Write: true, Runner: tools.Client{Socket: "/nonexistent.sock"}, Secrets: none{}, BrowserUp: func() bool { return up }}
+	res, err := sh.Run(context.Background(), json.RawMessage(`{"command":"curl http://127.0.0.1:9222/json","network":true}`))
+	if err != nil || res.Exit == 0 || !strings.Contains(string(res.Reading), "browser is open") {
+		t.Fatalf("a networked run with the browser up: %v %q", err, res.Reading)
+	}
+	up = false
+	if _, err := sh.Run(context.Background(), json.RawMessage(`{"command":"true","network":true}`)); err == nil {
+		t.Fatal("with the browser closed the run should reach the runner (here: no socket)")
+	}
+}
+
+type none struct{}
+
+func (none) Get(string) string { return "" }
+func (none) Values() []string  { return nil }

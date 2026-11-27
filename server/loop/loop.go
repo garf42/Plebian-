@@ -256,9 +256,25 @@ func (l *Loop) pendingInbound(ctx context.Context, filter string) (*inbound, err
 		in.opener = core.ByClock
 		in.parts = []core.Part{{Kind: core.PartClock, Writer: core.Harness, At: at, Text: []byte(body)}}
 	case "readings":
+		// Readings keep the opener of the exchange whose calls they answer, so the draft
+		// rule sees what that exchange saw.
 		in.opener = core.ByJob
-		if err := json.Unmarshal([]byte(body), &in.parts); err != nil {
-			return nil, err
+		var r struct {
+			Opener core.Opener `json:"opener"`
+			Parts  []core.Part `json:"parts"`
+		}
+		if strings.HasPrefix(strings.TrimSpace(body), "[") {
+			if err := json.Unmarshal([]byte(body), &in.parts); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := json.Unmarshal([]byte(body), &r); err != nil {
+				return nil, err
+			}
+			in.parts = r.Parts
+			if r.Opener != "" {
+				in.opener = r.Opener
+			}
 		}
 	case "order":
 		in.opener = core.ByOrder
@@ -386,7 +402,7 @@ func (l *Loop) recoverInterrupted(ctx context.Context) error {
 	if len(parts) == 0 {
 		return nil
 	}
-	b, _ := json.Marshal(parts)
+	b, _ := json.Marshal(map[string]any{"opener": last.Opener, "parts": parts})
 	_, err := l.S.DB.ExecContext(ctx, `INSERT INTO inbounds(kind, body, at) VALUES('readings', ?, ?)`, string(b), l.now())
 	return err
 }
