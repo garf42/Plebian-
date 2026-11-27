@@ -216,10 +216,10 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   Assumed: tailnet-only reach, as PL-07 specifies. Reversible: yes (a network security config scoped to 100.64.0.0/10 and the tailnet's DNS names).
   Blocks: nothing.
 
-- G044 — node: n.app — volatility: medium — last_reviewed: phase-0
-  The APK cannot be built in the build session (the Android SDK host is not reachable); `flutter build apk` runs only in CI. Kotlin (MainActivity's cached engine, LinkService) was checked against the Flutter 3.50.1 embedding's classes with javap, not compiled.
-  Assumed: CI's first build is the compile check. Reversible: yes.
-  Blocks: the APK artifact until CI builds it.
+- G044 — node: n.app — volatility: medium — last_reviewed: phase-5
+  The APK cannot be built in the build session (the Android SDK host is not reachable); `flutter build apk` runs only in CI. It compiles there, Kotlin included (app run 45990998691: assembleDebug passed after L0050); it has not yet run on the emulator or a phone.
+  Assumed: the debug build's compile stands for the release build's. Reversible: yes.
+  Blocks: nothing at build time; first run on a phone is the check.
 
 - G045 — node: n.ops — volatility: medium — last_reviewed: phase-5
   This week's brief has no producer: the API's Week hook is never set, so the brief is always empty; the sweep, the mechanic and repository issues are not built; a deploy replays pages only (not requests), and a differing page blocks the deploy with no owner-approval path.

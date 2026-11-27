@@ -5,8 +5,8 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 ## Counts
 
 - **Nodes:** 17.
-- **Ledger:** 49 entries (L0001–L0049).
-  - By node: n.browser 5, n.proof 5, n.app 5, n.app_device 5, n.ops 4, n.loop 4, n.recall 3, n.grammar 3, n.tools 3, n.audio 2, n.assemble 2, n.store 2, n.feeds 2, n.models 1, n.underlay 2, n.api 1.
+- **Ledger:** 50 entries (L0001–L0050).
+  - By node: n.browser 5, n.proof 5, n.app 6, n.app_device 5, n.ops 4, n.loop 4, n.recall 3, n.grammar 3, n.tools 3, n.audio 2, n.assemble 2, n.store 2, n.feeds 2, n.models 1, n.underlay 2, n.api 1.
 - **Gaps:** 49 opened (G001–G049), 0 closed. G045–G049 record unbuilt clauses the final audit found.
 - **Seams:** 26 driven, 9 pending.
   - The final audit set four back to pending because their acceptance driver is red: n.underlay→n.assemble (A09), n.loop→n.audio (A07), n.underlay→n.loop (A08), n.browser→n.tools (A12).
@@ -104,5 +104,5 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 
 - No assertion has a recorded `first_red`; the history is CI logs, not a per-assertion record.
 - A19 (live model key) is blocked.
-- The app's emulator integration tests and the Android build run only in CI. Its first green build is the compile check for the Kotlin side (G044).
+- The app's emulator integration tests and the Android build run only in CI. The APK compiles there, Kotlin included, since L0050 (app run 45990998691); it has not run on the emulator or a phone (G044, G049).
 - The test clock starts at real wall time, so a scenario's span can cross the 4 am cut depending on when CI runs. Page reads now span every page a scenario's rows can fall on; anything still reading a single page is exposed.
