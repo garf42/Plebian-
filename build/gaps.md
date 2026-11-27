@@ -180,3 +180,13 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   TP-T16 (flat per-turn work on a million-turn store) and TP-T17 (fewer re-tells and repeated struck steps than a plain recent window over a year-long thread) are not built as tests. TP-T16 needs a synthetic store at the grammar and use-table level (sealing a million turns through the loop is hours per run); TP-T17 needs a year-long replay thread and a fixture model that answers only from what is in view.
   Assumed: the structure L0001 names holds TP-T16 (ink is not a per-lookup sum over every use; the sqlite probe shows the indexed lookup itself grows 8× from 1K to 1M turns on both arches). Reversible: yes (both tests run on the store and the assembler from outside, as the other TP tests do).
   Blocks: the intent predicate's TP-T1…T17 clause.
+
+- G037 — node: n.proof — volatility: medium — last_reviewed: phase-0
+  The Omi simulator's offline storage needs values the firmware takes from hardware or from older sources not in the clone: the card size (the ring's capacity), live-persistence custody, and the 3.0.17-3.0.19 and pre-3.0.17 layouts and error bytes.
+  Assumed: the card is sd_card.h MAX_STORAGE_BYTES (capacity 1,105,848 records); custody never grants LIVE_PERSIST (no LIVE_MARK); older firmware reuses the ring's 440-byte packed blocks with the wire shapes and status bytes Omi's app parsers expect (marked `gap:` in tests/fixtures/omi/storage.go). Reversible: yes.
+  Blocks: none.
+
+- G038 — node: n.proof — volatility: low — last_reviewed: phase-0
+  The simulator's DIS serial and starting battery level are per unit, and the firmware source fixes neither.
+  Assumed: serial 5045424C49414E31 (16 uppercase hex, the unit_id.h shape) and 100 percent, both flags of `fixture omi`. Reversible: yes.
+  Blocks: none.
