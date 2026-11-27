@@ -22,15 +22,15 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
   - Blocked on a precondition: model provider key, libgm, Omi over BLE, universal_ble, biometric_signature, and the Flutter packages' platform halves.
   - G035 lists the server dependencies in use without a row.
 - **Tests:** 110 Go test functions, 80 Flutter tests, and 20 acceptance scenarios run twice per arch.
-- **Scenarios** (server run 45987993187, commit 55c6853, identical on amd64 and arm64, both runs agreeing):
+- **Scenarios** (server run 46031944035, commit 6dc422c, released as v0.0.1; identical on amd64 and arm64, both runs agreeing):
   - Pass: A01, A02, A03, A04, A05, A06, A07, A09, A10, A11, A12, A14, A15, A17, A18, A20, Manifest, NonVacuity (under the every-assertion-red rule), VersionIsCommitUnderTest.
   - A05 and A06 count their server halves only; the app halves have not run on the emulator (G049).
   - Fail:
     - A08: no woken turn.
     - A13: the clock-written entry is not shown held.
-    - A16: the quiet feed's question was counted 4 times.
+    - A16: the quiet feed's question was counted 3 times (4 in run 45987993187).
   - Blocked: A19.
-  - The previous run (45983583848, commit 835583c) had A07, A09 and A12 red. A09 went green with L0049, A12 with the Chromium environment change (correcting L0048's flags-only fix), and A07 with counting distinct question blocks.
+  - Run 45987993187 (commit 55c6853) had the same states. The run before it (45983583848, commit 835583c) had A07, A09 and A12 red. A09 went green with L0049, A12 with the Chromium environment change (correcting L0048's flags-only fix), and A07 with counting distinct question blocks.
 - **TP tests:** TP-T1…T15 have tests; TP-T16 and TP-T17 are not built (G036).
 
 ## Rediscovery rate

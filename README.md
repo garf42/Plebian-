@@ -11,7 +11,7 @@ An agent you own. One ongoing conversation with an AI that works for you, rememb
 
 ## Status
 
-From CI run 45987993187 (commit 55c6853), the same on amd64 and arm64, each scenario run twice:
+From CI run 46031944035 (commit 6dc422c, released as v0.0.1), the same on amd64 and arm64, each scenario run twice:
 
 | Scenario | What it proves | State |
 |---|---|---|
