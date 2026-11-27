@@ -17,7 +17,9 @@ func TestSetAdvanceRun(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		var v struct{ UnixMs int64 `json:"unix_ms"` }
+		var v struct {
+			UnixMs int64 `json:"unix_ms"`
+		}
 		_ = json.NewDecoder(resp.Body).Decode(&v)
 		return v.UnixMs
 	}

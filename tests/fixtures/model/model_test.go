@@ -78,14 +78,20 @@ func TestAnthropicStreamToolUseAndTokens(t *testing.T) {
 	for _, d := range datas {
 		var ev struct {
 			Type    string
-			Message struct{ Usage struct{ InputTokens int `json:"input_tokens"` } }
+			Message struct {
+				Usage struct {
+					InputTokens int `json:"input_tokens"`
+				}
+			}
 			ContentBlock struct{ Type, Name string } `json:"content_block"`
-			Delta   struct {
+			Delta        struct {
 				Type, Text, Thinking string
 				PartialJSON          string `json:"partial_json"`
 				StopReason           string `json:"stop_reason"`
 			}
-			Usage struct{ OutputTokens int `json:"output_tokens"` }
+			Usage struct {
+				OutputTokens int `json:"output_tokens"`
+			}
 		}
 		if err := json.Unmarshal([]byte(d), &ev); err != nil {
 			t.Fatal(err)
@@ -118,7 +124,9 @@ func TestAnthropicStreamToolUseAndTokens(t *testing.T) {
 	// count_tokens agrees with the message call on the same prompt.
 	cresp := post(t, srv.URL+"/anthropic/v1/messages/count_tokens", hdr,
 		`{"model":"fixture-model","system":"s","messages":[{"role":"user","content":"what is the weather"}]}`)
-	var c struct{ InputTokens int `json:"input_tokens"` }
+	var c struct {
+		InputTokens int `json:"input_tokens"`
+	}
 	_ = json.NewDecoder(cresp.Body).Decode(&c)
 	if c.InputTokens != inTok || inTok == 0 {
 		t.Fatalf("count %d vs message %d", c.InputTokens, inTok)
@@ -126,7 +134,7 @@ func TestAnthropicStreamToolUseAndTokens(t *testing.T) {
 	// Steps are consumed: the same request now gets the default.
 	resp = post(t, srv.URL+"/anthropic/v1/messages", hdr, strings.Replace(body, `"stream":true`, `"stream":false`, 1))
 	var msg struct {
-		Content []struct{ Type, Text string }
+		Content    []struct{ Type, Text string }
 		StopReason string `json:"stop_reason"`
 	}
 	_ = json.NewDecoder(resp.Body).Decode(&msg)
@@ -201,11 +209,15 @@ func TestOpenAIStreamToolCalls(t *testing.T) {
 			Choices []struct {
 				Delta struct {
 					Content   string
-					ToolCalls []struct{ Function struct{ Name, Arguments string } } `json:"tool_calls"`
+					ToolCalls []struct {
+						Function struct{ Name, Arguments string }
+					} `json:"tool_calls"`
 				}
 				FinishReason *string `json:"finish_reason"`
 			}
-			Usage *struct{ TotalTokens int `json:"total_tokens"` }
+			Usage *struct {
+				TotalTokens int `json:"total_tokens"`
+			}
 		}
 		if err := json.Unmarshal([]byte(d), &c); err != nil {
 			t.Fatal(err)

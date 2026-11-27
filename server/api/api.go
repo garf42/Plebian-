@@ -226,7 +226,8 @@ func (a *Server) postMessage(w http.ResponseWriter, r *http.Request, dev string)
 	var id int64
 	a.S.DB.QueryRowContext(ctx, `SELECT id FROM owner_messages WHERE device=? AND client_msg_id=?`, dev, m.ClientMsgID).Scan(&id)
 	if n, _ := res.RowsAffected(); n == 1 {
-		a.S.Emit(ctx, a.now(), "message", map[string]any{"from": "owner", "text": m.Text, "client_msg_id": m.ClientMsgID, "notify": false}, 0)
+		ev, _ := a.S.Emit(ctx, a.now(), "message", map[string]any{"from": "owner", "text": m.Text, "client_msg_id": m.ClientMsgID, "notify": false}, 0)
+		a.S.DB.ExecContext(ctx, `UPDATE owner_messages SET event=? WHERE id=?`, ev, id)
 		if a.Hooks.Wake != nil {
 			a.Hooks.Wake()
 		}

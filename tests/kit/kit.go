@@ -106,7 +106,8 @@ func (k *Kit) Say(text string) {
 	k.n++
 	ctx := context.Background()
 	now := k.Clock.Now().UTC().Format(time.RFC3339Nano)
-	if _, err := k.S.DB.ExecContext(ctx, `INSERT INTO owner_messages(device, client_msg_id, text, sent_at, received_at) VALUES('kit', ?, ?, ?, ?)`, fmt.Sprint(k.n), text, now, now); err != nil {
+	ev, _ := k.S.Emit(ctx, now, "message", map[string]any{"from": "owner", "text": text}, 0)
+	if _, err := k.S.DB.ExecContext(ctx, `INSERT INTO owner_messages(device, client_msg_id, text, sent_at, received_at, event) VALUES('kit', ?, ?, ?, ?, ?)`, fmt.Sprint(k.n), text, now, now, ev); err != nil {
 		k.T.Fatal(err)
 	}
 	k.Clock.Advance(2 * time.Minute)

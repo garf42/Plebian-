@@ -145,6 +145,10 @@ CREATE TABLE inks(symbol INTEGER NOT NULL, body TEXT NOT NULL, state TEXT NOT NU
 CREATE TABLE near_matches(id INTEGER PRIMARY KEY, body TEXT NOT NULL, writer TEXT NOT NULL, word TEXT NOT NULL, symbol INTEGER NOT NULL, change TEXT NOT NULL, turn INTEGER, tick INTEGER, settled INTEGER NOT NULL DEFAULT 0);`,
 	// 5: a label the sleep pass folded back in is retired (kept for its history, never spelled with).
 	`ALTER TABLE symbols ADD COLUMN retired INTEGER NOT NULL DEFAULT 0;`,
+	// 6: the event that showed a draft and the event that received an owner message, so
+	// "an owner message after the draft was shown" is the event log's own order.
+	`ALTER TABLE drafts ADD COLUMN event INTEGER;
+ALTER TABLE owner_messages ADD COLUMN event INTEGER;`,
 }
 
 func (s *Store) migrate() error {

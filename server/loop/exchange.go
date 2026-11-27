@@ -53,10 +53,13 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 	sheetOpener := opener
 	var lastFailed *core.Part
 	var lastFailedHeld bool
-	ownerAt := ""
-	for _, p := range parts {
-		if p.Kind == core.PartOwner && p.At > ownerAt {
-			ownerAt = p.At
+	// The latest owner message of this exchange, by the event that received it.
+	var ownerEvent int64
+	for _, id := range ownerIDs {
+		var ev int64
+		l.S.DB.QueryRowContext(ctx, `SELECT COALESCE(event,0) FROM owner_messages WHERE id=?`, id).Scan(&ev)
+		if ev > ownerEvent {
+			ownerEvent = ev
 		}
 	}
 	var nextSpot []byte
@@ -127,7 +130,7 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 			// Held once: a call repeating word for word the one whose failure it answers, while
 			// its wording is struck (TP-07 circuit breaker).
 			held := lastFailed != nil && !lastFailedHeld && sameCall(*lastFailed, c) && (l.R == nil || l.R.Struck(ctx, c.Text))
-			rd := l.runOrDraft(ctx, n, opener, ownerAt, v, c, held)
+			rd := l.runOrDraft(ctx, n, opener, ownerEvent, v, c, held)
 			if held {
 				lastFailedHeld = true
 			} else {
@@ -405,7 +408,7 @@ func reading(at, id string, exit int, class tools.Class, outside, heard bool, te
 }
 
 // runOrDraft applies the draft rule to one sealed call and returns its reading.
-func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, ownerAt string, v view, c core.Part, held bool) core.Part {
+func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, ownerEvent int64, v view, c core.Part, held bool) core.Part {
 	id, name, _ := strings.Cut(c.Meta, " ")
 	class := l.Tools.ClassOf(name, c.Text)
 	at := l.now()
@@ -416,7 +419,7 @@ func (l *Loop) runOrDraft(ctx context.Context, turn int64, opener core.Opener, o
 	}
 	// A repeat of a draft, word for word, in an exchange an owner message opened after it was shown, runs the stored bytes.
 	if d, ok := l.matchingDraft(ctx, name, c.Text); ok {
-		if opener == core.ByOwner && ownerAt > d.shownAt {
+		if opener == core.ByOwner && ownerEvent > d.event {
 			return l.runDraft(ctx, turn, id, name, class, d)
 		}
 	}
@@ -467,13 +470,13 @@ func summarize(input []byte) string {
 
 type draftRow struct {
 	id      int64
-	shownAt string
+	event   int64
 	payload []byte
 }
 
 func (l *Loop) matchingDraft(ctx context.Context, name string, input []byte) (draftRow, bool) {
 	var d draftRow
-	err := l.S.DB.QueryRowContext(ctx, `SELECT id, shown_at, payload FROM drafts WHERE tool=? AND call=? AND state='waiting' ORDER BY id DESC LIMIT 1`, name, input).Scan(&d.id, &d.shownAt, &d.payload)
+	err := l.S.DB.QueryRowContext(ctx, `SELECT id, COALESCE(event,0), payload FROM drafts WHERE tool=? AND call=? AND state='waiting' ORDER BY id DESC LIMIT 1`, name, input).Scan(&d.id, &d.event, &d.payload)
 	return d, err == nil
 }
 
@@ -490,7 +493,8 @@ func (l *Loop) makeDraft(ctx context.Context, turn int64, id, name string, class
 	did, _ := res.LastInsertId()
 	l.S.DB.ExecContext(ctx, `UPDATE calls SET state='drafted' WHERE turn=? AND call_id=?`, turn, id)
 	l.S.DB.ExecContext(ctx, `INSERT INTO standing(step) VALUES(?) ON CONFLICT(step) DO UPDATE SET drafts=drafts+1`, step(name, input))
-	l.emit(ctx, "draft", map[string]any{"draft_id": did, "step": step(name, input), "shown": shown, "state": "waiting", "record": l.record(ctx, step(name, input))}, turn)
+	ev, _ := l.S.Emit(ctx, l.now(), "draft", map[string]any{"draft_id": did, "step": step(name, input), "shown": shown, "state": "waiting", "record": l.record(ctx, step(name, input))}, turn)
+	l.S.DB.ExecContext(ctx, `UPDATE drafts SET event=? WHERE id=?`, ev, did)
 	return reading(at, id, 0, class, false, false, []byte(fmt.Sprintf("drafted (draft %d): shown to the owner exactly as it would run; it waits for the owner's word", did)))
 }
 

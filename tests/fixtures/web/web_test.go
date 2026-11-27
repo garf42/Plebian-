@@ -30,7 +30,7 @@ func TestStoreRequestsAreLoggedExactly(t *testing.T) {
 	s := New("owner@plebian.example", "pw-store")
 	srv := httptest.NewServer(s.Handler())
 	defer srv.Close()
-	page := body(http.Get(srv.URL+"/store/"))
+	page := body(http.Get(srv.URL + "/store/"))
 	for _, want := range []string{"sendBeacon", "XMLHttpRequest", "method: 'DELETE'", "documentId", `type="password"`} {
 		if !strings.Contains(page+body(http.Get(srv.URL+"/store/signin")), want) {
 			t.Fatalf("store pages lack %q", want)
@@ -92,7 +92,7 @@ func TestStoreRequestsAreLoggedExactly(t *testing.T) {
 	if got := body(c.PostForm(srv.URL+"/store/signin", url.Values{"username": {"owner@plebian.example"}, "password": {"pw-store"}})); !strings.Contains(got, "<h1>Account</h1>") {
 		t.Fatalf("signin: %s", got)
 	}
-	pdf := body(http.Get(srv.URL+"/store/invoice.pdf"))
+	pdf := body(http.Get(srv.URL + "/store/invoice.pdf"))
 	if !strings.HasPrefix(pdf, "%PDF-1.4") || !strings.Contains(pdf, "(Total due: USD 412.50) Tj") || !strings.HasSuffix(pdf, "%%EOF\n") {
 		t.Fatalf("pdf %q", pdf)
 	}
@@ -113,11 +113,11 @@ func TestResearchAndInject(t *testing.T) {
 	if first := Search("driveway culvert county")[0]; first.Slug != "culvert-sizing" {
 		t.Fatalf("ranking: %s", first.Slug)
 	}
-	art := body(http.Get(srv.URL+"/research/articles/culvert-sizing"))
+	art := body(http.Get(srv.URL + "/research/articles/culvert-sizing"))
 	if !strings.Contains(art, "18-inch culvert") {
 		t.Fatalf("article %s", art)
 	}
-	inj := body(http.Get(srv.URL+"/inject/mail.txt"))
+	inj := body(http.Get(srv.URL + "/inject/mail.txt"))
 	if !strings.Contains(inj, "http://"+strings.TrimPrefix(srv.URL, "http://")+"/inject/collect?data=") {
 		t.Fatalf("inject %s", inj)
 	}

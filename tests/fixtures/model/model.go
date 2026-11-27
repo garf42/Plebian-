@@ -438,7 +438,9 @@ func (p *Provider) antMessages(w http.ResponseWriter, r *http.Request) {
 	delta := func(d block) []byte {
 		return ev("content_block_delta", block{"type": "content_block_delta", "index": idx, "delta": d})
 	}
-	open := func(cb block) { events = append(events, ev("content_block_start", block{"type": "content_block_start", "index": idx, "content_block": cb})) }
+	open := func(cb block) {
+		events = append(events, ev("content_block_start", block{"type": "content_block_start", "index": idx, "content_block": cb}))
+	}
 	shut := func() {
 		events = append(events, ev("content_block_stop", block{"type": "content_block_stop", "index": idx}))
 		idx++

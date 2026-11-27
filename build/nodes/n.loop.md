@@ -40,12 +40,12 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
 ## demons
 - D1: the draft rule checks heard rows but not web pages or message bodies
   kill_test: tests/loop/test_outside_reading_drafts
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestOutsideReadingDrafts (an outside reading in view let a local change run)
+  status: killed
 - D2: a tool output beginning "owner:" is taken as an owner message
   kill_test: tests/loop/test_owner_channel_only
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestOwnerChannelOnly (a reading beginning owner: became an owner message and sent the draft)
+  status: killed
 - D3: an agent tool can write the standing table
   kill_test: tests/loop/test_standing_signed_only
   negative_check: pending
@@ -60,12 +60,12 @@ fixtures: scripted fixture provider (`tests/fixtures/model`) and the acceptance 
   status: live
 - D6: a draft runs when the agent repeats it with no owner message since it was shown
   kill_test: tests/loop/test_draft_needs_owner_message
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestDraftNeedsOwnerMessage (a repeated draft ran with no owner message since it was shown)
+  status: killed
 - D7: a landed mail asks the agent to fetch an address with the owner's calendar in it, and the fetch runs because fetch is a read
   kill_test: tests/loop/test_landing_turn_reads_stay_home
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestLandingTurnReadsStayHome (a landing's turn fetched past the box)
+  status: killed
 
 ## clauses
 (none yet)

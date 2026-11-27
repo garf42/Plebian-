@@ -64,7 +64,9 @@ func TestPairStreamSend(t *testing.T) {
 	if m := read(); m.Text != "live two" || m.MessageID == "" {
 		t.Fatalf("live %+v", m)
 	}
-	var sent struct{ MessageID string `json:"message_id"` }
+	var sent struct {
+		MessageID string `json:"message_id"`
+	}
 	_ = json.NewDecoder(post("/v1/send", `{"conversation_id":"c1","text":"on my way"}`).Body).Decode(&sent)
 	if sent.MessageID == "" || len(x.sent) != 1 || x.sent[0].Text != "on my way" {
 		t.Fatalf("sent %+v", x.sent)

@@ -50,8 +50,8 @@ reference: a naive implementation (every sum taken over every use, every cover r
   status: killed
 - D5: holds near-repeats of a struck call, not only exact ones
   kill_test: tests/recall/test_held_exact_only
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestHeldOnce (a near repeat of the struck call was held) — see tests/loop/TestHeldOnce
+  status: killed
 
 ## clauses
 - [BINDING] origin: derived — ink is never a sum over every use: uses fold into time buckets that merge only while width ≤ (deadband / d) × age and (spread of d) × ln(age) ≤ deadband, so cost grows with the logarithm of a label's uses, and on every fixture the ranking equals the exact sum's except where two values lie within the deadband (ledger: L0001, L0012) (kill_test: tests/recall/test_ink_rank_matches_reference)

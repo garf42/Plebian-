@@ -28,11 +28,11 @@ type Job struct {
 
 // Done is what the runner returns.
 type Done struct {
-	Stdout   []byte `json:"stdout"`
-	Stderr   []byte `json:"stderr"`
-	Exit     int    `json:"exit"`
-	Sandbox  string `json:"sandbox"` // bubblewrap | none (the host refused user namespaces; gap G007)
-	Error    string `json:"error,omitempty"`
+	Stdout  []byte `json:"stdout"`
+	Stderr  []byte `json:"stderr"`
+	Exit    int    `json:"exit"`
+	Sandbox string `json:"sandbox"` // bubblewrap | none (the host refused user namespaces; gap G007)
+	Error   string `json:"error,omitempty"`
 }
 
 // Runner executes jobs as the tools user, inside bubblewrap. A call sees the workspace
