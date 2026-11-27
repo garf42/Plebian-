@@ -80,6 +80,8 @@ jobs:
           grep " restic_${rv}_linux_${ra}.bz2\$" restic.SHA256SUMS | sha256sum -c -
           bunzip2 -c "restic_${rv}_linux_${ra}.bz2" > restic && chmod 755 restic && ./restic version
       - name: Unit and node tests
+        id: unit
+        continue-on-error: true # acceptance still runs; the gate fails on this outcome
         env:
           PLEBIAN_SPEECH_MODELS: ${{ runner.temp }}/speech
         run: |
@@ -102,13 +104,15 @@ jobs:
           cp LICENSE NOTICE.md dist/plebian/
           tar -C dist -czf "dist/plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" plebian
           (cd dist && sha256sum "plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz" > "plebian-linux-${{ steps.arch.outputs.arch }}.tar.gz.sha256")
+      - run: echo "${{ steps.unit.outcome }}" > dist/unit.outcome && cp unit.log dist/ 2>/dev/null || true
       - uses: actions/upload-artifact@v7
         with:
           name: build-${{ steps.arch.outputs.arch }}
           path: |
             dist/plebian-linux-*
             dist/fixture
-            unit.log
+            dist/unit.outcome
+            dist/unit.log
 
   acceptance:
     needs: build
@@ -200,6 +204,14 @@ jobs:
         with:
           pattern: acc-${{ matrix.arch }}-*
           path: logs
+      - uses: actions/download-artifact@v8
+        with:
+          name: build-${{ matrix.arch }}
+          path: build-out
+      - name: Unit and node tests passed
+        run: |
+          grep -E "^(--- FAIL|FAIL|ok )" build-out/unit.log | grep -v "^ok" | head -20 || true
+          [ "$(cat build-out/unit.outcome)" = success ]
       - name: Both runs agree per assertion
         run: |
           cat logs/*-run1/run.log > run1.log

@@ -61,6 +61,10 @@ func open(t *testing.T) *env {
 	if err := e.g.Watch(ctx); err != nil {
 		t.Fatal(err)
 	}
+	// The browser's own first tab attaches first, so the store page below is the newest.
+	for i := 0; i < 100 && e.g.Page() == ""; i++ {
+		time.Sleep(50 * time.Millisecond)
+	}
 	e.g.Step(ctx) // the agent's first action: open the store
 	var tgt struct{ TargetID string }
 	if err := x.Call(ctx, "", "Target.createTarget", map[string]any{"url": e.url + "/store/"}, &tgt); err != nil {
