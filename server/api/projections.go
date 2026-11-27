@@ -219,7 +219,9 @@ func (a *Server) tapsWhere(ctx context.Context, where string, args ...any) ([]Ta
 }
 
 // Page renders a day's page as the API serves it (the update replay compares these).
-func (a *Server) Page(ctx context.Context, date string) (map[string]any, error) { return a.page(ctx, date) }
+func (a *Server) Page(ctx context.Context, date string) (map[string]any, error) {
+	return a.page(ctx, date)
+}
 
 func (a *Server) page(ctx context.Context, date string) (map[string]any, error) {
 	loc := Location(ctx, a.S)
