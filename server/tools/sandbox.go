@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -24,6 +25,9 @@ type Job struct {
 	Outside bool              `json:"outside"` // the call asked for the outside folder
 	Env     map[string]string `json:"env"`     // secrets by name, values filled by the harness
 	Timeout time.Duration     `json:"timeout"`
+	// Put writes these files (paths relative to the outside folder) instead of running a
+	// command: the runner is the only writer into the workspace.
+	Put map[string][]byte `json:"put,omitempty"`
 }
 
 // Done is what the runner returns.
@@ -83,6 +87,9 @@ func (r *Runner) Args(j Job) []string {
 
 // Run executes one job.
 func (r *Runner) Run(ctx context.Context, j Job) Done {
+	if len(j.Put) > 0 {
+		return r.put(j.Put)
+	}
 	if j.Timeout <= 0 {
 		j.Timeout = 10 * time.Minute
 	}
@@ -106,6 +113,31 @@ func (r *Runner) Run(ctx context.Context, j Job) Done {
 		d.Exit, d.Error = 126, err.Error()
 	}
 	return d
+}
+
+// put writes files into the outside folder only; a path that would leave it is refused.
+func (r *Runner) put(files map[string][]byte) Done {
+	names := make([]string, 0, len(files))
+	for n := range files {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	var out bytes.Buffer
+	for _, n := range names {
+		rel := filepath.Clean(n)
+		if filepath.IsAbs(rel) || rel == "." || strings.HasPrefix(rel, "..") {
+			return Done{Exit: 2, Error: "refused path " + n}
+		}
+		p := filepath.Join(r.Outside, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o700); err != nil {
+			return Done{Exit: 1, Error: err.Error()}
+		}
+		if err := os.WriteFile(p, files[n], 0o600); err != nil {
+			return Done{Exit: 1, Error: err.Error()}
+		}
+		fmt.Fprintf(&out, "outside/%s\n", rel)
+	}
+	return Done{Stdout: out.Bytes()}
 }
 
 // MaxOutput bounds a reading kept from one stream (the rest is cut and marked).

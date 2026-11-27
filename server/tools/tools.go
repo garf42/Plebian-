@@ -28,6 +28,13 @@ type Result struct {
 	Job     string // set when the run outlasts its turn
 }
 
+// Composer is a tool whose payload is fixed once, when the call is drafted: the bytes
+// shown are the bytes that run (a mail's Date and Message-ID are fixed then). Run takes
+// either the call or the payload Compose returned.
+type Composer interface {
+	Compose(ctx context.Context, input json.RawMessage) (payload json.RawMessage, shown string, err error)
+}
+
 // Tool is one line of the band.
 type Tool interface {
 	Def() models.Tool

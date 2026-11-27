@@ -121,3 +121,23 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   Threads per speech model on the box.
   Assumed: every core the box has (runtime.NumCPU), since the audio node runs one model at a time. Reversible: yes.
   Blocks: none.
+
+- G025 — node: n.tools — volatility: low — last_reviewed: phase-2
+  The runner keeps at most 1 MiB of each output stream; no spec bounds a reading.
+  Assumed: 1 MiB per stream, cut and marked "[cut at 1 MiB]". Reversible: yes (one constant, tools.MaxOutput).
+  Blocks: nothing.
+
+- G026 — node: n.feeds — volatility: low — last_reviewed: phase-4
+  No spec gives how long a feed waits after its connection fails.
+  Assumed: half the owner's usual time to answer, the cadence the calendar fetch already keeps, so a broken connection retries within one stop window. Reversible: yes (feeds.retry).
+  Blocks: nothing.
+
+- G027 — node: n.feeds — volatility: high — last_reviewed: phase-4
+  libgm pairs from Google cookies that only n.browser's throwaway context can supply, and n.browser is not built yet.
+  Assumed: the texts feed speaks the library's interface (pair, status, stream, send) over HTTP to a link endpoint, which the fixture serves; a libgm-backed link implementing the same Link interface in-process joins when n.browser hands over cookies. Reversible: yes (one Link implementation).
+  Blocks: the texts half of A10 for live use.
+
+- G028 — node: n.tools — volatility: medium — last_reviewed: phase-4
+  The agent opens a PDF "the way it reads any file", but no PDF reader ships in Plebian's root; the sandbox sees the host's /usr.
+  Assumed: pdftotext from the host (poppler-utils) when installed; CI installs it. Reversible: yes (ship a reader under bin/ like bubblewrap).
+  Blocks: PDF reading on a box without poppler-utils.

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -130,4 +131,50 @@ func (m *ModelSetup) Handle(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	return true
+}
+
+// Cards are the statuses of the cards this server keeps (feeds add their own).
+func (m *ModelSetup) Cards(ctx context.Context) []map[string]any {
+	card := func(id, status string, required bool) map[string]any {
+		return map[string]any{"id": id, "status": status, "required": required}
+	}
+	var devices int
+	m.A.S.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM devices`).Scan(&devices)
+	model := "not set"
+	if rs := m.routes(ctx); len(rs) > 0 {
+		model = rs[0].Model.ID
+		if len(rs) > 1 {
+			model += fmt.Sprintf(" + %d fallback", len(rs)-1)
+		}
+	}
+	omi := "not paired"
+	var st struct {
+		Connected bool `json:"connected"`
+		Battery   int  `json:"battery"`
+	}
+	if json.Unmarshal([]byte(m.A.S.Setting(ctx, "omi_state")), &st) == nil {
+		omi = "out of range"
+		if st.Connected {
+			omi = fmt.Sprintf("connected, battery %d%%", st.Battery)
+		}
+	}
+	storage := "this disk"
+	if m.A.S.Setting(ctx, "bucket") != "" {
+		storage = "bucket"
+	}
+	or := func(k, none string) string {
+		if v := m.A.S.Setting(ctx, k); v != "" {
+			return v
+		}
+		return none
+	}
+	return []map[string]any{
+		card("server", Version, true),
+		card("pair", fmt.Sprintf("%d devices", devices), true),
+		card("model", model, true),
+		card("omi", omi, false),
+		card("storage", storage, false),
+		card("backups", or("backups_status", "not set"), false),
+		card("updates", or("updates_status", "not set"), false),
+	}
 }

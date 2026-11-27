@@ -31,17 +31,17 @@ fixtures: fixture IMAP/SMTP server, fixture iCal feed with recurrences, time zon
 
 ## demons
 - D1: a calendar entry lands once, never again as it comes due
-  kill_test: tests/feeds/test_calendar_due_lands_again
-  negative_check: pending
-  status: live
+  kill_test: tests/feeds/feeds_test.go TestCalendarDueLandsAgain
+  negative_check: seen red — TestCalendarDueLandsAgain: written 2, due 0; want 2 and 1 (due landings removed)
+  status: killed
 - D2: SMTP sends without an approved draft
-  kill_test: tests/acceptance/a10_feeds
-  negative_check: pending
-  status: live
+  kill_test: tests/feeds/d2_test.go TestSMTPOnlyOnApprovedDraft (and A10 in acceptance)
+  negative_check: seen red — TestSMTPOnlyOnApprovedDraft: SMTP received 1 messages before any approval (mail_send classed a local change)
+  status: killed
 - D3: the silence watch uses a fixed timeout
-  kill_test: tests/feeds/test_silence_from_history
-  negative_check: pending
-  status: live
+  kill_test: tests/feeds/feeds_test.go TestSilenceFromHistory
+  negative_check: seen red — TestSilenceFromHistory: history of 5m0s quiets: asked 0 times (fixed 30-minute timeout)
+  status: killed
 
 ## clauses
 (none yet)

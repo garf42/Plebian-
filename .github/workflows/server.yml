@@ -37,7 +37,7 @@ jobs:
             tests/fixtures/go.sum
             tests/acceptance/go.sum
       - name: Host packages (fixtures and sandbox)
-        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config
+        run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libopus-dev espeak-ng bubblewrap pkg-config poppler-utils
       - name: Arch
         id: arch
         run: echo "arch=$(go env GOARCH)" >> "$GITHUB_OUTPUT"

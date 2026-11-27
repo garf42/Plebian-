@@ -485,12 +485,21 @@ func (l *Loop) matchingDraft(ctx context.Context, name string, input []byte) (dr
 }
 
 func (l *Loop) makeDraft(ctx context.Context, turn int64, id, name string, class tools.Class, input []byte) core.Part {
-	shown := string(input)
+	payload, shown := []byte(input), string(input)
 	at := l.now()
+	if t, ok := l.Tools.Get(name); ok {
+		if c, ok := t.(tools.Composer); ok {
+			p, sh, err := c.Compose(ctx, input)
+			if err != nil {
+				return reading(at, id, 2, class, false, false, []byte("not drafted: "+err.Error()))
+			}
+			payload, shown = p, sh
+		}
+	}
 	// The repeat that is drafted again supersedes the earlier waiting draft of the same call.
 	l.S.DB.ExecContext(ctx, `UPDATE drafts SET state='superseded' WHERE tool=? AND call=? AND state='waiting'`, name, input)
 	res, err := l.S.DB.ExecContext(ctx, `INSERT INTO drafts(turn, call_id, step, tool, call, payload, shown, state, shown_at) VALUES(?,?,?,?,?,?,?, 'waiting', ?)`,
-		turn, id, step(name, input), name, input, input, shown, at)
+		turn, id, step(name, input), name, input, payload, shown, at)
 	if err != nil {
 		return reading(at, id, 1, class, false, false, []byte("draft not recorded: "+err.Error()))
 	}

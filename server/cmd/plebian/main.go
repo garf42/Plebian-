@@ -27,6 +27,7 @@ import (
 	"plebian/server/clock"
 	"plebian/server/config"
 	"plebian/server/core"
+	"plebian/server/feeds"
 	"plebian/server/grammar"
 	"plebian/server/loop"
 	"plebian/server/models"
@@ -231,13 +232,32 @@ func serve(args []string) error {
 	}
 	rc := &recall.R{S: s, G: gr, P: core.Defaults}
 	hc := tools.HTTPClient()
-	reg := tools.NewRegistry(append(loop.CoreTools(s, an.Name),
-		tools.Shell{Write: false, Runner: tools.Client{Socket: r.RunnerSock()}, Secrets: secrets},
-		tools.Shell{Write: true, Runner: tools.Client{Socket: r.RunnerSock()}, Secrets: secrets},
+	runner := tools.Client{Socket: r.RunnerSock()}
+	var lp *loop.Loop
+	var un *underlay.U
+	var ask func(ctx context.Context, text string) error
+	usual := func(ctx context.Context) time.Duration { return lp.Usual(ctx) }
+	lander := &feeds.Lander{S: s, Clock: clk, Land: func(ctx context.Context, id int64) {
+		if err := un.Land(ctx, id); err != nil {
+			logger.Printf("landing %d: %v", id, err)
+		}
+	}}
+	feedWatch := func(name string) *watch.Watch {
+		return &watch.Watch{S: s, Clock: clk, Feed: name, Ask: func(ctx context.Context, t string) error { return ask(ctx, t) }}
+	}
+	mailFeed := &feeds.Mail{L: lander, Watch: feedWatch("mail"), Secrets: secrets, Usual: usual, Log: logger}
+	calFeed := &feeds.Calendar{L: lander, Watch: feedWatch("calendar"), Secrets: secrets, HTTP: hc, Usual: usual, Log: logger,
+		Loc: func(ctx context.Context) *time.Location { return api.Location(ctx, s) }}
+	textsFeed := &feeds.Texts{L: lander, Watch: feedWatch("texts"), Secrets: secrets, HTTP: hc, Usual: usual, Log: logger}
+	reg := tools.NewRegistry(append(loop.CoreTools(s, an.Name, feeds.PutOut(s, runner)),
+		feeds.SendTool{M: mailFeed, Clock: clk},
+		feeds.TextTool{T: textsFeed},
+		tools.Shell{Write: false, Runner: runner, Secrets: secrets},
+		tools.Shell{Write: true, Runner: runner, Secrets: secrets},
 		tools.Fetch{HTTP: hc},
 		tools.Search{HTTP: hc, URL: func() string { return s.Setting(context.Background(), "search_url") }},
 	)...)
-	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger,
+	lp = &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger,
 		Index: func(ctx context.Context, n int64, sh core.Sheet, heard bool) error {
 			ix, err := gr.Index(ctx, n, sh, heard, core.Defaults)
 			if err != nil {
@@ -251,7 +271,7 @@ func serve(args []string) error {
 	if err := lp.Init(ctx); err != nil {
 		return err
 	}
-	un := &underlay.U{S: s, G: gr, P: core.Defaults,
+	un = &underlay.U{S: s, G: gr, P: core.Defaults,
 		Info: func(ctx context.Context, sym int64) float64 { return rc.Info(ctx, sym, grammar.Thread) },
 		Open: func(ctx context.Context, body string) error { return lp.Enqueue(ctx, "landing", body) }}
 	lp.Heard = un.Lit
@@ -260,10 +280,17 @@ func serve(args []string) error {
 			logger.Printf("landing %d: %v", id, err)
 		}
 	}
-	ask := func(ctx context.Context, text string) error { return lp.Enqueue(ctx, "question", text) }
+	ask = func(ctx context.Context, text string) error { return lp.Enqueue(ctx, "question", text) }
 	an.Ask = ask
 	an.Watch = &watch.Watch{S: s, Clock: clk, Feed: "omi", Ask: ask}
 	go an.Watch.Run(ctx)
+	for _, w := range []*watch.Watch{mailFeed.Watch, calFeed.Watch, textsFeed.Watch} {
+		go w.Run(ctx)
+	}
+	go mailFeed.Run(ctx)
+	go calFeed.Run(ctx)
+	go textsFeed.Run(ctx)
+	fs := &feeds.Setup{Mail: mailFeed, Cal: calFeed, Texts: textsFeed}
 	srv := &api.Server{S: s, Clock: clk, Log: logger}
 	ms := &api.ModelSetup{A: srv, Secrets: secrets}
 	srv.Hooks.Wake = lp.Wake
@@ -285,9 +312,12 @@ func serve(args []string) error {
 	srv.Hooks.AudioFile = an.FileHandler
 	srv.Hooks.OmiState = func(ctx context.Context, _ string, b []byte) error { return an.OmiState(ctx, b) }
 	srv.Hooks.Setup = func(w http.ResponseWriter, req *http.Request, card string) {
-		if !ms.Handle(w, req) {
+		if !ms.Handle(w, req) && !fs.Handle(w, req) {
 			http.Error(w, "", http.StatusNotImplemented)
 		}
+	}
+	srv.Hooks.SetupCards = func(ctx context.Context) (any, error) {
+		return map[string]any{"cards": append(ms.Cards(ctx), fs.Cards(ctx)...)}, nil
 	}
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

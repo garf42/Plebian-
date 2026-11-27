@@ -339,6 +339,9 @@ func (l *Loop) budget(ctx context.Context, rt models.Route) int {
 // the usual gap stands in for it (Parameter schedule, cold start).
 func (l *Loop) window(ctx context.Context) time.Duration { return l.usualGap(ctx) }
 
+// Usual is the owner's usual time to answer, for feeds that pace themselves by it.
+func (l *Loop) Usual(ctx context.Context) time.Duration { return l.window(ctx) }
+
 func (l *Loop) emit(ctx context.Context, typ string, body any, turn int64) {
 	if _, err := l.S.Emit(ctx, l.now(), typ, body, turn); err != nil {
 		l.Log.Printf("emit %s: %v", typ, err)

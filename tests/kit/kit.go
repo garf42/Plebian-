@@ -37,6 +37,9 @@ type waiter struct {
 	ch chan time.Time
 }
 
+// NewClock is a manual clock reading t.
+func NewClock(t time.Time) *Clock { return &Clock{now: t} }
+
 func (c *Clock) Now() time.Time { c.mu.Lock(); defer c.mu.Unlock(); return c.now }
 func (c *Clock) After(t time.Time) <-chan time.Time {
 	c.mu.Lock()
@@ -108,7 +111,7 @@ func New(t testing.TB, format string, script model.Script, extra ...tools.Tool) 
 	sec.Set("provider:"+p.ID, "kit-key")
 	k.R = &recall.R{S: s, G: g, P: core.Defaults}
 	counter := models.NewCounter()
-	reg := tools.NewRegistry(append(loop.CoreTools(s, nil), extra...)...)
+	reg := tools.NewRegistry(append(loop.CoreTools(s, nil, nil), extra...)...)
 	k.L = &loop.Loop{S: s, Clock: k.Clock, P: core.Defaults, Tools: reg, Counter: counter, Secrets: sec,
 		Index: func(ctx context.Context, n int64, sh core.Sheet, heard bool) error {
 			ix, err := g.Index(ctx, n, sh, heard, core.Defaults)

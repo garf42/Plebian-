@@ -144,7 +144,7 @@ func TestLookupReturnsIds(t *testing.T) {
 		Run(context.Context, json.RawMessage) (struct{}, error)
 	}
 	_ = lookup
-	tl := loop.CoreTools(e.s, nil)
+	tl := loop.CoreTools(e.s, nil, nil)
 	for _, x := range tl {
 		if x.Def().Name != "lookup" {
 			continue

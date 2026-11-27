@@ -3,3 +3,4 @@ build/packets/
 *.test
 /server/plebian
 .claude/
+__pycache__/
