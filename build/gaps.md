@@ -151,3 +151,8 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
   TP-11 names three clock windows (same weekday within 90 minutes, the same time of day standing in until a step has two weekly periods, the same date within a day and three hours); only the daily one is built, and the clock opens at the time of day of a past run in the window.
   Assumed: daily windows over page days (cut at 4 am); the turn opens at the earliest past run's time of day that the rule of succession holds for. Reversible: yes (loop/clock.go).
   Blocks: nothing (A13 needs the daily window).
+
+- G031 — node: n.underlay — volatility: medium — last_reviewed: phase-4
+  The lamp prices a heard word by its chance in the heard body, so a box that has heard little wakes on no landing: a word unseen before reaches the 10-bit line only once the underlay holds about ten thousand words (a few days of talk, or about a thousand short messages).
+  Assumed: as specified; the first days, landings land and light nothing, and the owner's own words drive the agent. Reversible: yes (a prior for the heard body's frequencies, such as the English word frequencies the grammar already ships, would let a new box wake sooner).
+  Blocks: nothing (A08 builds a lived-in body first).

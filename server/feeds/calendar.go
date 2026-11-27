@@ -253,7 +253,7 @@ func (c *Calendar) written(ctx context.Context, body []byte) error {
 		return err
 	}
 	for _, e := range es {
-		row := underlay.Row{Source: "calendar", Lines: []underlay.Line{{Speaker: e.speaker, At: e.start.UTC().Format(time.RFC3339Nano), Text: e.text}}}
+		row := underlay.Row{Source: "calendar", Lines: Lines(e.speaker, e.start, e.text)}
 		if _, _, err := c.L.Put(ctx, c.Watch, "calendar", "entry/"+e.key, e.start, e.end, row, body); err != nil {
 			return err
 		}
@@ -283,8 +283,7 @@ func (c *Calendar) due(ctx context.Context, body []byte) error {
 				continue
 			}
 			en := st.Add(e.end.Sub(e.start))
-			row := underlay.Row{Source: "calendar", Lines: []underlay.Line{{Speaker: e.speaker, At: st.UTC().Format(time.RFC3339Nano),
-				Text: "due: " + describe(e.ev, st, en, e.allDay, loc)}}}
+			row := underlay.Row{Source: "calendar", Lines: Lines(e.speaker, st, "due: "+describe(e.ev, st, en, e.allDay, loc))}
 			if _, _, err := c.L.Put(ctx, c.Watch, "calendar", "due/"+e.key+"/"+st.UTC().Format(time.RFC3339), st, en, row, body); err != nil {
 				return err
 			}

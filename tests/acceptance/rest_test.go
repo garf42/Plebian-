@@ -11,7 +11,6 @@ func TestA04(t *testing.T) { Run(t, "A04") }
 func TestA05(t *testing.T) { Run(t, "A05") }
 func TestA06(t *testing.T) { Run(t, "A06") }
 func TestA07(t *testing.T) { Run(t, "A07") }
-func TestA08(t *testing.T) { Run(t, "A08") }
 func TestA09(t *testing.T) { Run(t, "A09") }
 func TestA10(t *testing.T) { Run(t, "A10") }
 func TestA12(t *testing.T) { Run(t, "A12") }

@@ -243,7 +243,23 @@ func MailRow(p Parsed, at time.Time) underlay.Row {
 	for _, a := range p.Attachments {
 		fmt.Fprintf(&b, "attachment: %s (%s, %d bytes)\n", a.Name, a.Type, len(a.Data))
 	}
-	return underlay.Row{Source: "mail", Lines: []underlay.Line{{Speaker: p.From, At: at.UTC().Format(time.RFC3339Nano), Text: strings.TrimRight(b.String(), "\n")}}}
+	return underlay.Row{Source: "mail", Lines: Lines(p.From, at, b.String())}
+}
+
+// Lines splits a message or entry into heard lines, one per line of text that holds
+// words, each from its sender at its wall time: the lamp counts lines, and a message's
+// lines are its own (the original keeps every byte).
+func Lines(who string, at time.Time, text string) []underlay.Line {
+	var out []underlay.Line
+	for _, l := range strings.Split(text, "\n") {
+		if l = strings.TrimSpace(l); l != "" {
+			out = append(out, underlay.Line{Speaker: who, At: at.UTC().Format(time.RFC3339Nano), Text: l})
+		}
+	}
+	if len(out) == 0 {
+		out = append(out, underlay.Line{Speaker: who, At: at.UTC().Format(time.RFC3339Nano), Text: ""})
+	}
+	return out
 }
 
 func (m *Mail) land(ctx context.Context, box string, validity, uid uint32, raw []byte, internal time.Time) (int64, bool, error) {

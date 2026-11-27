@@ -183,7 +183,7 @@ func (t *Texts) Run(ctx context.Context) {
 		if p, err := l.Paired(ctx); err == nil && p {
 			err := l.Stream(ctx, func(raw []byte, x Text) error {
 				at := time.UnixMilli(x.TsMs).UTC()
-				row := underlay.Row{Source: "text", Lines: []underlay.Line{{Speaker: x.Sender, At: at.Format(time.RFC3339Nano), Text: x.Text}}}
+				row := underlay.Row{Source: "text", Lines: Lines(x.Sender, at, x.Text)}
 				_, _, err := t.L.Put(ctx, t.Watch, "text", x.ConversationID+"/"+x.MessageID, at, at, row, raw)
 				return err
 			})
