@@ -17,9 +17,20 @@ An agent you own. One ongoing conversation with an AI that works for you, rememb
 
 ## Install
 
-1. **Server** — on a Raspberry Pi 5 (or any Debian/Ubuntu machine), download the release for your platform and run its `install` command. It joins your Tailscale network (open the sign-in link it prints) and prints a pairing code.
-2. **App** — on your Android phone, install the Tailscale app, then download the APK from Releases and install it.
-3. **Pair and connect** — scan the code, then follow the Setup cards: model, Omi, mail, calendar, texts, storage, backups.
+1. **Server**: on a Raspberry Pi 5 (or any Debian/Ubuntu machine with systemd):
+   ```
+   v=v0.0.1                            # the newest tag on the Releases page
+   arch=$(dpkg --print-architecture)   # arm64 on a Pi 5, amd64 on a PC or VM
+   curl -LO https://github.com/garf42/Plebian-/releases/download/$v/plebian-linux-$arch.tar.gz
+   curl -LO https://github.com/garf42/Plebian-/releases/download/$v/plebian-linux-$arch.tar.gz.sha256
+   sha256sum -c plebian-linux-$arch.tar.gz.sha256 && tar xzf plebian-linux-$arch.tar.gz
+   sudo ./plebian/bin/plebian install
+   ```
+   - It installs into `/opt/plebian` (`--root` to change), creates two system accounts, and downloads the speech models from sherpa-onnx's releases, checked against pinned hashes.
+   - It prints a Tailscale sign-in link; once the box is on your tailnet it prints a pairing code.
+   - `sudo /opt/plebian/bin/plebian pair` prints a new code. `sudo /opt/plebian/bin/plebian uninstall` removes everything.
+2. **App**: on your Android phone, install the Tailscale app, then install `plebian.apk` from the same release.
+3. **Pair and connect**: enter the code, then go through the Setup cards: model, Omi, mail, calendar, texts, storage, backups.
 
 First run with the real Omi: `tests/probes/omi/first_run_checklist.md`.
 

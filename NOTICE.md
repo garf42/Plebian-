@@ -10,6 +10,7 @@ It builds on the following work, each under its own license:
 - **Playwright MCP** (Microsoft) — Apache-2.0. https://github.com/microsoft/playwright-mcp
 - **MCP Go SDK** (Model Context Protocol contributors) — Apache-2.0 / MIT. https://github.com/modelcontextprotocol/go-sdk
 - **sherpa-onnx** (k2-fsa) — Apache-2.0. https://github.com/k2-fsa/sherpa-onnx
+- **libopus** (Xiph.Org Foundation and contributors) — BSD-3-Clause. Linked statically into the server to decode the Omi's audio. https://opus-codec.org
 - **restic** — BSD-2-Clause. https://github.com/restic/restic
 - **Tailscale** (Tailscale Inc. and contributors) — BSD-3-Clause. The server joins the owner's tailnet through its embedded library, tsnet. https://github.com/tailscale/tailscale
 - **bubblewrap** (its contributors) — LGPL-2.0-or-later. Built by the release CI and run unmodified as the tools sandbox. https://github.com/containers/bubblewrap
