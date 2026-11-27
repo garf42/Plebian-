@@ -73,6 +73,18 @@ func main() {
 		err = runner(args)
 	case "replay":
 		err = replay(args)
+	case "access":
+		fs := flag.NewFlagSet("access", flag.ExitOnError)
+		read := fs.String("read", "", "comma-separated paths every file under which must open for reading")
+		write := fs.String("write", "", "comma-separated directories that must take a new file")
+		fs.Parse(args)
+		split := func(s string) []string {
+			if s == "" {
+				return nil
+			}
+			return strings.Split(s, ",")
+		}
+		err = ops.CheckAccess(split(*read), split(*write))
 	case "deploy-helper":
 		fs := flag.NewFlagSet("deploy-helper", flag.ExitOnError)
 		root := fs.String("root", "", "the root being updated")

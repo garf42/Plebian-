@@ -304,6 +304,16 @@ func Install(o InstallOptions) (err error) {
 	}{{r.ServerHome(), suid, sgid}, {r.ToolsHome(), tuid, tgid}} {
 		filepath.Walk(d.dir, func(p string, _ os.FileInfo, _ error) error { os.Lchown(p, d.uid, d.gid); return nil })
 	}
+	read, write := []string{r.Bin(), r.P("lib"), r.Config()}, []string{r.ServerHome()}
+	if _, err := os.Stat(r.Speech()); err == nil {
+		read = append(read, r.Speech())
+	}
+	if o.BrowserFrom != "" {
+		read, write = append(read, r.Browser()), append(write, r.P("browser", "profile"))
+	}
+	if err := run("runuser", "-u", ServerUser, "--", "env", "LD_LIBRARY_PATH="+r.P("lib"), r.Bin(), "access", "--read", strings.Join(read, ","), "--write", strings.Join(write, ",")); err != nil {
+		return err
+	}
 	for _, u := range []string{ServerUser, ToolsUser} {
 		if err := run("loginctl", "enable-linger", u); err != nil {
 			return err
