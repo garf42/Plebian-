@@ -265,6 +265,15 @@ func Install(o InstallOptions) (err error) {
 		}
 	}
 	if o.BrowserFrom != "" {
+		// The browser directory is the server account's: Chromium keeps its profile there.
+		if err := os.MkdirAll(r.P("browser", "profile"), 0o700); err != nil {
+			return fmt.Errorf("browser: %w", err)
+		}
+		for _, d := range []string{r.P("browser"), r.P("browser", "profile")} {
+			if err := os.Chown(d, suid, sgid); err != nil {
+				return fmt.Errorf("browser: %w", err)
+			}
+		}
 		for _, d := range []string{"chromium", "node", "mcp"} {
 			if err := copyTree(filepath.Join(o.BrowserFrom, d), r.P("browser", d), suid, sgid); err != nil {
 				return fmt.Errorf("browser: %w", err)

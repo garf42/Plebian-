@@ -207,15 +207,29 @@ func Prepare(ctx context.Context, r Root, s *store.Store, candidate, since strin
 // swap outlives the server it restarts.
 func Deploy(r Root, dir, expect string, replayed int) error {
 	bin := filepath.Join(dir, "plebian", "bin", "plebian")
-	cmd := exec.Command("systemd-run", "--user", "--collect", "--unit", fmt.Sprintf("plebian-deploy-%d", time.Now().Unix()),
+	cmd := ownManager(exec.Command("systemd-run", "--user", "--collect", "--unit", fmt.Sprintf("plebian-deploy-%d", time.Now().Unix()),
 		"--setenv=LD_LIBRARY_PATH="+filepath.Join(dir, "plebian", "lib"),
-		bin, "deploy-helper", "--root", string(r), "--from", filepath.Join(dir, "plebian"), "--expect", expect, "--replayed", fmt.Sprint(replayed))
+		bin, "deploy-helper", "--root", string(r), "--from", filepath.Join(dir, "plebian"), "--expect", expect, "--replayed", fmt.Sprint(replayed)))
 	var out bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &out
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("systemd-run: %v: %s", err, strings.TrimSpace(out.String()))
+		return fmt.Errorf("systemd-run as uid %d: %v: %s", os.Geteuid(), err, strings.TrimSpace(out.String()))
 	}
 	return nil
+}
+
+// ownManager points a systemctl or systemd-run call at this account's own user manager:
+// its runtime directory by uid, not whatever the environment carried in.
+func ownManager(cmd *exec.Cmd) *exec.Cmd {
+	rt := fmt.Sprintf("/run/user/%d", os.Geteuid())
+	env := []string{"XDG_RUNTIME_DIR=" + rt, "DBUS_SESSION_BUS_ADDRESS=unix:path=" + rt + "/bus"}
+	for _, kv := range os.Environ() {
+		if !strings.HasPrefix(kv, "XDG_RUNTIME_DIR=") && !strings.HasPrefix(kv, "DBUS_SESSION_BUS_ADDRESS=") {
+			env = append(env, kv)
+		}
+	}
+	cmd.Env = env
+	return cmd
 }
 
 func swapIn(from, root string) error {
@@ -286,8 +300,8 @@ func DeployHelper(r Root, from, expect string, replayed int) error {
 	restart := func() error {
 		os.Remove(r.APIFile())
 		// A program that keeps failing hits systemd's start limit; clear it first.
-		exec.Command("systemctl", "--user", "reset-failed", "plebian.service").Run()
-		return exec.Command("systemctl", "--user", "restart", "plebian.service").Run()
+		ownManager(exec.Command("systemctl", "--user", "reset-failed", "plebian.service")).Run()
+		return ownManager(exec.Command("systemctl", "--user", "restart", "plebian.service")).Run()
 	}
 	version := strings.TrimSpace(expect)
 	if err := swapIn(from, string(r)); err == nil {

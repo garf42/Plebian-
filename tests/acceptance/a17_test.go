@@ -51,6 +51,7 @@ func init() {
 			}
 			// Gone: the first box. A fresh root, then the owner's key restores it.
 			runOut(h.T, sudo(filepath.Join(h.Root, "bin", "plebian"), "uninstall", "--root", h.Root))
+			h.Addr = "" // the first box is gone; the version check follows the restored one
 			b := fresh(h.T)
 			kf := filepath.Join(h.T.TempDir(), "key")
 			os.WriteFile(kf, []byte(st.key+"\n"), 0o600)
@@ -67,6 +68,7 @@ func init() {
 				b.Addr = string(rest[:bytes.IndexByte(rest, '"')])
 			}
 			b.Token = h.Token // the restored store knows the first box's devices
+			h.Addr = b.Addr
 			b.Do("GET", "/v1/days/"+date, nil, nil, true)
 			st.pageB = append([]byte(nil), b.LastBody...)
 			st.replay = b.Replay()

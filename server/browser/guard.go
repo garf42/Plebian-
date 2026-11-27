@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -28,7 +27,9 @@ type Chrome struct {
 
 // Launch starts Chromium on a persistent profile, DevTools on a free loopback port.
 func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
-	os.MkdirAll(profile, 0o700)
+	if err := os.MkdirAll(profile, 0o700); err != nil {
+		return nil, fmt.Errorf("chromium profile: %w", err)
+	}
 	os.Remove(filepath.Join(profile, "DevToolsActivePort"))
 	args := []string{"--headless=new", "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0",
 		"--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check", "--disable-background-networking"}
@@ -37,6 +38,8 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 	}
 	cmd := exec.CommandContext(ctx, bin, append(args, "about:blank")...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // its renderers and helpers stop with it
+	said := &tail{}
+	cmd.Stderr = said
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
@@ -45,20 +48,46 @@ func Launch(ctx context.Context, bin, profile string) (*Chrome, error) {
 	for i := 0; i < 300; i++ {
 		select {
 		case <-exited:
-			return nil, errors.New("chromium exited before opening its DevTools port")
+			return nil, fmt.Errorf("chromium exited before opening its DevTools port: %s", said)
 		default:
 		}
 		b, err := os.ReadFile(filepath.Join(profile, "DevToolsActivePort"))
 		if err == nil {
 			lines := strings.Split(strings.TrimSpace(string(b)), "\n")
 			if len(lines) == 2 {
+				said.stop()
 				return &Chrome{cmd: cmd, exited: exited, Port: lines[0], WS: "ws://127.0.0.1:" + lines[0] + lines[1]}, nil
 			}
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 	cmd.Process.Kill()
-	return nil, errors.New("chromium did not open its DevTools port")
+	return nil, fmt.Errorf("chromium did not open its DevTools port: %s", said)
+}
+
+// tail keeps what Chromium writes to stderr while it starts, for the error that says why
+// it stopped; once DevTools is open it keeps nothing more.
+type tail struct {
+	mu   sync.Mutex
+	b    []byte
+	done bool
+}
+
+func (t *tail) Write(p []byte) (int, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if !t.done {
+		t.b = append(t.b, p...)
+	}
+	return len(p), nil
+}
+
+func (t *tail) stop() { t.mu.Lock(); t.done, t.b = true, nil; t.mu.Unlock() }
+
+func (t *tail) String() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return strings.TrimSpace(string(t.b))
 }
 
 func (c *Chrome) Endpoint() string { return "http://127.0.0.1:" + c.Port }

@@ -38,7 +38,8 @@ const SpeechLicenses = `Speech models, downloaded at install from sherpa-onnx re
 - Silero VAD (Silero Team): MIT. https://github.com/snakers4/silero-vad
 `
 
-func fetch(f SpeechFile, from, dst string) error {
+// FetchFile puts one model file in dst, checked against its pin.
+func FetchFile(f SpeechFile, from, dst string) error {
 	var r io.ReadCloser
 	if from != "" {
 		fh, err := os.Open(filepath.Join(from, f.Name))
@@ -74,6 +75,10 @@ func fetch(f SpeechFile, from, dst string) error {
 		return fmt.Errorf("%s: checksum %s, pinned %s", f.Name, got, f.SHA256)
 	}
 	if !f.Tar {
+		// CreateTemp makes the file 0600 as root; the server's account reads the models.
+		if err := os.Chmod(tmp.Name(), 0o644); err != nil {
+			return err
+		}
 		return os.Rename(tmp.Name(), filepath.Join(dst, f.Name))
 	}
 	in, err := os.Open(tmp.Name())
@@ -116,7 +121,7 @@ func fetch(f SpeechFile, from, dst string) error {
 // holding the same files (checked against the same pins).
 func FetchSpeech(dir, from string) error {
 	for _, f := range SpeechFiles {
-		if err := fetch(f, from, dir); err != nil {
+		if err := FetchFile(f, from, dir); err != nil {
 			return err
 		}
 	}

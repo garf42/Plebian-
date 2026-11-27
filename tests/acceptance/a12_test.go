@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -107,9 +108,13 @@ func init() {
 			said("Take the wheel to sign in.")
 			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 			defer cancel()
-			c, _, err := websocket.Dial(ctx, "ws://"+h.Addr+"/v1/browser/live", &websocket.DialOptions{HTTPHeader: http.Header{"Authorization": {"Bearer " + h.Token}}})
+			c, resp, err := websocket.Dial(ctx, "ws://"+h.Addr+"/v1/browser/live", &websocket.DialOptions{HTTPHeader: http.Header{"Authorization": {"Bearer " + h.Token}}})
 			if err != nil {
-				h.T.Logf("live view: %v", err)
+				var body []byte
+				if resp != nil && resp.Body != nil {
+					body, _ = io.ReadAll(resp.Body)
+				}
+				h.T.Logf("live view: %v: %s", err, body)
 				return
 			}
 			defer c.CloseNow()

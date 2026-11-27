@@ -45,9 +45,14 @@ func Speech(t testing.TB, sp *Fixture, lines []Line) [][]byte {
 
 // Now reads the server's clock (the time fixture).
 func (h *H) Now() time.Time {
-	var ms int64
-	get(h.T, h.Clock.URL("/now"), &ms)
-	return time.UnixMilli(ms).UTC()
+	var now struct {
+		UnixMs int64 `json:"unix_ms"`
+	}
+	get(h.T, h.Clock.URL("/now"), &now)
+	if now.UnixMs == 0 {
+		h.T.Fatalf("the clock fixture gave no time")
+	}
+	return time.UnixMilli(now.UnixMs).UTC()
 }
 
 // Live streams frames over /v1/audio/live as the app relays them from the Omi: packet

@@ -174,7 +174,8 @@ func init() {
 				}
 			}
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
-				b := strings.ReplaceAll(string(r.Body), `\n`, "\n")
+				// The request is JSON: newlines and angle brackets arrive escaped.
+				b := strings.NewReplacer(`\n`, "\n", `\u003c`, "<", `\u003e`, ">").Replace(string(r.Body))
 				if i := strings.Index(b, "<outside>"); i >= 0 && strings.Contains(b[i:], "Total due: 412.50") {
 					st.outsideSeen = true
 				}
