@@ -47,6 +47,7 @@ type Config struct {
 	TextsSource string `json:"texts_source,omitempty"`
 	Tailnet     bool   `json:"tailnet"`
 	AuthKeyFile string `json:"auth_key_file,omitempty"`
+	ControlURL  string `json:"control_url,omitempty"` // Headscale; empty = Tailscale
 }
 
 func (r Root) LoadConfig() (Config, error) {

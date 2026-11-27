@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"os/user"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -92,17 +93,46 @@ func install(args []string) error {
 	texts := fs.String("texts-source", "", "texts endpoint (tests); empty = Google Messages")
 	noTailnet := fs.Bool("no-tailnet", false, "serve on localhost only (CI)")
 	authKey := fs.String("auth-key-file", "", "a Tailscale auth key file, instead of the sign-in link")
+	control := fs.String("control-url", "", "a Headscale server's URL (empty = Tailscale)")
 	speechFrom := fs.String("speech-from", "", "a directory holding the speech model files instead of downloading them; none skips them")
 	fs.Parse(args)
 	if _, err := time.LoadLocation(*tz); err != nil {
 		return fmt.Errorf("--tz: %v", err)
 	}
 	r := ops.Root(*root)
-	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey}, Out: os.Stdout, SpeechFrom: *speechFrom}); err != nil {
+	if err := ops.Install(ops.InstallOptions{Root: r, Config: ops.Config{TZ: *tz, ClockSource: *clk, TextsSource: *texts, Tailnet: !*noTailnet, AuthKeyFile: *authKey, ControlURL: *control}, Out: os.Stdout, SpeechFrom: *speechFrom}); err != nil {
 		return err
 	}
 	fmt.Println("Plebian is installed in", r)
+	if !*noTailnet {
+		if !waitTailnet(r) {
+			fmt.Println("Once this box is on your tailnet, run: sudo", r.Bin(), "pair")
+			return nil
+		}
+	}
 	return pairAs(r)
+}
+
+// waitTailnet prints the tailnet sign-in link and waits for the server to join.
+func waitTailnet(r ops.Root) bool {
+	shown := ""
+	deadline := time.Now().Add(15 * time.Minute)
+	for time.Now().Before(deadline) {
+		var a struct{ Tailnet, Login string }
+		if b, err := os.ReadFile(r.APIFile()); err == nil {
+			json.Unmarshal(b, &a)
+		}
+		if a.Tailnet != "" {
+			fmt.Println("On your tailnet as", a.Tailnet)
+			return true
+		}
+		if a.Login != "" && a.Login != shown {
+			fmt.Println("Sign this box into your tailnet:", a.Login)
+			shown = a.Login
+		}
+		time.Sleep(time.Second)
+	}
+	return false
 }
 
 // pairAs makes a pairing code as the server user (the store is its alone) and prints it.
@@ -216,15 +246,39 @@ func serve(args []string) error {
 	}
 	hs := &http.Server{Handler: srv.Handler(), ReadHeaderTimeout: 30 * time.Second}
 	go hs.Serve(ln)
-	b, _ := json.Marshal(map[string]string{"addr": ln.Addr().String(), "tailnet": ""})
-	tmp := r.APIFile() + ".tmp"
-	if err := os.WriteFile(tmp, b, 0o644); err != nil {
-		return err
+	var apiMu sync.Mutex
+	apiState := map[string]string{"addr": ln.Addr().String(), "tailnet": "", "login": ""}
+	writeAPI := func(k, v string) error {
+		apiMu.Lock()
+		defer apiMu.Unlock()
+		apiState[k] = v
+		b, _ := json.Marshal(apiState)
+		tmp := r.APIFile() + ".tmp"
+		if err := os.WriteFile(tmp, b, 0o644); err != nil {
+			return err
+		}
+		return os.Rename(tmp, r.APIFile())
 	}
-	if err := os.Rename(tmp, r.APIFile()); err != nil {
+	if err := writeAPI("addr", ln.Addr().String()); err != nil {
 		return err
 	}
 	logger.Printf("serving on %s", ln.Addr())
+	if cfg.Tailnet {
+		key := ""
+		if cfg.AuthKeyFile != "" {
+			if b, err := os.ReadFile(cfg.AuthKeyFile); err == nil {
+				key = strings.TrimSpace(string(b))
+			}
+		}
+		tn := &api.Tailnet{Dir: r.Tailnet(), Hostname: "plebian", AuthKey: key, ControlURL: cfg.ControlURL, Log: logger,
+			OnLogin: func(u string) { writeAPI("login", u) },
+			OnUp:    func(a string) { writeAPI("login", ""); writeAPI("tailnet", a) }}
+		go func() {
+			if err := tn.Serve(ctx, ln.Addr().(*net.TCPAddr).Port, srv.Handler()); err != nil && ctx.Err() == nil {
+				logger.Printf("tailnet: %v", err)
+			}
+		}()
+	}
 	go lp.Run(ctx)
 	ops.Notify("READY=1")
 	stop := make(chan struct{})

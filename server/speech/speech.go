@@ -5,7 +5,6 @@ package speech
 
 /*
 #cgo CFLAGS: -I/usr/include/opus
-#cgo LDFLAGS: -l:libopus.a -lm
 #include <opus.h>
 #include <stdlib.h>
 */
