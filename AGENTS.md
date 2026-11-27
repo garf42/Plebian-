@@ -51,6 +51,7 @@ Standing instructions from the owner:
 - **Structure over behavior.** Make violations impossible rather than instructing against them.
 - **Features fall out of the structure.** Prefer a component that serves two or more roles to one more component.
 - **No canned replies** in anything conversational: the owner answers in their own words and the system interprets them. No Yes/No/Send buttons on drafts, questions or heard lines.
+- **No explanatory text in the app.** Labels, names, times, counts and statuses only; no hints, captions, instructions or empty-state sentences. If a section needs explaining, fix the layout.
 - **Docs stand alone.** When you edit `docs/`, describe what is, never what changed or what came before. Write docs as bullets of information, not prose.
 - **Verify before you decide.** Read the actual code, the current upstream docs and the probe results before choosing; never build on a remembered API.
 - **Settled stays settled.** If you see a better approach than a spec or a settled decision, say so in one sentence in a gap, then build what is specified.

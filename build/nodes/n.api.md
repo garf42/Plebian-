@@ -5,13 +5,13 @@ spec: PL-01 … PL-09 (what each screen reads and writes); AG-05 (owner channel,
 ## assume
 [BINDING] origin: specified
 - in: n.loop — thread events, drafts, questions, owner-facing messages, notifications
-- in: n.store — read access for projections: day pages, journal, marks, open items, search with per-body counts
-- in: n.app — owner messages, audio frames and offline files, marks and notes, signed admin actions, wheel input
+- in: n.store — read access for projections: day pages, journal, taps, open items, search with per-body counts
+- in: n.app — owner messages, audio frames and offline files, taps and notes, signed admin actions, wheel input
 - in: n.audio — speech seconds per minute as audio arrives; each offline file's sha256 once it is durable in the blob store
 
 ## guarantee
 [BINDING] origin: specified
-- out: an authenticated API and event stream for the app; owner messages delivered to n.loop as the only owner channel; audio and marks delivered to n.audio; admin actions verified against the device key before they reach anything
+- out: an authenticated API and event stream for the app; owner messages delivered to n.loop as the only owner channel; audio and taps delivered to n.audio; admin actions verified against the device key before they reach anything
 - listens only on its own tailnet address (Tailscale's embedded library, state under the root) and a free localhost port; until the tailnet sign-in completes (and in CI) it serves on localhost alone
 - an unpaired client receives nothing and changes nothing
 - admin actions (standing grants, deploys) require a signature from a paired device key; a bearer token alone is refused

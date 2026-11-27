@@ -1,16 +1,16 @@
 # node: n.audio
 
-spec: PL-02, PL-04, PL-07 (sizes, transcription); Plebian bindings (marks, sources, questions code raises); AG-03 (`keep`); AG decision D6
+spec: PL-02, PL-04, PL-07 (sizes, transcription); Plebian bindings (taps, sources, questions code raises); AG-03 (`keep`); AG decision D6
 
 ## assume
 [BINDING] origin: specified
-- in: n.api — Opus frames with the Omi's packet numbers and arrival times; offline files with the Omi's file timestamps; the device-clock offset taken at connect; double-tap events with arrival times; marks pressed in the app
+- in: n.api — Opus frames with the Omi's packet numbers and arrival times; offline files with the Omi's file timestamps; the device-clock offset taken at connect; double-tap events with arrival times; taps pressed in the app
 - in: n.store — the blob store (a directory or the owner's bucket), addressed by sha256: audio originals go there and nowhere else
 - in: n.loop — keep calls naming a voice: its id and the span of the owner's words that names it, or names it as the owner's own
 
 ## guarantee
 [BINDING] origin: specified
-- out: stretches — conversations bounded by a pause longer than the usual gap in speech — as lines per speaker (a name, or an unknown-voice id), with wall times and a pointer to the audio original (Ogg Opus) in the blob store; marks with their times resolved to stretches; speech seconds per minute as audio arrives; each offline file's sha256 once durable; questions for unnamed voices and for the Omi gone silent
+- out: stretches — conversations bounded by a pause longer than the usual gap in speech — as lines per speaker (a name, or an unknown-voice id), with wall times and a pointer to the audio original (Ogg Opus) in the blob store; taps with their times resolved to stretches; speech seconds per minute as audio arrives; each offline file's sha256 once durable; questions for unnamed voices and for the Omi gone silent
 - transcription runs as audio arrives; a stretch lands when its conversation ends
 - a voice heard in a second stretch with no name raises one question (a voice heard once raises none); once a keep call names it with the owner's words, later stretches carry the name (the owner's own voice is named the same way), and relabeling an earlier stretch is a newer reading that covers it
 - speech seconds per minute go out as audio arrives (the ribbon's live fill) and are kept with the stretch when it lands, so the ribbon does not change when a conversation lands

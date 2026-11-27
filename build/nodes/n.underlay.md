@@ -1,23 +1,23 @@
 # node: n.underlay
 
-spec: TP-01 (underlay lamp), TP-02 step 8 (lookup), TP-03 (`heard`), TP-07 (heard wake, kept orders, calendar entries), TP-08; Plebian bindings (marks, sources, questions code raises); TP-T5, TP-T7; PL-02 steps 5–7
+spec: TP-01 (underlay lamp), TP-02 step 8 (lookup), TP-03 (`heard`), TP-07 (heard wake, kept orders, calendar entries), TP-08; Plebian bindings (taps, sources, questions code raises); TP-T5, TP-T7; PL-02 steps 5–7
 
 ## assume
 [BINDING] origin: specified
 - in: n.grammar — the round trip per source, on each source's own edit costs
-- in: n.audio — stretches: lines per speaker (named or an unknown-voice id), wall times, a pointer to the audio original; newer readings of the same audio; marks (wall time, made on the Omi or in the app, the owner's note); questions it raises (an unnamed voice heard twice, the Omi gone silent)
+- in: n.audio — stretches: lines per speaker (named or an unknown-voice id), wall times, a pointer to the audio original; newer readings of the same audio; taps (wall time, made on the Omi or in the app, the owner's note); questions it raises (an unnamed voice heard twice, the Omi gone silent)
 - in: n.feeds — messages and calendar entries as received, with sender, wall time and a pointer to the original; questions from its silence watch
 
 ## guarantee
 [BINDING] origin: specified
-- out: heard rows (one per stretch, message or entry; exact; hashed; pointing to the original); landings (batches) naming the loops and kept orders each lit; lookup results as row ids; mark pointer rows; per-source counts, medians and frequencies
+- out: heard rows (one per stretch, message or entry; exact; hashed; pointing to the original); landings (batches) naming the loops and kept orders each lit; lookup results as row ids; tap pointer rows; per-source counts, medians and frequencies
 - a landing opens at most one turn however much it holds, and none when it lights nothing
 - a heard line lights a loop only past the decoy line of TP-07; background talk sharing common words lights nothing
 - nothing heard settles a line, closes a loop, gives an order or counts as a re-tell
 - lookup returns ids; the rows it found are quoted for that request only and never copied into the stack; given a message's row id, lookup puts that message's attachments, as files, in the tools' outside folder, and its reading lists what it put there; the body stays a heard row and is never put out
 - a row that arrives late or out of order lands at its wall time; a later transcript of the same audio, or an edit to a message or entry, covers the earlier row
 - a calendar entry lands when written and again as it comes due, early by the owner's usual time to answer the agent
-- a mark keeps how it was made and resolves to the stretch around its time once that stretch lands
+- a tap keeps how it was made and resolves to the stretch around its time once that stretch lands
 - questions raised upstream go to the loop as inbounds of their own, never inside a landing, so each wakes the agent once and lights nothing
 
 ## oracle

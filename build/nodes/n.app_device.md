@@ -14,7 +14,7 @@ spec: PL-02, PL-04; constitution src.omi; Omi app device code (MIT) `app/lib/ser
 - the transport sits behind one interface; the Omi simulator implements it, and everything above the transport (parsing, reassembly, codec, buttons, storage sync) runs the same code in tests as on the phone
 - a background service keeps the Omi link and the server link alive with the app closed
 - an offline file is deleted from the Omi only after the server confirms its hash
-- a double-tap while connected produces a mark and haptic level 1 (100 ms)
+- a double-tap while connected produces a tap and haptic level 1 (100 ms)
 - packet numbers wrap at 65535 without dropping audio
 
 ## oracle

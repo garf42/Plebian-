@@ -12,8 +12,8 @@ Plebian is done when every scenario A01–A20 in `tests/acceptance/manifest.json
 - A02 pairing registers one device key; an unpaired client reads nothing.
 - A03 an owner message gets a reply on Today and on the day page; every sealed turn rebuilds byte-exact.
 - A04 a failed step becomes a redline; its word-for-word repeat is held once; a success of the same step closes the loop.
-- A05 simulated Omi audio of two voices lands as heard rows with speaker labels; the ribbon fills live; a double-tap writes a mark and sends the 100 ms buzz.
-- A06 audio recorded out of range syncs late and out of order and lands at its true wall time; a double-tap out of range writes no mark.
+- A05 simulated Omi audio of two voices lands as heard rows with speaker labels; the ribbon fills live; a double-tap writes a tap and sends the 100 ms buzz.
+- A06 audio recorded out of range syncs late and out of order and lands at its true wall time; a double-tap out of range writes no tap.
 - A07 a voice heard in a second stretch with no name opens one question; the owner's own-words answer names it; later stretches carry the name.
 - A08 overheard "send the invoices" with a pending draft sends nothing; an overheard request to the agent changes nothing; a landed mail asking for a fetch reaches nothing past the box.
 - A09 a heard fact asked by text is answered with who said it and when.

@@ -26,14 +26,15 @@ Each is a property the built system must show.
 
 Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gradient, an **Omi chip** (live / syncing / out of range) and a **gear** that opens **This week** (the brief, health, spend and the Setup cards).
 
-- **Today** — one ongoing thread with the agent. Each night's page tops it: what the day held, the marks, and what needs the owner's word.
-- **Journal** — every day on its own page, newest first. **Marks** lists every moment the owner marked, across all days. **Search** covers everything said and heard.
+- **Today** — one ongoing thread with the agent. Each night's page tops it: what the day held, the taps, and what needs the owner's word.
+- **Journal** — every day on its own page, newest first. **Taps** lists every moment the owner tapped, across all days. **Search** covers everything said and heard.
 - **Open** — what waits on the owner: the agent's questions, its drafts, and kept orders. Only the owner's own words close one; a draft runs exactly as shown.
 - A draft shows exactly what would go out (a message as it would be sent; a site's fields as they would be submitted, decoded for reading, nothing left out) with its step's record: run as drafted, changed, turned down. It runs as shown or not at all.
 - Every message the agent starts arrives as a phone notification; tapping it opens Today at that message.
 - The Omi pairs with the phone as it does with Omi's app; Plebian sends what it hears to the server as it comes in.
 - Heard lines carry the speaker's name and sit lighter, on a dashed rule, until the owner says something about them. Any reply in the owner's own words settles the line; tapping a line only quotes it into the thread.
 - No canned replies anywhere in the conversation: no Yes/No/Send buttons on drafts, questions or heard lines. Tapping quotes; the owner answers in their own words; the agent interprets.
+- No explanatory text anywhere in the app: no hints, captions, instructions or empty-state sentences. Labels, names, times, counts and statuses only; a section that needs explaining is laid out wrong.
 
 | | Plebian | Claude Duet | Omi app |
 |---|---|---|---|
@@ -51,13 +52,13 @@ Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gra
 ## PL-02 · How a day fills
 
 1. **Omi** records all day and streams to Plebian on the phone over Bluetooth.
-2. **Omi** double-tap marks the moment. In the phone's range the app writes the **mark** at once and gives the Omi a short buzz (100 ms); out of range the Omi gives itself a long one (500 ms, firmware change). A single tap does nothing (so a bump can't mark); a three-second hold powers the Omi off.
+2. **Omi** double-tap is a **tap**. In the phone's range the app writes it at once and gives the Omi a short buzz (100 ms); out of range the Omi gives itself a long one (500 ms, firmware change). A single tap does nothing (so a bump can't tap); a three-second hold powers the Omi off.
 3. **Phone** sends the audio on to the server as it arrives (Opus frames, never decoded on the phone). Everything Omi's app would send to Omi's servers goes to the owner's server.
 4. **Phone** — out of range, the Omi records to its own storage and syncs when back, stamped with its own clock, as it does with Omi's app.
-5. **Server** transcribes as audio arrives and labels each speaker. A voice it hears in a second conversation with no name (the owner's own included) becomes a question in Open; once the owner names it in their own words it is known from then on. Each conversation lands as it ends, as underlay rows; each mark becomes a pointer into one.
+5. **Server** transcribes as audio arrives and labels each speaker. A voice it hears in a second conversation with no name (the owner's own included) becomes a question in Open; once the owner names it in their own words it is known from then on. Each conversation lands as it ends, as underlay rows; each tap becomes a pointer into one.
 6. **Server** fetches mail, texts and calendar by code as they arrive; they land the same way. The agent is called only when what lands (a calendar entry coming due included) lights an open loop or a kept order.
-7. **Memory** — the night's read gets the day with what is open, the kept orders and the marks. The agent writes the entry. A heard answer comes back as a question; nothing heard closes anything.
-8. **App** — the page is up: the entry on top, the marks on the ribbon. Whatever the owner says back about a heard line settles it.
+7. **Memory** — the night's read gets the day with what is open, the kept orders and the taps. The agent writes the entry. A heard answer comes back as a question; nothing heard closes anything.
+8. **App** — the page is up: the entry on top, the taps on the ribbon. Whatever the owner says back about a heard line settles it.
 
 - Conversations and messages land through the day. The night's read runs once, at the hour the owner has come to ask for it, over all of them (the clock learns it from two asks; until then the owner asks in their own words).
 - Plebian's background service holds the Omi's Bluetooth link and the line to the server, so audio flows and notifications arrive without any push service.
@@ -67,8 +68,8 @@ Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gra
 ## PL-03 · The page
 
 - A page is a day, cut at 4 am, so a late night stays with its day.
-- Layers stack top to bottom like the tracing paper beneath: **Entry**, **With Plebian** (the owner's talk with the agent), **Marks** in the margin, and the **Heard** day beneath.
-- The **ribbon** across the top is the day by the hour: how much talk there was and where the marks fall.
+- Layers stack top to bottom like the tracing paper beneath: **Entry**, **With Plebian** (the owner's talk with the agent), **Taps** in the margin, and the **Heard** day beneath.
+- The **ribbon** across the top is the day by the hour: how much talk there was and where the taps fall.
 - The heard day is only ever peeked at (lift the page). It never mixes into the thread.
 
 | In the app | In the store | Rule |
@@ -77,21 +78,21 @@ Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gra
 | Entry | The agent's lines from the night's read | Held at ½, covering nothing, until the owner settles them |
 | With Plebian | Sheets stamped that day | As the thread holds them |
 | Heard | Underlay rows: talk, mail, texts, calendar | Never written into the thread |
-| Mark | A pointer row: the time, the stretch around it, the owner's note | The night's read reports every mark |
+| Tap | A pointer row: the time, the stretch around it, the owner's note | The night's read reports every tap |
 | Open | Open loops, kept orders, drafts waiting on the owner's word | Only the owner's words close one; a draft runs exactly as shown |
 | Search | The lamp, over both bodies | Counts shown per body: "never said here, heard once" |
 | The owner's reply | Anything the owner says about the line, in their own words | Retraces and settles it; a corrected heard word refits speech's edit costs |
 
 ---
 
-## PL-04 · Marks
+## PL-04 · Taps
 
-- Two ways to mark, both writing one row: double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it, and an optional note.
-- A double-tap reaches the phone at once, so the mark is on the day's ribbon right away. Short buzz: saved. Long buzz: the phone was out of range — the audio still syncs, and long-pressing the line later marks it. The two buzzes are the Omi's own shortest and longest (100 and 500 ms).
-- The night's read reports every mark; that line becomes the mark's title, so search finds a mark by what was said.
-- Three ways back to a mark: Journal → Marks, newest first; its dot on each day's ribbon; or search.
-- A mark says the moment mattered, not that the words were heard right. Heard words still wait until the owner has said something about them.
-- **Mark screen:** the dot, day and time, "tapped on the Omi" or "pressed in the app", the line, a player for the stretch with waveform and playhead, the verbatim talk around the mark (the marked line highlighted). Tapping the mark's line quotes it into the thread; the owner asks in their own words. A note is typed by the owner and rides on the mark.
+- Two ways to make a tap, both writing one row: double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it, and an optional note.
+- A double-tap reaches the phone at once, so the tap is on the day's ribbon right away. Short buzz: saved. Long buzz: the phone was out of range — the audio still syncs, and long-pressing the line later makes the tap. The two buzzes are the Omi's own shortest and longest (100 and 500 ms).
+- The night's read reports every tap; that line becomes the tap's title, so search finds a tap by what was said.
+- Three ways back to a tap: Journal → Taps, newest first; its dot on each day's ribbon; or search.
+- A tap says the moment mattered, not that the words were heard right. Heard words still wait until the owner has said something about them.
+- **Tap screen:** the dot, day and time, "tapped on the Omi" or "pressed in the app", the line, a player for the stretch with waveform and playhead, the verbatim talk around the tap (the tapped line highlighted). Tapping the tap's line quotes it into the thread; the owner asks in their own words. A note is typed by the owner and rides on the tap.
 
 ---
 
@@ -99,21 +100,21 @@ Tabs: **Today · Journal · Open**. Header: the Plebian wordmark on the logo gra
 
 Taken from the wordmark (`docs/design/wordmark.png`: *Plebian* in Monarcha SemiBold Italic, its *n* ending in a pick). Tokens: `docs/design/tokens.json`. Visual reference with a working phone mockup: `docs/design/mockup.html`.
 
-- The ground is the logo's gradient, five stops from dawn slate to forest. **Ore** is the one warm color and belongs to marks, so a mark stands out on any page.
-- A mark is an ore dot and nothing more: on the ribbon at its minute, beside its line, in its row.
+- The ground is the logo's gradient, five stops from dawn slate to forest. **Ore** is the one warm color and belongs to taps, so a tap stands out on any page.
+- A tap is an ore dot and nothing more: on the ribbon at its minute, beside its line, in its row.
 - Pages are tracing paper laid on that ground: soft white cards, 14 px radius, a light double shadow.
 - Heard text sits a shade lighter on a dashed rule until settled; settling inks the rule solid.
 - Type: **Vollkorn** SemiBold Italic for names and dates (rounded, low-contrast and warm like the wordmark's Monarcha); **Atkinson Hyperlegible Next** for reading, made to be read at a glance, in sun or by tired eyes; **Atkinson Hyperlegible Mono** for times and counts. All under the SIL Open Font License, bundled with the app. Monarcha is commercial, so it appears only in the wordmark image.
 - The agent's messages are plain text on the page; the owner's sit in steel bubbles. The agent's stamp reads "Plebian · time".
 - Every animation stands for something that happened:
   - **Lay** — a new page is laid over the last, the way trace goes down on a drawing (screen transitions).
-  - **Strike** — a mark lands: an ore dot drops onto the ribbon at its minute.
+  - **Strike** — a tap lands: an ore dot drops onto the ribbon at its minute.
   - **Live** — the ribbon's bars grow as the day is heard.
   - **Peek** — lift the page to see the heard day beneath.
   - **Presence** — while the agent works, the gradient drifts along the composer's top edge.
   - **Settle** — once the owner has answered a heard line, its dashed rule inks solid.
 - Touch feedback runs 180–320 ms. The night's read moves at the pace of the real work. With reduced motion on, each animation becomes a short fade.
-- Accessibility: every control reachable by TalkBack with a spoken label; text scales with the system font size; heard lines also carry "heard · speaker", and a mark's dot is read aloud as "marked".
+- Accessibility: every control reachable by TalkBack with a spoken label; text scales with the system font size; heard lines also carry "heard · speaker", and a tap's dot is read aloud as "tapped".
 
 ---
 
@@ -126,7 +127,7 @@ Research → brief → the owner approves item by item → a mechanic builds on 
 - **Standing is granted here and nowhere else.** The brief ranks steps by record; once the owner has given one step of a tool standing, that tool's other steps are offered as their record reaches that line. Grants require the owner's fingerprint on the phone. The agent can hand standing back from the thread, never take it.
 - An approved code change goes to the **mechanic**: the coding agent the owner configured (Setup → Updates), working headless on a branch of the owner's copy of the repository; with none configured, the item becomes an issue on the repository for the owner to hand to any agent.
 - **Replay gates every update:** the candidate rebuilds every page and request since the last deploy from the store; if any differs from what the owner lived, the update waits with the difference shown.
-- **Deploy** is one tap; the previous version is kept and comes back on a failed start.
+- **Deploy** is one button; the previous version is kept and comes back on a failed start.
 - Each sweep restores last night's backup to scratch space and replays a page from it, so the backup is proven, not assumed.
 - Omi firmware updates install from Plebian over Bluetooth, the way Omi's app installs them, carrying Plebian's one change.
 - Hands-on work: a link to the owner's coding agent's remote session, where it has one.

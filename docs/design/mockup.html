@@ -339,7 +339,7 @@ ol.src a{color:var(--steel)}
       <div><dt>Fed by</dt><dd>The Omi through your phone; mail, texts and calendar, read on the Pi</dd></div>
       <div><dt>Memory</dt><dd><a href="../tracer-paper-memory.md">Tracer Paper</a>, on the same Pi</dd></div>
       <div><dt>Runs on</dt><dd>Your phone, with everything else on the Pi</dd></div>
-      <div><dt>Marks</dt><dd>Double-tap the Omi, or long-press any line</dd></div>
+      <div><dt>Taps</dt><dd>Double-tap the Omi, or long-press any line</dd></div>
       <div><dt>Acts</dt><dd>On your word, or on standing you&rsquo;ve given a step</dd></div>
       <div><dt>Date</dt><dd>19 Nov 2026</dd></div>
     </dl>
@@ -350,10 +350,10 @@ ol.src a{color:var(--steel)}
   <div class="sheet-head"><span class="sno">PL-01</span><h2>The app in your hand</h2><span class="scale">tap through it; the buttons play the Omi</span></div>
   <div class="bench">
     <div class="rig">
-      <div class="phone"><div class="screen" id="pl-screen" role="application" aria-label="Plebian on a phone: Today, Journal and Open tabs, a day page, a mark, the Omi and admin screens."></div></div>
+      <div class="phone"><div class="screen" id="pl-screen" role="application" aria-label="Plebian on a phone: Today, Journal and Open tabs, a day page, a tap, the Omi and admin screens."></div></div>
       <div class="wristrig" id="pl-wrist">
         <svg viewBox="0 0 74 48" aria-hidden="true"><defs><radialGradient id="om" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#F4F5F6"/><stop offset=".6" stop-color="#D3D8DB"/><stop offset="1" stop-color="#9AA3A8"/></radialGradient></defs><path d="M4 5 Q37 27 70 5" fill="none" stroke="#3A4447" stroke-width="2"/><g id="pl-pod"><rect x="33" y="10" width="8" height="6" rx="3" fill="none" stroke="#7F888C" stroke-width="1.6"/><circle cx="37" cy="30" r="15" fill="url(#om)" stroke="#7F888C"/><circle cx="37" cy="30" r="10.5" fill="none" stroke="#B9C0C4" stroke-width=".8"/><circle cx="37" cy="21" r="1.3" fill="#49637C"/></g></svg>
-        <div class="s"><b id="pl-wrist-t">Paired with your phone</b><span id="pl-wrist-s">Streaming since 6:42am. Two marks today.</span></div>
+        <div class="s"><b id="pl-wrist-t">Paired with your phone</b><span id="pl-wrist-s">Streaming since 6:42am. Two taps today.</span></div>
       </div>
       <div class="demos">
         <button data-demo="tap">Double-tap the Omi</button>
@@ -365,8 +365,8 @@ ol.src a{color:var(--steel)}
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
       <ul class="pts">
-        <li><b>Today</b> is one ongoing thread with the agent. Each night&rsquo;s page tops it: what the day held, your marks, and what needs your word.</li>
-        <li><b>Journal</b> keeps every day on its own page, newest first. Marks lists every moment you marked, across all days.</li>
+        <li><b>Today</b> is one ongoing thread with the agent. Each night&rsquo;s page tops it: what the day held, your taps, and what needs your word.</li>
+        <li><b>Journal</b> keeps every day on its own page, newest first. Taps lists every moment you tapped, across all days.</li>
         <li><b>Open</b> holds what is waiting on you: the agent&rsquo;s questions, its drafts and your kept orders. Only your own words close them, and a draft runs exactly as shown.</li>
         <li>The Omi pairs with the phone as it does with Omi&rsquo;s app, and Plebian sends what it hears on to the Pi as it comes in. The chip in the header shows the link.</li>
         <li>Heard lines carry the speaker&rsquo;s name and sit lighter, on a dashed rule, until you say something about them. Any reply in your own words settles the line; tapping one only quotes it into the thread.</li>
@@ -391,13 +391,13 @@ ol.src a{color:var(--steel)}
   <div class="sheet-head"><span class="sno">PL-02</span><h2>How a day fills</h2><span class="scale">Omi &rarr; phone &rarr; Pi &rarr; page</span></div>
   <ol class="flow">
     <li><span class="lane wrist">Omi</span><div class="step">Records all day and streams to Plebian on your phone over Bluetooth, paired the way it pairs with Omi&rsquo;s app.</div></li>
-    <li><span class="lane wrist">Omi</span><div class="step">Double-tap to mark the moment. In the phone&rsquo;s range, the app writes the <b class="mk">mark</b> at once and gives the Omi a short buzz; out of range, the Omi gives itself a long one. A single tap does nothing, so a bump can&rsquo;t leave a mark, and a three-second hold turns the Omi off.</div></li>
+    <li><span class="lane wrist">Omi</span><div class="step">Double-tap writes a tap. In the phone&rsquo;s range, the app writes the <b class="mk">tap</b> at once and gives the Omi a short buzz; out of range, the Omi gives itself a long one. A single tap does nothing, so a bump can&rsquo;t leave a tap, and a three-second hold turns the Omi off.</div></li>
     <li><span class="lane dock">Phone</span><div class="step">Plebian sends the audio on to the Pi as it arrives, over your tailnet, at home or away. Everything Omi&rsquo;s app would send to Omi&rsquo;s servers goes to the Pi.</div></li>
     <li><span class="lane dock">Phone</span><div class="step">Out of the phone&rsquo;s range, the Omi records to its own 512 MB and syncs when it&rsquo;s back, stamped with its own clock, as it does with Omi&rsquo;s app.</div></li>
-    <li><span class="lane pi">Pi</span><div class="step">The Pi transcribes as audio arrives and labels each speaker; a voice it doesn&rsquo;t know becomes a question in Open, and once you name it in your own words it is known from then on. Each conversation lands as it ends, as underlay rows, and each mark becomes a pointer into one.</div></li>
+    <li><span class="lane pi">Pi</span><div class="step">The Pi transcribes as audio arrives and labels each speaker; a voice it doesn&rsquo;t know becomes a question in Open, and once you name it in your own words it is known from then on. Each conversation lands as it ends, as underlay rows, and each tap becomes a pointer into one.</div></li>
     <li><span class="lane pi">Pi</span><div class="step">Mail, texts and the calendar land the same way, fetched by code as they arrive. The agent is called only when what lands, a calendar entry coming due included, lights an open loop or a kept order.</div></li>
-    <li><span class="lane mem">Memory</span><div class="step">The night&rsquo;s read gets the day with what is open, the kept orders and the marks. The agent writes the entry. A heard answer comes back as a question, and nothing heard closes anything.</div></li>
-    <li><span class="lane app">Plebian</span><div class="step">The page is up: the entry on top and the marks on the ribbon. Whatever you say back about a heard line settles it.</div></li>
+    <li><span class="lane mem">Memory</span><div class="step">The night&rsquo;s read gets the day with what is open, the kept orders and the taps. The agent writes the entry. A heard answer comes back as a question, and nothing heard closes anything.</div></li>
+    <li><span class="lane app">Plebian</span><div class="step">The page is up: the entry on top and the taps on the ribbon. Whatever you say back about a heard line settles it.</div></li>
   </ol>
   <ul class="pts">
     <li>Conversations and messages land on the Pi through the day. The night&rsquo;s read runs once, at the hour you&rsquo;ve come to ask for it, over all of them.</li>
@@ -411,12 +411,12 @@ ol.src a{color:var(--steel)}
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
       <ul class="pts">
         <li>A page is a day, cut at 4am, so a late night stays with its day.</li>
-        <li>Its layers stack top to bottom, like the tracer paper under it: the entry, your talk with the agent, marks in the margin, and the heard day beneath.</li>
-        <li>The ribbon across the top is the day by the hour. It shows how much talk there was and where the marks fall.</li>
+        <li>Its layers stack top to bottom, like the tracer paper under it: the entry, your talk with the agent, taps in the margin, and the heard day beneath.</li>
+        <li>The ribbon across the top is the day by the hour. It shows how much talk there was and where the taps fall.</li>
         <li>The heard day is only ever peeked at. It never mixes into your thread with the agent.</li>
       </ul>
     </div>
-    <svg class="dia" viewBox="0 0 360 300" role="img" aria-label="A day page as four stacked sheets. Entry on top, With Plebian, Marks, and Heard beneath.">
+    <svg class="dia" viewBox="0 0 360 300" role="img" aria-label="A day page as four stacked sheets. Entry on top, With Plebian, Taps, and Heard beneath.">
       <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FBFAF6"/><stop offset="1" stop-color="#F1EFE8"/></linearGradient></defs>
       <g stroke="#C9C4B6" stroke-dasharray="2 3" fill="none"><line x1="14" y1="72" x2="14" y2="96"/><line x1="14" y1="148" x2="14" y2="172"/><line x1="14" y1="224" x2="14" y2="248"/><line x1="322" y1="72" x2="322" y2="96"/><line x1="322" y1="148" x2="322" y2="172"/><line x1="322" y1="224" x2="322" y2="248"/></g>
       <polygon points="36,20 346,20 322,72 12,72" fill="url(#pg)" stroke="#B5AE9C"/>
@@ -425,7 +425,7 @@ ol.src a{color:var(--steel)}
       <polygon points="36,96 346,96 322,148 12,148" fill="#FBFAF6" fill-opacity=".92" stroke="#B5AE9C"/>
       <text class="t" x="40" y="118">With Plebian</text><text class="ts" x="36" y="137">your messages and its replies that day</text>
       <polygon points="36,172 346,172 322,224 12,224" fill="#FBF3E8" fill-opacity=".95" stroke="#D9B98E"/>
-      <text class="t" x="40" y="194">Marks</text><text class="ts" x="36" y="213">a dot at each moment you marked</text>
+      <text class="t" x="40" y="194">Taps</text><text class="ts" x="36" y="213">a dot at each moment you tapped</text>
       <circle cx="270" cy="188" r="4" fill="#B9772E"/>
       <circle cx="298" cy="196" r="4" fill="#B9772E"/>
       <polygon points="36,248 346,248 322,300 12,300" fill="#E6ECEA" stroke="#9AA7A4" stroke-dasharray="4 3"/>
@@ -439,7 +439,7 @@ ol.src a{color:var(--steel)}
       <tr><td>Entry</td><td>The agent&rsquo;s lines from the night&rsquo;s read</td><td class="dim">Held at &frac12;, covering nothing, until you settle them</td></tr>
       <tr><td>With Plebian</td><td>Sheets stamped that day</td><td class="dim">As the thread holds them</td></tr>
       <tr><td>Heard</td><td>Underlay rows: talk, mail, texts, calendar</td><td class="dim">Never written into the thread</td></tr>
-      <tr><td>Mark</td><td>A pointer row: the time, the stretch around it, your note</td><td class="dim">The night&rsquo;s read reports every mark</td></tr>
+      <tr><td>Tap</td><td>A pointer row: the time, the stretch around it, your note</td><td class="dim">The night&rsquo;s read reports every tap</td></tr>
       <tr><td>Open</td><td>Open loops, kept orders, drafts waiting on your word</td><td class="dim">Only your words close one; a draft runs exactly as shown</td></tr>
       <tr><td>Search</td><td>The lamp, over both bodies</td><td class="dim">Counts shown per body: &ldquo;never said here, heard once&rdquo;</td></tr>
       <tr><td>Your reply</td><td>Anything you say about the line, in your own words</td><td class="dim">Retraces and settles it; a corrected heard word refits speech&rsquo;s edit costs</td></tr>
@@ -448,20 +448,20 @@ ol.src a{color:var(--steel)}
 </section>
 
 <section class="sheet" id="pl04">
-  <div class="sheet-head"><span class="sno">PL-04</span><h2>Marks</h2><span class="scale">finding what mattered</span></div>
+  <div class="sheet-head"><span class="sno">PL-04</span><h2>Taps</h2><span class="scale">finding what mattered</span></div>
   <div class="two">
     <ul class="pts">
-      <li>There are two ways to mark, and both write one row. Double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it and an optional note.</li>
-      <li>A double-tap reaches the phone at once, so the mark is on the day&rsquo;s ribbon right away. A short buzz means it&rsquo;s saved. A long buzz means the phone was out of range: the audio still syncs, and long-pressing the line later marks it. The two are the Omi&rsquo;s own shortest and longest buzzes, 100 and 500 ms.</li>
-      <li>The night&rsquo;s read reports every mark. That line becomes the mark&rsquo;s title, so search finds a mark by what was said.</li>
-      <li>There are three ways back to a mark: Journal &rarr; Marks, newest first; the ore dot on each day&rsquo;s ribbon; or search with Marks on.</li>
-      <li>A mark says the moment mattered, not that the words were heard right. Heard words still wait until you&rsquo;ve said something about them.</li>
+      <li>There are two ways to make a tap, and both write one row. Double-tap the Omi, or long-press any line in the app. The row holds a time, the stretch of talk around it and an optional note.</li>
+      <li>A double-tap reaches the phone at once, so the tap is on the day&rsquo;s ribbon right away. A short buzz means it&rsquo;s saved. A long buzz means the phone was out of range: the audio still syncs, and long-pressing the line later makes the tap. The two are the Omi&rsquo;s own shortest and longest buzzes, 100 and 500 ms.</li>
+      <li>The night&rsquo;s read reports every tap. That line becomes the tap&rsquo;s title, so search finds a tap by what was said.</li>
+      <li>There are three ways back to a tap: Journal &rarr; Taps, newest first; the ore dot on each day&rsquo;s ribbon; or search with Taps on.</li>
+      <li>A tap says the moment mattered, not that the words were heard right. Heard words still wait until you&rsquo;ve said something about them.</li>
     </ul>
-    <svg class="dia" viewBox="0 0 360 262" role="img" aria-label="Double-tap on the Omi and long-press in the app both write one mark row. Marks land on the day's ribbon; each opens to its line and the verbatim talk.">
+    <svg class="dia" viewBox="0 0 360 262" role="img" aria-label="Double-tap on the Omi and long-press in the app both write one tap row. Taps land on the day's ribbon; each opens to its line and the verbatim talk.">
       <rect x="8" y="8" width="160" height="42" rx="5" fill="#F3F1EA" stroke="#DCD8CD"/><text class="t" x="18" y="26" style="font-size:14px">Double-tap the Omi</text><text class="lbl-s" x="18" y="42">reaches the phone at once</text>
       <rect x="192" y="8" width="160" height="42" rx="5" fill="#F3F1EA" stroke="#DCD8CD"/><text class="t" x="202" y="26" style="font-size:14px">Long-press a line</text><text class="lbl-s" x="202" y="42">anywhere in the app</text>
       <path d="M88 50 V64 Q88 70 100 72 L160 78" fill="none" stroke="#7C878A" stroke-width="1.2"/><path d="M272 50 V64 Q272 70 260 72 L200 78" fill="none" stroke="#7C878A" stroke-width="1.2"/>
-      <rect x="70" y="78" width="220" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/><text class="t" x="82" y="96" style="font-size:14px;fill:#7A4E1E">One mark row</text><text class="lbl-s" x="82" y="112">time &middot; the stretch &middot; your note</text>
+      <rect x="70" y="78" width="220" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/><text class="t" x="82" y="96" style="font-size:14px;fill:#7A4E1E">One tap row</text><text class="lbl-s" x="82" y="112">time &middot; the stretch &middot; your note</text>
       <path d="M180 120 V140" stroke="#7C878A" stroke-width="1.2" marker-end="url(#ah4)"/><defs><marker id="ah4" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#7C878A"/></marker></defs>
       <text class="lbl-s" x="188" y="136">on today&rsquo;s ribbon</text>
       <line x1="20" y1="186" x2="340" y2="186" stroke="#C9C4B6"/>
@@ -471,7 +471,7 @@ ol.src a{color:var(--steel)}
       <g font-family="Atkinson Hyperlegible Mono" font-size="8.5" fill="#7C878A"><text x="16" y="198">6a</text><text x="96" y="198">10a</text><text x="176" y="198">2p</text><text x="256" y="198">6p</text><text x="330" y="198">10p</text></g>
       <g fill="#B9772E"><circle cx="179.75" cy="160" r="3.5"/><circle cx="275.75" cy="160" r="3.5"/><circle cx="299.75" cy="160" r="3.5"/></g>
       <rect x="40" y="214" width="300" height="42" rx="5" fill="#FBF3E8" stroke="#D9B98E"/>
-      <text class="lbl-s" x="52" y="230" style="fill:#7A4E1E">2:09pm &middot; marked on the Omi</text>
+      <text class="lbl-s" x="52" y="230" style="fill:#7A4E1E">2:09pm &middot; tapped on the Omi</text>
       <text class="ts" x="52" y="247">Dale quoted the culvert pipe: $340 and $490</text>
     </svg>
   </div>
@@ -480,7 +480,7 @@ ol.src a{color:var(--steel)}
 <section class="sheet" id="pl05">
   <div class="sheet-head"><span class="sno">PL-05</span><h2>Look and motion</h2><span class="scale">taken from the wordmark</span></div>
   <ul class="pts">
-    <li>The ground is the logo&rsquo;s gradient, five stops from dawn slate to forest. Marks are ore, the one warm color, so a mark stands out on any page.</li>
+    <li>The ground is the logo&rsquo;s gradient, five stops from dawn slate to forest. Taps are ore, the one warm color, so a tap stands out on any page.</li>
     <li>Pages are tracing paper laid on that ground. Heard text sits a shade lighter, on a dashed rule, until you settle it.</li>
   </ul>
   <div class="swatches">
@@ -488,7 +488,7 @@ ol.src a{color:var(--steel)}
     <div class="sw"><div class="chip" style="background:#848DB3"></div><div class="cap"><b>Dawn</b>#848DB3</div></div>
     <div class="sw"><div class="chip" style="background:#49637C"></div><div class="cap"><b>Steel</b>#49637C &middot; your messages</div></div>
     <div class="sw"><div class="chip" style="background:#2D4839"></div><div class="cap"><b>Forest</b>#2D4839 &middot; actions</div></div>
-    <div class="sw"><div class="chip" style="background:#B9772E"></div><div class="cap"><b>Ore</b>#B9772E &middot; marks</div></div>
+    <div class="sw"><div class="chip" style="background:#B9772E"></div><div class="cap"><b>Ore</b>#B9772E &middot; taps</div></div>
   </div>
   <div class="specimen">
     <div class="d">Sunday, November 15</div>
@@ -501,7 +501,7 @@ ol.src a{color:var(--steel)}
   </ul>
   <div class="tiles" id="pl-tiles">
     <button class="tile" data-tile="lay"><div class="stage" id="t-lay"></div><div class="cap"><b>Lay</b>A new page is laid over the last, the way trace goes down on a drawing.</div></button>
-    <button class="tile" data-tile="strike"><div class="stage" id="t-strike"></div><div class="cap"><b>Strike</b>A mark lands: an ore dot drops onto the ribbon at its minute.</div></button>
+    <button class="tile" data-tile="strike"><div class="stage" id="t-strike"></div><div class="cap"><b>Strike</b>A tap lands: an ore dot drops onto the ribbon at its minute.</div></button>
     <button class="tile" data-tile="landing"><div class="stage" id="t-landing"></div><div class="cap"><b>Live</b>The ribbon fills as the day is heard.</div></button>
     <button class="tile" data-tile="peek"><div class="stage" id="t-peek"></div><div class="cap"><b>Peek</b>Lift the page to see the heard day beneath it.</div></button>
     <button class="tile" data-tile="presence"><div class="stage" id="t-presence"></div><div class="cap"><b>Presence</b>While the agent works, the gradient drifts along the composer.</div></button>
@@ -628,7 +628,7 @@ const scr = $('#pl-screen');
 if (!scr) return;
 
 /* ---------- glyphs ---------- */
-const MK = '<span class="mkdot" role="img" aria-label="marked"></span>';
+const MK = '<span class="mkdot" role="img" aria-label="tapped"></span>';
 const I = {
   today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6.5C4 5.1 5.1 4 6.5 4h11C18.9 4 20 5.1 20 6.5v7c0 1.4-1.1 2.5-2.5 2.5H11l-4.5 3.5V16C5.1 16 4 14.9 4 13.5z"/></svg>',
   journal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 4h10.5A1.5 1.5 0 0 1 18 5.5V20H7.5A1.5 1.5 0 0 1 6 18.5z"/><path d="M6 17h12M9.5 8h5M9.5 11h5"/></svg>',
@@ -673,7 +673,7 @@ const DAYS = {
     marks: [{ h: 9.52, t: '9:31am', title: 'Marcus: get the 3-inch deck screws; the 2½ won’t bite through the joist.', verb: [
       ['9:31', 'marcus', 'Get the three inch deck screws, the two and a half won’t bite through the joist.', 1], ['9:31', 'you', 'Three inch deck screws, okay.'],
       ['9:32', 'marcus', 'Can I borrow the flatbed this weekend to haul the joists?'], ['9:32', 'you', 'Sure.']] }],
-    entry: [{ s: 1, text: 'Marcus borrows the flatbed this weekend to haul the joists.' }, { m: 0, text: '9:31am, marked: get the 3-inch deck screws; the 2½ won’t bite.' }, { s: 1, text: 'You told Ana you’d bring the canning jars Sunday.' }],
+    entry: [{ s: 1, text: 'Marcus borrows the flatbed this weekend to haul the joists.' }, { m: 0, text: '9:31am, tapped: get the 3-inch deck screws; the 2½ won’t bite.' }, { s: 1, text: 'You told Ana you’d bring the canning jars Sunday.' }],
     xch: [['9:40am', 'remind me about screws at the store', 'I will, next time you’re there.']],
     under: [['8:02–8:30', 'you, ana', 'Is the coffee on?'], ['9:28–9:40', 'marcus, you', 'Get the three inch deck screws…'], ['7:20–7:45', 'ana, you', 'Tell your mom I’ll bring the canning jars Sunday.']] },
   fri: { key: 'fri', name: 'Friday', date: 'Nov 13', heard: '10 h 22 m', d: dens(13), first: 'Friday orders: 28 of them, $760, waiting on your go-ahead.', marks: [],
@@ -682,20 +682,20 @@ const DAYS = {
     under: [['3:49–3:52', 'marcus, you', 'How are we paying them?'], ['4:09–4:15', 'priya, you', 'Are the Friday orders done?']] },
   thu: { key: 'thu', name: 'Thursday', date: 'Nov 12', heard: '8 h 47 m', d: dens(12, [9]), first: 'The lumber lands Monday morning by the garage; check the board count.',
     marks: [{ h: 8.48, t: '8:29am', title: 'Marcus: the lumber lands Monday morning, by the garage.', verb: [['8:29', 'marcus', 'Lumber delivery is set for Monday morning, they’ll drop it by the garage.', 1], ['8:29', 'you', 'Good, I’ll count the boards.']] }],
-    entry: [{ m: 0, text: '8:29am, marked: the lumber lands Monday morning by the garage. Check the board count.' }],
+    entry: [{ m: 0, text: '8:29am, tapped: the lumber lands Monday morning by the garage. Check the board count.' }],
     xch: [], under: [['8:25–8:40', 'marcus, you', 'Lumber delivery is set for Monday morning…']] }
 };
 const STANDING = ['When Dale brings up the gravel delivery, remind me to ask about the culvert pipe.', 'When the well pump comes up, remind me the warranty is in the blue folder.'];
 const STAGES = [['Close the last conversation', 'ended 8:20pm'], ['Sync anything offline', 'nothing waiting'], ['Finish transcribing', '11 h 40 m'],
-  ['Gather what’s open', '4 loops · 2 orders'], ['The night’s read', 'with what’s open'], ['Write the entry', 'held till you settle it']];
+  ['Gather what’s open', '4 loops · 2 orders'], ['The night’s read', ''], ['Write the entry', 'held']];
 const hC = c => { const p = c.split(':').map(Number); return (p[0] % 12) + 12 + p[1] / 60; };
 const liveBars = () => Math.max(0, Math.min(64, Math.round((hC(S.clock) - 6) * 4)));
 const BRIEF = [
   ['Breakage', [['a1', 'The transcriber’s new release labels speakers differently.', 'Replay: 3 pages since the last deploy would change, and each difference is listed.']]],
   ['Security', [['a2', 'Tailscale has a security patch out.', 'Replay: no page changes.'], ['a5', 'An Omi firmware update is out.', 'Plebian installs it over Bluetooth, as Omi’s app would. Replay: no page changes.']]],
   ['Ideas', [['a3', 'Duet keeps topics in channels that share one memory. A Shop channel could hold building talk apart.', 'A new view; nothing in the store changes.'],
-    ['a4', 'Search could suggest the marks near a day you open.', 'Reads only; replay unchanged.']]],
-  ['Standing', [['s1', 'The Thursday pickup list to Priya: 14 of 14 sent as drafted.', 'No texting step has standing yet, so this is listed, not offered. With standing it would go out about 9 minutes after Plebian tells you, your usual time to answer.']]]
+    ['a4', 'Search could suggest the taps near a day you open.', 'Reads only; replay unchanged.']]],
+  ['Standing', [['s1', 'The Thursday pickup list to Priya: 14 of 14 sent as drafted.', 'Listed, not offered: no texting step has standing yet.']]]
 ];
 
 /* ---------- state ---------- */
@@ -718,7 +718,7 @@ function sunMarks() { return S.demoMark ? SUN_MARKS.concat([DEMO_MARK]) : SUN_MA
 function day(k) {
   if (k !== 'sun') return Object.assign({}, DAYS[k]);
   const d = Object.assign({}, DAYS.sun, { marks: sunMarks() });
-  d.first = !S.landed ? 'Live today. Tonight’s read writes the entry.' : S.e1fix ? 'Dale brings the gravel Thursday, by the culvert.' : 'Dale brings the gravel Wednesday and dumps it by the culvert.';
+  d.first = !S.landed ? '' : S.e1fix ? 'Dale brings the gravel Thursday, by the culvert.' : 'Dale brings the gravel Wednesday and dumps it by the culvert.';
   d.xch = [];
   return d;
 }
@@ -726,10 +726,10 @@ function sunEntry() {
   const L = [
     { id: 'e1', h: 1, by: 'Dale', text: S.e1fix ? 'Dale brings the gravel Thursday, by the culvert.' : 'Dale brings the gravel Wednesday and dumps it by the culvert, not at the top of the drive.' },
     { id: 'e2', h: 1, by: 'you, Dale', text: S.gravel ? S.gravel + ' yards of gravel.' : 'You said “fifty” and Dale said “fifty it is.” You typed 15 yards on Nov 2. Which is it?' },
-    { m: 0, text: '2:09pm, marked: Dale quoted the culvert pipe, $340 for 20 ft and $490 for 30 ft. That was your reminder to ask him about it.' },
-    { m: 1, text: '6:37pm, marked: propane, locked rate or month to month, is still open.' }
+    { m: 0, text: '2:09pm, tapped: Dale quoted the culvert pipe, $340 for 20 ft and $490 for 30 ft. That was your reminder to ask him about it.' },
+    { m: 1, text: '6:37pm, tapped: propane, locked rate or month to month, is still open.' }
   ];
-  if (S.demoMark) L.push({ m: 2, text: '8:15pm, marked: Priya says Biscuit eats the salmon food now; the chicken made him sick.' });
+  if (S.demoMark) L.push({ m: 2, text: '8:15pm, tapped: Priya says Biscuit eats the salmon food now; the chicken made him sick.' });
   return L;
 }
 function openItems() {
@@ -754,7 +754,7 @@ const openCount = () => openItems().filter(o => !o.gone && !S.done[o.id]).length
 /* ---------- pieces ---------- */
 function ribbon(o) {
   const W = 300, big = !!o.big, H = big ? 56 : 40, base = big ? 36 : 30, mh = big ? 26 : 20, bw = 288 / 64;
-  let s = '<svg class="ribbon" viewBox="0 0 ' + W + ' ' + H + '"' + (o.id ? ' id="' + o.id + '"' : '') + ' aria-label="The day by the hour, with marks">';
+  let s = '<svg class="ribbon" viewBox="0 0 ' + W + ' ' + H + '"' + (o.id ? ' id="' + o.id + '"' : '') + ' aria-label="The day by the hour, with taps">';
   if (!o.d) s += '<line x1="6" y1="' + base + '" x2="294" y2="' + base + '" class="empty"/>';
   else {
     s += '<line x1="6" y1="' + (base + .5) + '" x2="294" y2="' + (base + .5) + '" class="base"/>';
@@ -782,7 +782,7 @@ function line(e, dk) {
   return '<div class="ln held' + (st ? ' settled' : '') + '" data-line="' + e.id + '"' + (st ? '' : ' data-act="reply" data-r="' + e.id + '"') + '><span class="by">heard · ' + e.by + '</span>' + I.wave + ' <span class="tx">' + e.text + '</span><span class="settle-tag">settled</span></div>';
 }
 function msg(m, i, streaming) {
-  if (m.me) return '<div class="msg me" data-li="' + i + '">' + m.text + (m.marked ? ' ' + '<span class="mkdot" style="background:#F2D49B;margin:0 0 0 4px" aria-label="marked"></span>' : '') + '<span class="when">' + m.t + '</span></div>';
+  if (m.me) return '<div class="msg me" data-li="' + i + '">' + m.text + (m.tapped ? ' ' + '<span class="mkdot" style="background:#F2D49B;margin:0 0 0 4px" aria-label="tapped"></span>' : '') + '<span class="when">' + m.t + '</span></div>';
   const words = streaming ? m.text.split(' ').map((w, k) => '<span style="animation-delay:' + (k * 45) + 'ms">' + w + ' </span>').join('') : m.text;
   return '<div class="msg su' + (streaming ? ' stream' : '') + '" data-li="' + i + '">' + words +
     (m.mark ? '<br><button class="mchip" data-act="mark" data-day="' + m.mark[0] + '" data-i="' + m.mark[1] + '">' + MK + 'Heard ' + m.mark[2] + '</button>' : '') + '<span class="when">Plebian · ' + m.t + '</span></div>';
@@ -804,15 +804,14 @@ function vToday() {
   let h = '';
   if (!S.landed) {
     const ms = sunMarks();
-    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · LIVE · ' + ms.length + ' MARKS</span></div>' +
+    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · LIVE · ' + ms.length + ' TAPS</span></div>' +
       '<div id="land-ribbon">' + ribbon({ d: DAYS.sun.d, marks: ms, day: 'sun', until: liveBars(), strikeIdx: S.strikeMark }) + '</div>';
     S.strikeMark = null;
     if (S.landing) h += '<div class="dmeta" id="land-stage" style="margin-top:6px">' + landText() + '</div><div class="lines" id="land-lines"></div>';
-    else h += '<div class="pending" style="margin-top:6px">Heard live since 6:42am. Tonight’s read writes the page.</div>';
     h += '</div>';
   } else {
     const ms = sunMarks();
-    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · ' + ms.length + ' MARKS</span></div>' +
+    h += '<div class="card" id="sun-card"><div class="cap-row"><span class="dname">Sunday</span><span class="dmeta">NOV 15 · ' + ms.length + ' TAPS</span></div>' +
       ribbon({ d: DAYS.sun.d, marks: ms, day: 'sun' }) + '<div class="lines">' + sunEntry().map(e => line(e)).join('') + '</div>' +
       '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-act="openday" data-day="sun">Open the page</button></div></div>';
   }
@@ -830,12 +829,12 @@ function dayCard(k) {
   return '<div class="card day" data-act="openday" data-day="' + k + '"><div class="cap-row"><span class="dname" style="font-size:18px">' + d.name + '</span><span class="dmeta">' + d.date.toUpperCase() + '</span></div>' +
     ribbon({ d: d.d, marks: d.marks, day: k, until: k === 'sun' && !S.landed ? liveBars() : null }) +
     '<div class="first">' + d.first + '</div><div class="chips">' +
-    '<span class="tag">' + d.heard + ' heard</span>' + (d.marks.length ? '<span class="tag ore">' + d.marks.length + ' mark' + (d.marks.length > 1 ? 's' : '') + '</span>' : '') +
+    '<span class="tag">' + d.heard + ' heard</span>' + (d.marks.length ? '<span class="tag ore">' + d.marks.length + ' tap' + (d.marks.length > 1 ? 's' : '') + '</span>' : '') +
     (k === 'fri' && !S.done.o1 ? '<span class="tag">1 open</span>' : '') + (k === 'sun' && S.landed && openCount() > 2 ? '<span class="tag">' + (openCount() - 2) + ' open</span>' : '') + '</div></div>';
 }
 function vJournal() {
-  let h = '<div class="seg"><button class="' + (S.seg === 'days' ? 'on' : '') + '" data-act="seg" data-v="days">Days</button><button class="' + (S.seg === 'marks' ? 'on' : '') + '" data-act="seg" data-v="marks">Marks</button></div>' +
-    '<div class="search">' + I.search + '<span>Search everything said and heard</span></div>';
+  let h = '<div class="seg"><button class="' + (S.seg === 'days' ? 'on' : '') + '" data-act="seg" data-v="days">Days</button><button class="' + (S.seg === 'marks' ? 'on' : '') + '" data-act="seg" data-v="marks">Taps</button></div>' +
+    '<div class="search">' + I.search + '<span>Search</span></div>';
   if (S.seg === 'days') return h + ['sun', 'sat', 'fri', 'thu'].map(dayCard).join('');
   const rows = [];
   ['sun', 'sat', 'fri', 'thu'].forEach(k => { const d = day(k); d.marks.slice().reverse().forEach((m, j) => rows.push([k, d.marks.length - 1 - j, d, m])); });
@@ -846,12 +845,12 @@ function vDay() {
   const entry = S.day === 'sun' ? (S.landed ? sunEntry() : null) : d.entry;
   const xch = S.day === 'sun' ? S.thread.map(m => '<div class="xch"><span class="w">' + m.t + (m.me ? ' · you' : ' · Plebian') + '</span>' + m.text + '</div>').join('') :
     (d.xch.length ? d.xch.map(([t, you, su]) => '<div class="xch"><span class="w">' + t + '</span>' + (you ? '<span><b>You:</b> ' + you + '</span>' : '') + '<span><b>Plebian:</b> ' + su + '</span></div>').join('') : '<div class="pending">No messages that day.</div>');
-  const marks = d.marks.length ? d.marks.map((m, i) => '<div class="mrow" data-act="mark" data-day="' + S.day + '" data-i="' + i + '" style="padding:5px 0">' + MK + '<div><div class="t">' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('') : '<div class="pending">No marks.</div>';
+  const taps = d.marks.length ? d.marks.map((m, i) => '<div class="mrow" data-act="mark" data-day="' + S.day + '" data-i="' + i + '" style="padding:5px 0">' + MK + '<div><div class="t">' + m.t.toUpperCase() + '</div><div class="x">' + m.title + '</div></div></div>').join('') : '<div class="pending">No taps.</div>';
   return '<div class="card"><div class="dmeta">' + d.date.toUpperCase() + ' · ' + d.heard.toUpperCase() + ' HEARD</div>' + ribbon({ d: d.d, marks: d.marks, day: S.day, big: true, until: S.day === 'sun' && !S.landed ? liveBars() : null }) +
-    '<div class="sec">Entry</div>' + (entry ? '<div class="lines" style="margin-top:2px">' + entry.map(e => line(e, S.day)).join('') + '</div>' : '<div class="pending">Tonight’s read writes the entry.</div>') + '</div>' +
+    (entry ? '<div class="sec">Entry</div><div class="lines" style="margin-top:2px">' + entry.map(e => line(e, S.day)).join('') + '</div>' : '') + '</div>' +
     '<div class="stack" style="overflow:hidden;border-radius:14px"><div class="under"><div class="sec" style="margin:0 0 4px">Heard, beneath</div>' +
     d.under.map(([t, who, w]) => '<div class="row"><span class="tm">' + t + '</span><span><i>' + who + '</i>“' + w + '”</span></div>').join('') + '</div>' +
-    '<div class="card top' + (S.peek ? ' peek' : '') + '"' + (S.peek ? ' data-act="peek"' : '') + '><div class="sec" style="margin-top:0">With Plebian</div>' + xch + '<div class="sec">Marks</div>' + marks +
+    '<div class="card top' + (S.peek ? ' peek' : '') + '"' + (S.peek ? ' data-act="peek"' : '') + '><div class="sec" style="margin-top:0">With Plebian</div>' + xch + '<div class="sec">Taps</div>' + taps +
     '<div class="acts" style="margin-top:10px"><button class="btn" data-act="peek">' + (S.peek ? 'Lay it back down' : 'Lift to see what was heard') + '</button></div></div></div>';
 }
 function vMark() {
@@ -859,39 +858,36 @@ function vMark() {
   return '<div class="card"><div class="cap-row">' + MK + '<span class="dmeta">' + d.name.toUpperCase() + ' · ' + m.t.toUpperCase() + ' · TAPPED ON THE OMI</span></div>' +
     '<div class="ln" style="margin-top:6px;font-size:15px">' + m.title + '</div>' +
     '<div class="player"><button data-act="play" aria-label="Play the stretch">' + I.play + '</button><div class="wave">' + wave() + '<span class="head" id="phead"></span></div><span class="dmeta">0:48</span></div></div>' +
-    '<div class="card"><div class="sec" style="margin-top:0">Heard, around the mark</div><div class="verb">' +
+    '<div class="card"><div class="sec" style="margin-top:0">Heard, around the tap</div><div class="verb">' +
     m.verb.map(([t, who, tx, here]) => '<div class="r' + (here ? ' here' : '') + '"><i>' + t + ' ' + who + '</i>' + tx + '</div>').join('') + '</div></div>' +
     '<div class="acts"><button class="btn pri" data-act="askmark">Ask about this</button><button class="btn" data-act="note">Add a note</button></div>';
 }
 function vOpen() {
   const items = openItems();
   return '<div class="card"><div class="sec" style="margin-top:0">Waiting on you</div>' + items.map(o => '<div class="oi' + (o.gone || S.done[o.id] ? ' done' : '') + '" id="oi-' + o.id + '" data-act="reply" data-r="' + o.id + '"><div class="q">' + o.q + '</div><div class="src">' + o.src + '</div></div>').join('') + '</div>' +
-    '<div class="card"><div class="sec" style="margin-top:0">Kept orders</div>' + STANDING.map(s => '<div class="oi"><div class="q">' + s + '</div><div class="src">kept until you drop it</div></div>').join('') + '</div>' +
-    '<div class="note" style="padding:0 4px">Tap one to answer it in the thread, in your own words. Only a message from you closes one; Plebian can say an item looks done, but it can’t close it. A draft runs exactly as shown.</div>';
+    '<div class="card"><div class="sec" style="margin-top:0">Kept orders</div>' + STANDING.map(s => '<div class="oi"><div class="q">' + s + '</div></div>').join('') + '</div>';
 }
 function vRec() {
   return '<div class="card"><div class="pod">' + POD + '<div><div class="dname" style="font-size:18px">Paired · live</div><div class="dmeta">STREAMING SINCE 6:42AM</div></div></div>' +
     '<div style="margin-top:10px;font-size:13px">Battery: about half an hour left <span class="dmeta">ESTIMATE</span><div class="meter"><i style="width:6%"></i></div></div>' +
     '<div style="margin-top:8px;font-size:13px">Waiting to sync: nothing</div>' +
-    '<div class="pending" style="margin-top:4px">Out of the phone’s range, the Omi keeps recording to its own storage and syncs when it’s back.</div></div>' +
-    '<div class="card"><div class="sec" style="margin-top:0">On the Omi</div><div class="legend"><div><span>Two taps</span>mark the moment: a short buzz, saved; a long one, phone out of range</div><div><span>Hold 3 s</span>power off</div></div>' +
-    '<div class="sec">Where it goes</div><div style="font-size:12.5px;color:var(--ink-2)">Everything Omi’s app would send to Omi’s servers goes to the Pi: live audio, offline sync, conversations and voices.</div></div>' +
+    '</div>' +
     '<div class="card"><div class="sec" style="margin-top:0">' + (S.landing || S.landed ? 'Tonight’s read' : 'Last read · Saturday 11:00pm') + '</div><div class="stages" id="stages">' + stagesHTML() + '</div></div>';
 }
 function vAdmin() {
   const n = Object.keys(S.approved).filter(k => k[0] === 'a').length;
   return '<div class="card"><div class="dmeta">WEEK OF NOV 9 · BRIEF</div>' + BRIEF.map(([lane, items]) => '<div class="lane-h">' + lane + ' <span class="n">' + items.length + '</span></div>' +
-    items.map(([id, what, why]) => '<div class="ai' + (S.approved[id] ? ' ok' : '') + '"><div>' + what + '</div><div class="why">' + why + '</div><div class="acts"><button class="btn pri" data-act="approve" data-id="' + id + '">' + (id[0] === 's' ? 'Grant' : 'Approve') + '</button><button class="btn" data-act="skip" data-id="' + id + '">Skip</button></div><div class="st">' + (id[0] === 's' ? 'granted · Plebian can hand it back' : S.deployed ? 'deployed' : 'approved · building on a branch') + '</div></div>').join('')).join('') + '</div>' +
-    '<div class="card"><div class="deploy"><div style="font-size:12.5px;color:var(--ink-2)">' + (S.deployed ? 'Deployed. Replay matched every page.' : 'Approved items are built on a branch and replayed against every page since the last deploy.') + '</div>' +
+    items.map(([id, what, why]) => '<div class="ai' + (S.approved[id] ? ' ok' : '') + '"><div>' + what + '</div><div class="why">' + why + '</div><div class="acts"><button class="btn pri" data-act="approve" data-id="' + id + '">' + (id[0] === 's' ? 'Grant' : 'Approve') + '</button><button class="btn" data-act="skip" data-id="' + id + '">Skip</button></div><div class="st">' + (id[0] === 's' ? 'granted' : S.deployed ? 'deployed' : 'building') + '</div></div>').join('')).join('') + '</div>' +
+    '<div class="card"><div class="deploy"><div style="font-size:12.5px;color:var(--ink-2)">' + (S.deployed ? 'Deployed · replay matched' : '') + '</div>' +
     '<button class="btn pri" data-act="deploy"' + (n && !S.deployed ? '' : ' disabled style="opacity:.45"') + '>Deploy' + (n ? ' ' + n : '') + '</button></div></div>' +
-    '<div class="note" style="padding:0 4px">Hands-on work: open your coding agent&rsquo;s remote session.</div>';
+    '<div class="acts" style="padding:0 4px"><button class="btn ghost">Coding agent session</button></div>';
 }
 const VIEWS = { today: vToday, journal: vJournal, open: vOpen, day: vDay, mark: vMark, rec: vRec, admin: vAdmin };
 
 /* ---------- frame ---------- */
 function chrome() {
   const root = S.screen === 'today' || S.screen === 'journal' || S.screen === 'open';
-  const title = { day: S.day ? day(S.day).name : '', mark: 'Mark', rec: 'Omi', admin: 'This week' }[S.screen] || '';
+  const title = { day: S.day ? day(S.day).name : '', mark: 'Tap', rec: 'Omi', admin: 'This week' }[S.screen] || '';
   const chip = '<button class="rchip" data-act="rec"><span class="dot"></span>Omi · live</button>';
   const head = root ? '<img class="wm" src="' + WM + '" alt="Plebian">' : '<button class="back" data-act="back" aria-label="Back">' + I.back + '</button><span class="title">' + title + '</span>';
   return '<div class="sbar"><span>' + S.clock + '</span><span class="cam"></span><span>100%</span></div><div class="ahead">' + head + chip + (root ? '<button class="gear" data-act="admin" aria-label="This week’s brief">' + I.gear + '</button>' : '') + '</div>';
@@ -960,7 +956,7 @@ function dock() {
   }));
   later(7600, () => {
     S.landing = false; S.landed = true; S.clock = '11:04';
-    render(false); toast('Sunday’s page is up. ' + sunMarks().length + ' marks, 2 need your word.'); bump();
+    render(false); toast('Sunday’s page is up. ' + sunMarks().length + ' taps, 2 need your word.'); bump();
     note('The page is up. Tap a heard line to answer it in your own words; whatever you say settles it.');
   });
 }
@@ -996,10 +992,10 @@ function act(a, el) {
       const d = day(S.mref[0]), m = d.marks[S.mref[1]];
       REPLY.mk = { quote: () => d.name + ' ' + m.t + ': ' + m.title, say: 'is that the price installed?', answer: 'It doesn’t say. Dale gave the two prices and nothing about installing. Want me to ask him next time he comes up?', apply: () => {}, done: () => false };
       S.reply = 'mk'; S.compose = REPLY.mk.say; S.typed = true; S.stack = []; S.screen = 'today'; render(true); toBottom();
-      note('The mark is quoted into the thread. Ask in your own words.');
+      note('The tap is quoted into the thread. Ask in your own words.');
       break;
     }
-    case 'note': toast('Notes ride on the mark, as your own words.'); break;
+    case 'note': el.outerHTML = '<input class="mnote" aria-label="Note" style="flex:1;min-width:0;border:1px solid var(--rule-2);border-radius:99px;padding:5px 11px;font:400 13px/1 var(--sans);background:#fff">'; { const n = scr.querySelector('.mnote'); if (n) n.focus(); } break;
     case 'approve': S.approved[el.dataset.id] = 1; render(false); break;
     case 'skip': { const r = el.closest('.ai'); if (r) { r.style.transition = 'opacity .3s'; r.style.opacity = '.35'; } break; }
     case 'deploy': S.deployed = true; render(false); toast('Deployed. Replay matched every page.'); break;
@@ -1015,9 +1011,9 @@ scr.addEventListener('pointerdown', e => {
   const m = e.target.closest('.msg'); if (!m) return;
   lx = e.clientX; ly = e.clientY;
   lp = setTimeout(() => {
-    const i = +m.dataset.li; if (S.thread[i] && S.thread[i].me) { S.thread[i].marked = true; render(false); }
+    const i = +m.dataset.li; if (S.thread[i] && S.thread[i].me) { S.thread[i].tapped = true; render(false); }
     m.style.transition = 'transform .15s'; m.style.transform = 'scale(.97)'; setTimeout(() => { m.style.transform = ''; }, 160);
-    toast('Marked. It joins today’s page.'); if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) { /* not allowed here */ }
+    toast('Tapped. It joins today’s page.'); if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) { /* not allowed here */ }
   }, 520);
 });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => scr.addEventListener(t, () => { clearTimeout(lp); }));
@@ -1027,11 +1023,11 @@ scr.addEventListener('pointermove', e => { if (Math.abs(e.clientX - lx) + Math.a
 document.querySelectorAll('[data-demo]').forEach(b => b.addEventListener('click', () => {
   const k = b.dataset.demo;
   if (k === 'tap') {
-    if (S.demoMark) { note('That moment is already marked.'); return; }
+    if (S.demoMark) { note('Already tapped.'); return; }
     S.demoMark = true; S.strikeMark = SUN_MARKS.length;
     const p = document.getElementById('pl-pod'); p.classList.remove('buzz'); void p.getBoundingClientRect(); p.classList.add('buzz');
-    wrist('Paired with your phone', 'Streaming since 6:42am. Three marks today.');
-    note('The tap reached the phone over Bluetooth, and the mark is on today’s ribbon at 8:15pm.');
+    wrist('Paired with your phone', 'Streaming since 6:42am. Three taps today.');
+    note('The tap reached the phone over Bluetooth, and the tap is on today’s ribbon at 8:15pm.');
     if (S.screen === 'today') render(false); else S.strikeMark = null;
   } else if (k === 'dock') dock();
   else if (k === 'ask') {
@@ -1040,7 +1036,7 @@ document.querySelectorAll('[data-demo]').forEach(b => b.addEventListener('click'
     later(700, () => say('what did dale quote for the culvert pipe', { text: '$340 for the 20 ft and $490 for the 30 ft. Dale said it at 2:09pm today; that’s from what was heard.', mark: ['sun', 0, 'Sun 2:09pm'] }));
   } else if (k === 'reset') {
     timers.forEach(clearTimeout); timers = []; S = fresh(); render(true);
-    wrist('Paired with your phone', 'Streaming since 6:42am. Two marks today.');
+    wrist('Paired with your phone', 'Streaming since 6:42am. Two taps today.');
     note('It is Sunday evening. The Omi has been streaming through your phone since 6:42am, and the Pi has heard the day as it happened.');
   }
 }));

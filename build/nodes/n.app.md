@@ -10,11 +10,12 @@ spec: PL-01 … PL-09; `docs/design/tokens.json`; `docs/design/mockup.html` (loo
 
 ## guarantee
 [BINDING] origin: specified
-- out: screens Today, Journal (Days, Marks, search), Open, Day page, Mark, Omi, This week, Setup, Browser live view — each rendering only what the API returns; owner messages; marks and notes; signed admin actions; wheel input; the server's offline-file acknowledgements, passed to the device layer
+- out: screens Today, Journal (Days, Taps, search), Open, Day page, Tap, Omi, This week, Setup, Browser live view — each rendering only what the API returns; owner messages; taps and notes; signed admin actions; wheel input; the server's offline-file acknowledgements, passed to the device layer
 - every control on every screen does what its label says against the real API; no screen is a placeholder
-- nothing in the conversation sends fixed words: drafts, questions, heard lines and marks are answered by the owner typing; tapping quotes the item into the composer
+- the app's own strings are labels, names, times, counts and statuses: no hints, captions, instructions or empty-state sentences on any screen
+- nothing in the conversation sends fixed words: drafts, questions, heard lines and taps are answered by the owner typing; tapping quotes the item into the composer
 - heard lines show the speaker and a dashed rule until settled; settling inks the rule solid
-- marks render in ore; the ribbon shows talk density by the hour and the marks on it, live
+- taps render in ore; the ribbon shows talk density by the hour and the taps on it, live
 - the motions in `tokens.json` (lay, strike, live, peek, presence, settle) run on their events; with reduced motion each becomes a fade
 - every control has a TalkBack label; text follows the system font size
 - messages and audio queue while the server is unreachable and send in order when it returns
@@ -47,6 +48,10 @@ fixtures: Flutter integration tests on an emulator against the server under test
   status: live
 - D4: a message the agent starts waits silently in the thread while the app is closed
   kill_test: tests/app/test_notification_with_app_closed
+  negative_check: pending
+  status: live
+- D5: an empty screen or section shows a sentence about what will appear there, or a hint about how to use it
+  kill_test: tests/app/test_no_explanatory_strings
   negative_check: pending
   status: live
 
