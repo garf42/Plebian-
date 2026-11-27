@@ -191,3 +191,49 @@ func TestHeardUserTurnOnly(t *testing.T) {
 		}
 	}
 }
+
+// D1 (n.models): breakpoints sit on band boundaries only (the system rules, deep and
+// recent strata, the tail's last block): at most four, and never on the newest inbound,
+// which changes with every request.
+func TestBreakpointsOnBands(t *testing.T) {
+	k := kit.New(t, "anthropic", model.Script{Default: &model.Reply{Text: "noted"}})
+	for i := 0; i < 4; i++ {
+		k.Say("tell me about the culvert, part " + string(rune('a'+i)))
+	}
+	for i, r := range k.Requests() {
+		var b struct {
+			System   []map[string]any `json:"system"`
+			Messages []struct {
+				Content []map[string]any `json:"content"`
+			} `json:"messages"`
+		}
+		json.Unmarshal(r, &b)
+		n := 0
+		for j, s := range b.System {
+			if s["cache_control"] != nil {
+				n++
+				if j != len(b.System)-1 {
+					t.Fatalf("request %d: a breakpoint inside the system band", i)
+				}
+			}
+		}
+		others := 0
+		for mi, m := range b.Messages {
+			for bi, c := range m.Content {
+				if c["cache_control"] == nil {
+					continue
+				}
+				n++
+				if mi == len(b.Messages)-1 && bi == len(m.Content)-1 {
+					t.Fatalf("request %d: a breakpoint on the newest inbound", i)
+				}
+				if txt, _ := c["text"].(string); !strings.HasPrefix(txt, "<strata") {
+					others++
+				}
+			}
+		}
+		if n > 4 || others > 1 {
+			t.Fatalf("request %d: %d breakpoints, %d off the strata", i, n, others)
+		}
+	}
+}

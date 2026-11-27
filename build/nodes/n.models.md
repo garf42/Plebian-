@@ -28,9 +28,9 @@ reference: the fixture provider's request log; MR-1, MR-2
 
 ## demons
 - D1: puts cache breakpoints anywhere that fits, not on band boundaries
-  kill_test: tests/models/test_breakpoints_on_band_boundaries
-  negative_check: pending
-  status: live
+  kill_test: tests/assemble/assemble_test.go TestBreakpointsOnBands
+  negative_check: seen red — TestBreakpointsOnBands: a breakpoint on the newest inbound (placed wherever it fits)
+  status: killed
 - D2: switches provider on the first 429 regardless of Retry-After
   kill_test: tests/models/retry_test.go TestRetryWindow
   negative_check: seen red — TestRetryWindow: Retry-After 7s within 1m0s: same provider answered false (switched on the first 429)
