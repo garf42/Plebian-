@@ -106,7 +106,7 @@ func init() {
 		},
 		Assert: func(h *H, c *C) {
 			c.Check("entry_written_by_clock", st.clockAfter >= 1 && len(st.entries) == 1, "clock requests %d; third night's entry lines %d", st.clockAfter, len(st.entries))
-			c.Check("none_opened_before", st.clockBefore == 0, "the clock opened %d turns before the third night's hour", st.clockBefore)
+			c.Check("none_opened_before", st.clockAfter >= 1 && st.clockBefore == 0, "the clock opened %d turns before the third night's hour and %d after", st.clockBefore, st.clockAfter)
 			held := len(st.entries) == 1 && st.entries[0]["held"] == true
 			c.Check("entry_held_until_answered", held && !st.heldAfter, "held when written %v; held after the owner answered it %v", held, st.heldAfter)
 			c.Check("page_cut_at_4am", st.lateOnDay && !st.lateOnNext, "a 2 am message on its day %v, on the next %v", st.lateOnDay, st.lateOnNext)

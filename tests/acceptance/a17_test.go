@@ -16,6 +16,7 @@ func init() {
 		key, status  string
 		replay       map[string]any
 		restoreErr   string
+		restoreRan   bool
 	}
 	var st *a17
 	register(Scenario{
@@ -59,6 +60,7 @@ func init() {
 				st.restoreErr = fmt.Sprintf("%v: %s", err, out)
 				return
 			}
+			st.restoreRan = true
 			ab, _ := os.ReadFile(filepath.Join(b.Root, "run", "api.json"))
 			if ab == nil {
 				ab, _ = sudo("cat", filepath.Join(b.Root, "run", "api.json")).Output()
@@ -76,7 +78,7 @@ func init() {
 		Assert: func(h *H, c *C) {
 			c.Check("page_has_reply", bytes.Contains(st.pageA, []byte("Wednesday, by the culvert.")), "the page before the backup: %s", st.pageA)
 			c.Check("backed_up", st.key != "" && strings.HasPrefix(st.status, "last backup"), "key given %v; backups card %q", st.key != "", st.status)
-			c.Check("restored", st.restoreErr == "", "restore: %s", st.restoreErr)
+			c.Check("restored", st.restoreRan && st.restoreErr == "", "restore ran %v: %s", st.restoreRan, st.restoreErr)
 			c.Check("page_byte_identical", len(st.pageA) > 0 && bytes.Equal(st.pageA, st.pageB), "restored page differs:\n%s\n%s", st.pageA, st.pageB)
 			turns, _ := st.replay["turns"].(float64)
 			c.Check("restored_turns_rebuild", st.replay["ok"] == true && turns >= 1, "replay on the restored root: %v", st.replay)

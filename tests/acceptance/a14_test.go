@@ -14,6 +14,7 @@ type a14 struct {
 	announced          bool
 	drafts             int
 	toolNames          []string
+	bands              int // model requests whose tool band was read
 }
 
 func webPosts(h *H, w *Fixture) int {
@@ -83,6 +84,7 @@ func init() {
 			st.drafts = len(open.Drafts)
 			for _, r := range Requests(h.T, h.Fixtures["model:anthropic"]) {
 				if strings.HasSuffix(r.URL, "/messages") {
+					st.bands++
 					for _, name := range []string{"grant", "standing"} {
 						if strings.Contains(string(r.Body), `"name":"`+name) {
 							st.toolNames = append(st.toolNames, name)
@@ -96,9 +98,9 @@ func init() {
 			c.Check("announced", st.announced, "the step with standing was not announced")
 			c.Check("ran_after_window", st.postsAfterWindow == 1, "the order was posted %d times after the window", st.postsAfterWindow)
 			c.Check("bearer_grant_refused", st.bearerOnly == 403, "a grant with a bearer token alone answered %d", st.bearerOnly)
-			c.Check("not_before_window", st.postsBeforeWindow == 0, "posted %d times inside the stop window", st.postsBeforeWindow)
+			c.Check("not_before_window", st.postsAfterWindow == 1 && st.postsBeforeWindow == 0, "posted %d times inside the stop window, %d after", st.postsBeforeWindow, st.postsAfterWindow)
 			c.Check("drafted_with_outside_words", st.postsAfterOutside == 1 && st.drafts >= 1, "with a page in view: %d posts, %d drafts", st.postsAfterOutside, st.drafts)
-			c.Check("no_tool_raises_standing", len(st.toolNames) == 0, "the tool band holds %v", st.toolNames)
+			c.Check("no_tool_raises_standing", st.bands > 0 && len(st.toolNames) == 0, "%d tool bands read; they hold %v", st.bands, st.toolNames)
 		},
 	})
 }

@@ -144,7 +144,7 @@ func init() {
 			rep := h.Replay()
 			turns, _ := rep["turns"].(float64)
 			c.Check("turns_sealed", turns >= 1, "replay found %v sealed turns", rep["turns"])
-			c.Check("turns_rebuild_byte_exact", rep["ok"] == true, "replay: %v", rep)
+			c.Check("turns_rebuild_byte_exact", turns >= 1 && rep["ok"] == true, "replay of %v turns: %v", rep["turns"], rep)
 		},
 	})
 }

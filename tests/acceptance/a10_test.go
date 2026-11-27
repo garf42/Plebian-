@@ -66,16 +66,17 @@ func rawPost(t testing.TB, url string, body []byte) {
 
 func init() {
 	type a10 struct {
-		sources     map[string]int
-		mailRow     string
-		daleRow     string
-		pdfAnswer   []string
-		outsideSeen bool
-		noteRan     bool
-		shown       string
-		sentAfterNo int
-		sent        []struct{ Data []byte }
-		emoji       string
+		sources       map[string]int
+		mailRow       string
+		daleRow       string
+		pdfAnswer     []string
+		outsideSeen   bool
+		noteRan       bool
+		shown         string
+		sentAfterNo   int
+		declinedShown bool // the owner declined a draft that was shown
+		sent          []struct{ Data []byte }
+		emoji         string
 	}
 	var st *a10
 	register(Scenario{
@@ -190,6 +191,7 @@ func init() {
 			if len(open.Drafts) > 0 {
 				st.shown = open.Drafts[len(open.Drafts)-1].Text
 			}
+			st.declinedShown = st.shown != ""
 			h.Say("no, don't send that yet")
 			Until(90*time.Second, agentSaid("Not sent."))
 			time.Sleep(2 * time.Second)
@@ -208,7 +210,7 @@ func init() {
 			c.Check("pdf_as_outside_words", st.outsideSeen && !st.noteRan, "outside-marked reading seen %v; a local change ran with it in view %v", st.outsideSeen, st.noteRan)
 			full := strings.Contains(st.shown, "Date: ") && strings.Contains(st.shown, "Message-ID: <") && strings.Contains(st.shown, "In-Reply-To: <gravel-7@quarry.example>") && strings.Contains(st.shown, "Wednesday works.")
 			c.Check("draft_is_whole_message", full, "draft shown %q", st.shown)
-			c.Check("declined_sends_nothing", st.sentAfterNo == 0, "%d sent after the owner declined", st.sentAfterNo)
+			c.Check("declined_sends_nothing", st.declinedShown && st.sentAfterNo == 0, "a shown draft declined %v; %d sent after", st.declinedShown, st.sentAfterNo)
 			c.Check("approved_sends_shown_bytes_once", len(st.sent) == 1 && string(st.sent[0].Data) == st.shown, "%d sent; bytes equal the shown draft: %v", len(st.sent), len(st.sent) == 1 && string(st.sent[0].Data) == st.shown)
 		},
 	})

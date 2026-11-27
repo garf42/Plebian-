@@ -39,7 +39,7 @@ func Run(t *testing.T, id string) {
 	}
 }
 
-// Undriven runs a scenario's Assert on its setup alone (an empty store): it must fail.
+// Undriven runs a scenario's Assert on its setup alone (an empty store): every assertion must fail.
 func Undriven(t *testing.T, id string) {
 	s, ok := scenarios[id]
 	if !ok || s.Drive == nil {
@@ -48,8 +48,8 @@ func Undriven(t *testing.T, id string) {
 	h := s.Setup(t)
 	c := &C{Scenario: id + "/undriven"}
 	s.Assert(h, c)
-	if len(c.Errors) == 0 {
-		t.Fatalf("%s: its assertions hold on an empty store", id)
+	if len(c.Passed) > 0 {
+		t.Fatalf("%s: %v hold on an empty store", id, c.Passed)
 	}
 }
 

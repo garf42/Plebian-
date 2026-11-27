@@ -29,6 +29,7 @@ jobs:
           - {demon: n.audio-D1, scenario: TestA06}
           - {demon: n.audio-D2, scenario: TestA07}
           - {demon: n.audio-D3, scenario: TestA05}
+          - {demon: n.proof-D2, scenario: TestNonVacuity/A10}
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     steps:

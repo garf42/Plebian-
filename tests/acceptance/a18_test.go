@@ -58,7 +58,7 @@ func init() {
 			assertA05(c, &st.a05)
 			c.Check("audio_in_bucket", st.putSeen, "the bucket received no PUT for the stretch's original")
 			c.Check("original_reads_back", bytes.HasPrefix(st.original, []byte("OggS")), "the original read back as %d bytes", len(st.original))
-			c.Check("nothing_left_on_disk", st.localLeft == "", "originals left in the root: %s", st.localLeft)
+			c.Check("nothing_left_on_disk", st.putSeen && st.localLeft == "", "the bucket took the original %v; originals left in the root: %s", st.putSeen, st.localLeft)
 		},
 	})
 }
