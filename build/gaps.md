@@ -170,3 +170,8 @@ Decisions taken by default. Reviewed in batch at phase boundaries, never mid-bui
 - G034 — node: n.tools — volatility: high — last_reviewed: phase-4
   The sandbox's networked runs share the host network, where Chromium's DevTools listens on loopback with no credential. Held now by time: a networked run refuses to start while the browser is up, and the browser closes when no task, live view or held request needs it. A pipe-only DevTools (or a network namespace without host loopback) would hold it by place instead.
   Blocks: a networked run while a held browser request waits for the owner.
+
+- G035 — node: n.feeds — volatility: medium — last_reviewed: phase-4
+  Dependencies in use without a probe row: go-imap v2.0.0-beta.9 and go-ical (n.feeds), coder/websocket v1.8.15 (n.api, n.browser), the sherpa-onnx Go binding v1.13.8 (n.audio; the speech probe ran the Python wheel 2.0.3, same models), tailscale.com v1.106.1 tsnet (n.api; needs the owner's tailnet), universal_ble 3.3.0 (n.app_device; needs the owner's phone and Omi). Each is exercised by its node's tests against fixtures (the IMAP fixture is built on go-imap itself, so those tests do not separate the library from the fixture).
+  Assumed: the tests stand in for probes until a probe at real dimensions runs twice per arch (a Dovecot IMAP server with a year of mail and IDLE; the Go speech binding on the probe's audio; tsnet and BLE at first run). Reversible: yes.
+  Blocks: nothing yet; a misbehaviour at the owner's dimensions would surface first on the box.

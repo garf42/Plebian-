@@ -78,6 +78,8 @@ jobs:
 
   publish:
     needs: [server, apk]
+    # The server ships even when the APK fails to build; the release then carries no APK.
+    if: ${{ !cancelled() && needs.server.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
