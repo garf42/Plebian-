@@ -156,6 +156,7 @@ type a01 struct {
 	rootLeft              bool
 	accountsLeft          []string
 	version               bool
+	commit                string
 }
 
 func init() {
@@ -170,7 +171,9 @@ func init() {
 		Drive: func(h *H) {
 			full := Install(h.T)
 			*h = *full
-			st.version = h.Do("GET", "/v1/version", nil, nil, false) == 200
+			var v struct{ Commit string }
+			st.version = h.Do("GET", "/v1/version", nil, &v, false) == 200
+			st.commit = v.Commit
 			st.during = snapshot(st.canary.dir)
 			st.listen = listeners()
 			st.canaryDuring = st.canary.alive()
@@ -185,9 +188,12 @@ func init() {
 					st.accountsLeft = append(st.accountsLeft, u)
 				}
 			}
+			h.Addr = "" // uninstalled: the version was checked above, while it served
 		},
 		Assert: func(h *H, c *C) {
 			c.Check("installed_and_serving", st.version && h.Root != "", "the installed server did not answer /v1/version")
+			want := os.Getenv("PLEBIAN_COMMIT")
+			c.Check("version_is_commit", want != "" && st.commit == want, "installed server reports %q, commit under test is %q", st.commit, want)
 			c.Check("listens", len(st.listen) > 0, "no listening socket found for the plebian accounts")
 			for _, a := range st.listen {
 				host, _, _ := net.SplitHostPort(a)

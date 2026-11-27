@@ -50,7 +50,7 @@ def main(a, b):
         summary[t] = state
         print(f"{t:28s} {state:8s} run1={x} run2={y}")
     for (sc, asn), w in sorted(wa.items()):
-        if not sc.endswith("/undriven"):
+        if not sc.endswith("/undriven") and "not built" not in w:
             print(f"RED {sc}/{asn}: {w[:300]}")
     print("SUMMARY " + json.dumps(summary, sort_keys=True))
     for d in disagree:
