@@ -57,7 +57,7 @@ Written from the records: `build/ledger.jsonl` (L-ids), `build/gaps.md` (G-ids),
 
 ## What to change, ranked by damage still possible
 
-1. Installer ownership: L0030 and L0031 were the same class. Install now runs `plebian access` as the server account before starting it: every file the server loads must open for reading, and every directory it writes must take a new file. This was seen red locally as an unprivileged account with a 0600 model file: "read …/a.onnx: permission denied". It runs on every install in acceptance. Still open: the tools account's paths have no such check.
+1. Installer ownership: L0030 and L0031 were the same class. Install now runs `plebian access` as the server account before starting it: every file the server loads must open for reading, and every directory it writes must take a new file. This was seen red locally as an unprivileged account with a 0600 model file: "read …/a.onnx: permission denied". It runs for both accounts on every install in acceptance.
 2. The browser is not fetched by install (G032). On the owner's box, `browse`, the live view and the texts sign-in are absent until a browser directory is supplied.
 3. The 14 acceptance-level and app demons have never been seen red (listed under Demons). Their kill tests could pass vacuously.
 4. TP-T16 and TP-T17 are untested (G036). Memory's scaling and its benefit over a plain window are asserted only by design (L0001).
