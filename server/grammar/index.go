@@ -416,3 +416,9 @@ func (g *G) roundTrip(ctx context.Context, text []byte, body string, now float64
 }
 
 func itoa(v int) string { return strconv.Itoa(v) }
+
+// UseHeard records a use in the heard body on the underlay's own clock (one tick per
+// stretch or message). Nothing heard writes a use on the thread (TP-T5).
+func (g *G) UseHeard(ctx context.Context, sym int64, tick float64, p core.Params) error {
+	return g.use(ctx, sym, Heard, tick, p, "")
+}

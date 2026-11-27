@@ -31,7 +31,8 @@ type Store struct {
 	Path    string
 	Blobs   Blobs
 	Hub     Hub
-	mu      sync.Mutex
+	mu      sync.Mutex // Durable's pragma switch
+	spellMu sync.Mutex
 	speller Speller
 	// turnCache holds rebuilt turns: sealed bytes never change, so a rebuilt turn is
 	// reused. shortcut: unbounded map; bound it by size when stores reach millions of turns.
@@ -54,7 +55,10 @@ func Open(path string, blobs Blobs) (*Store, error) {
 	if err := os.Chmod(path, 0o600); err != nil {
 		return nil, err
 	}
-	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=synchronous(FULL)&_pragma=busy_timeout(10000)&_pragma=foreign_keys(ON)"
+	// NORMAL in WAL mode survives a killed process (committed frames are in the file);
+	// writes that must survive power loss go through Durable, whose FULL commit fsyncs
+	// the log and with it every commit before it.
+	dsn := "file:" + path + "?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=busy_timeout(10000)&_pragma=foreign_keys(ON)"
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
@@ -70,9 +74,9 @@ func Open(path string, blobs Blobs) (*Store, error) {
 
 // SetSpeller installs the grammar's speller. Rows written under another speller keep
 // rebuilding because every spelling carries its own format tag (see Loose).
-func (s *Store) SetSpeller(sp Speller) { s.mu.Lock(); s.speller = sp; s.mu.Unlock() }
+func (s *Store) SetSpeller(sp Speller) { s.spellMu.Lock(); s.speller = sp; s.spellMu.Unlock() }
 
-func (s *Store) Speller() Speller { s.mu.Lock(); defer s.mu.Unlock(); return s.speller }
+func (s *Store) Speller() Speller { s.spellMu.Lock(); defer s.spellMu.Unlock(); return s.speller }
 
 func (s *Store) Close() error { return s.DB.Close() }
 
@@ -87,6 +91,19 @@ type TurnMeta struct {
 	Bands         string // JSON list of band shas the request used
 }
 
+// Durable runs an exec whose commit must be on disk before the caller goes on (a sealed
+// turn, a heard row, a call marked running): synchronous=FULL for that commit alone.
+func (s *Store) Durable(ctx context.Context, q string, args ...any) (sql.Result, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, err := s.DB.ExecContext(ctx, `PRAGMA synchronous=FULL`); err != nil {
+		return nil, err
+	}
+	res, err := s.DB.ExecContext(ctx, q, args...)
+	s.DB.ExecContext(ctx, `PRAGMA synchronous=NORMAL`)
+	return res, err
+}
+
 // Seal writes sheet n durably and returns n. Its bytes never change afterwards.
 func (s *Store) Seal(ctx context.Context, sh core.Sheet, m TurnMeta) (int64, error) {
 	b := sh.Bytes()
@@ -95,7 +112,7 @@ func (s *Store) Seal(ctx context.Context, sh core.Sheet, m TurnMeta) (int64, err
 	if err != nil {
 		return 0, err
 	}
-	res, err := s.DB.ExecContext(ctx, `INSERT INTO turns(opener, spelling, sha, at, shown, heard_opened, outside_in_view, model, request_id, bands)
+	res, err := s.Durable(ctx, `INSERT INTO turns(opener, spelling, sha, at, shown, heard_opened, outside_in_view, model, request_id, bands)
 		VALUES(?,?,?,?,?,?,?,?,?,?)`, string(sh.Opener), sp, h[:], m.At, m.Shown, m.HeardOpened, m.OutsideInView, m.Model, m.RequestID, m.Bands)
 	if err != nil {
 		return 0, err

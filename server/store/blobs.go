@@ -138,7 +138,7 @@ func (s *Store) AddHeard(ctx context.Context, r HeardRow) (int64, error) {
 	}
 	var tick int64
 	s.DB.QueryRowContext(ctx, `SELECT COALESCE(MAX(tick),0)+1 FROM heard WHERE source=?`, r.Source).Scan(&tick)
-	res, err := s.DB.ExecContext(ctx, `INSERT INTO heard(source, at, end_at, spelling, sha, blob, ext, covers, tick, landed_at) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+	res, err := s.Durable(ctx, `INSERT INTO heard(source, at, end_at, spelling, sha, blob, ext, covers, tick, landed_at) VALUES(?,?,?,?,?,?,?,?,?,?)`,
 		r.Source, r.At, r.End, sp, h[:], r.Blob, r.Ext, covers, tick, r.Landed)
 	if err != nil {
 		return 0, err

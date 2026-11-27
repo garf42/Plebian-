@@ -34,16 +34,16 @@ fixtures: `tests/underlay/` scripted moments (two spoken answers, an overheard g
 ## demons
 - D1: every landing opens a turn whether or not it lit anything (model cost grows with everything heard)
   kill_test: tests/underlay/test_landing_opens_only_when_lit
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestLandingOpensOnlyWhenLit (talk lighting nothing opened a turn)
+  status: killed
 - D2: lookup returns row text into the sheet, so heard words enter the stack
   kill_test: tests/underlay/test_lookup_returns_ids
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestLookupReturnsIds (lookup's reading copied heard text)
+  status: killed
 - D3: a heard answer closes the question it answers
   kill_test: tests/underlay/test_heard_closes_nothing
-  negative_check: pending
-  status: live
+  negative_check: seen red — --- FAIL: TestHeardClosesNothing (a heard answer closed the question)
+  status: killed
 - D4: lookup puts an attachment where a call that didn't ask for the outside folder can read it
   kill_test: tests/underlay/test_attachments_land_outside_only
   negative_check: pending

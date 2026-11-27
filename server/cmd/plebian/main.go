@@ -35,6 +35,7 @@ import (
 	"plebian/server/speech"
 	"plebian/server/store"
 	"plebian/server/tools"
+	"plebian/server/underlay"
 	"plebian/server/watch"
 )
 
@@ -242,6 +243,15 @@ func serve(args []string) error {
 		R: rc}
 	if err := lp.Init(ctx); err != nil {
 		return err
+	}
+	un := &underlay.U{S: s, G: gr, P: core.Defaults,
+		Info: func(ctx context.Context, sym int64) float64 { return rc.Info(ctx, sym, grammar.Thread) },
+		Open: func(ctx context.Context, body string) error { return lp.Enqueue(ctx, "landing", body) }}
+	lp.Heard = un.Lit
+	an.Land = func(ctx context.Context, id int64) {
+		if err := un.Land(ctx, id); err != nil {
+			logger.Printf("landing %d: %v", id, err)
+		}
 	}
 	ask := func(ctx context.Context, text string) error { return lp.Enqueue(ctx, "question", text) }
 	an.Ask = ask

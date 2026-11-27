@@ -279,8 +279,20 @@ func (l *Loop) spotlight(ctx context.Context, rt models.Route, parts []core.Part
 	if l.A == nil {
 		return nil, nil
 	}
-	var cue, last []byte
+	var cue, last, landed []byte
 	for _, p := range parts {
+		if p.Kind == core.PartLanding {
+			// A landing's rows are quoted for its own turn, with who said each and when.
+			first, _, _ := strings.Cut(string(p.Text), "\n")
+			var ids []int64
+			for _, f := range strings.Fields(strings.TrimPrefix(first, "rows:")) {
+				var id int64
+				if _, err := fmt.Sscan(f, &id); err == nil {
+					ids = append(ids, id)
+				}
+			}
+			landed = append(landed, underlay.Quote(ctx, l.S, ids)...)
+		}
 		if p.Kind == core.PartOwner || p.Kind == core.PartReading || p.Kind == core.PartQuestion || p.Kind == core.PartClock {
 			cue = append(append(cue, p.Text...), ' ')
 		}
@@ -302,7 +314,8 @@ func (l *Loop) spotlight(ctx context.Context, rt models.Route, parts []core.Part
 		}
 		rows.Close()
 	}
-	return l.A.Spotlight(ctx, rt.Model.ID, l.budget(ctx, rt), cue, last, inView, l.Heard, float64(l.tailFrom+int64(len(l.tail))))
+	spot, shown := l.A.Spotlight(ctx, rt.Model.ID, l.budget(ctx, rt), cue, last, inView, l.Heard, float64(l.tailFrom+int64(len(l.tail))))
+	return append(landed, spot...), shown
 }
 
 // settle is the outcome ledger, first in each turn: each reading settles its call by its
@@ -426,7 +439,7 @@ func (l *Loop) run(ctx context.Context, turn int64, id, name string, class tools
 		return reading(l.now(), id, 127, class, false, false, []byte("no such tool: "+name))
 	}
 	// Write-ahead: the sheet is sealed; mark the call running durably before it runs.
-	l.S.DB.ExecContext(ctx, `UPDATE calls SET state='running' WHERE turn=? AND call_id=?`, turn, id)
+	l.S.Durable(ctx, `UPDATE calls SET state='running' WHERE turn=? AND call_id=?`, turn, id)
 	l.emit(ctx, "step", map[string]any{"tool": name, "summary": summarize(input), "state": "running", "browser": name == "browse"}, turn)
 	res, err := t.Run(ctx, input)
 	state := "done"
