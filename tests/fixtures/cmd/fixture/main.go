@@ -17,13 +17,14 @@ import (
 	"plebian/tests/fixtures/mail"
 	"plebian/tests/fixtures/model"
 	"plebian/tests/fixtures/s3"
+	"plebian/tests/fixtures/speech"
 	"plebian/tests/fixtures/texts"
 	"plebian/tests/fixtures/web"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: fixture model|time|mail|ical|texts|web|s3 [-addr 127.0.0.1:0]")
+		fmt.Fprintln(os.Stderr, "usage: fixture model|time|mail|ical|texts|web|s3|speech [-addr 127.0.0.1:0]")
 		os.Exit(2)
 	}
 	kind := os.Args[1]
@@ -55,6 +56,8 @@ func main() {
 	case "s3":
 		b := s3.New(*user, *key)
 		serve(b.Handler())
+	case "speech":
+		serve(speech.Handler())
 	case "mail":
 		srv, err = mail.New(*user, *key).Start(*addr, *imapAddr, *smtpAddr, *useTLS)
 	default:
