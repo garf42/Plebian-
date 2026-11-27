@@ -186,3 +186,17 @@ func TestHeardWritesNoUse(t *testing.T) {
 		t.Fatalf("heard uses %d: the underlay keeps its own", count("heard"))
 	}
 }
+
+// A09 (n.underlay): lookup finds a stretch whose words fall in different lines (speech
+// detection splits a sentence at a pause), and keeps to the named speaker's lines.
+func TestLookupAcrossLines(t *testing.T) {
+	e := open(t)
+	id := e.hear(t, "so about that gravel delivery", "I can bring it wednesday")
+	got, err := underlay.Find(ctx, e.s, "gravel wednesday", "", "", "", "")
+	if err != nil || len(got) != 1 || got[0] != id {
+		t.Fatalf("lookup for words split across a stretch's lines found %v (%v)", got, err)
+	}
+	if got, _ := underlay.Find(ctx, e.s, "gravel wednesday", "voice 1", "", "", ""); len(got) != 0 {
+		t.Fatalf("lookup by one speaker matched words only the other said: %v", got)
+	}
+}

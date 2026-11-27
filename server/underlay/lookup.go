@@ -49,20 +49,21 @@ func Find(ctx context.Context, s *store.Store, words, who, source, from, to stri
 		if err != nil {
 			return nil, err
 		}
-		hit := false
+		// A row is one stretch, message or entry: the words may fall in any of its lines
+		// (speech detection splits a sentence at a pause), from the named speaker if any.
+		var text strings.Builder
+		spoke := who == ""
 		for _, l := range r.Lines {
 			if who != "" && !strings.EqualFold(l.Speaker, who) {
 				continue
 			}
-			t := strings.ToLower(l.Text)
-			all := true
-			for _, w := range ws {
-				if !strings.Contains(t, w) {
-					all = false
-				}
-			}
-			if all {
-				hit = true
+			spoke = true
+			text.WriteString(strings.ToLower(l.Text) + "\n")
+		}
+		hit := spoke
+		for _, w := range ws {
+			if !strings.Contains(text.String(), w) {
+				hit = false
 			}
 		}
 		if hit {
