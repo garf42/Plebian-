@@ -30,6 +30,9 @@ type Loop struct {
 	Counter *models.Counter
 	Secrets *config.Secrets
 	Log     *log.Logger
+	// Index indexes a sealed sheet (n.grammar): writer tags per part, and whether heard or
+	// outside words opened its turn.
+	Index func(ctx context.Context, n int64, sh core.Sheet, heardOpened bool) error
 
 	wake     chan struct{}
 	mu       sync.Mutex

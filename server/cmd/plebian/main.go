@@ -26,6 +26,7 @@ import (
 	"plebian/server/clock"
 	"plebian/server/config"
 	"plebian/server/core"
+	"plebian/server/grammar"
 	"plebian/server/loop"
 	"plebian/server/models"
 	"plebian/server/ops"
@@ -209,6 +210,11 @@ func serve(args []string) error {
 	if s.Setting(ctx, "tz") == "" || s.Setting(ctx, "tz") != cfg.TZ {
 		s.SetSetting(ctx, "tz", cfg.TZ)
 	}
+	gr, err := grammar.Open(ctx, s)
+	if err != nil {
+		return err
+	}
+	s.SetSpeller(gr)
 	clk := clock.New(cfg.ClockSource)
 	secrets := &config.Secrets{Path: r.Secrets()}
 	counter := models.NewCounter()
@@ -221,7 +227,11 @@ func serve(args []string) error {
 		an.E = engine{eng}
 	}
 	reg := tools.NewRegistry(loop.CoreTools(s, an.Name)...)
-	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger}
+	lp := &loop.Loop{S: s, Clock: clk, P: core.Defaults, Tools: reg, Counter: counter, Secrets: secrets, Log: logger,
+		Index: func(ctx context.Context, n int64, sh core.Sheet, heard bool) error {
+			_, err := gr.Index(ctx, n, sh, heard, core.Defaults)
+			return err
+		}}
 	if err := lp.Init(ctx); err != nil {
 		return err
 	}
@@ -338,6 +348,11 @@ func replay(args []string) error {
 		return err
 	}
 	defer s.Close()
+	gr, err := grammar.Open(context.Background(), s)
+	if err != nil {
+		return err
+	}
+	s.SetSpeller(gr)
 	if !*verify {
 		return fmt.Errorf("replay: say what to replay (--verify)")
 	}

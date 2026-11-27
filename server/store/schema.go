@@ -134,6 +134,15 @@ CREATE TABLE inbounds(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT 
 	`CREATE TABLE speech(minute TEXT PRIMARY KEY, seconds REAL NOT NULL, stretch INTEGER);`,
 	// 3: offline files from the Omi that have landed (an upload repeated lands once).
 	`CREATE TABLE audio_files(sha TEXT PRIMARY KEY, device_ms INTEGER NOT NULL, offset_ms INTEGER NOT NULL, landed_at TEXT NOT NULL);`,
+	// 4: the grammar's indexes: where each pair occurs, which symbols each fragment holds,
+	// each symbol's ink per body (folded, so a lookup is flat), near-matches.
+	`ALTER TABLE pairs ADD COLUMN row_sha BLOB;
+CREATE INDEX turns_sha ON turns(sha);
+CREATE INDEX heard_sha ON heard(sha);
+CREATE TABLE fragment_symbols(fragment INTEGER NOT NULL, symbol INTEGER NOT NULL, PRIMARY KEY(fragment, symbol));
+CREATE INDEX fragment_symbols_symbol ON fragment_symbols(symbol);
+CREATE TABLE inks(symbol INTEGER NOT NULL, body TEXT NOT NULL, state TEXT NOT NULL, PRIMARY KEY(symbol, body));
+CREATE TABLE near_matches(id INTEGER PRIMARY KEY, body TEXT NOT NULL, writer TEXT NOT NULL, word TEXT NOT NULL, symbol INTEGER NOT NULL, change TEXT NOT NULL, turn INTEGER, tick INTEGER, settled INTEGER NOT NULL DEFAULT 0);`,
 }
 
 func (s *Store) migrate() error {

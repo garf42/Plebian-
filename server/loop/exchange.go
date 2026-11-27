@@ -68,6 +68,11 @@ func (l *Loop) exchange(ctx context.Context, opener core.Opener, parts []core.Pa
 		if err != nil {
 			return err
 		}
+		if l.Index != nil {
+			if err := l.Index(ctx, n, sh, meta.HeardOpened); err != nil {
+				l.Log.Printf("index turn %d: %v", n, err)
+			}
+		}
 		for _, id := range ownerIDs {
 			l.S.DB.ExecContext(ctx, `UPDATE owner_messages SET turn=? WHERE id=?`, n, id)
 		}

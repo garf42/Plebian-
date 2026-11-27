@@ -3,6 +3,7 @@ package loop
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -89,6 +90,38 @@ func CoreTools(s *store.Store, nameVoice func(ctx context.Context, id int64, wor
 				}
 			},
 		},
-		underlay.Lookup(s),
+		lookup(s),
+	}
+}
+
+// lookup is the one read on the underlay: by words, who, source and time. It returns
+// row ids; the rows are quoted for the next request only and never copied into the stack.
+func lookup(s *store.Store) tools.Tool {
+	return tools.Func{
+		D: models.Tool{Name: "lookup", Description: "Read the underlay (talk, mail, texts, calendar overheard) by words, who, source and time; returns row ids, and the rows are quoted beside the result.",
+			Schema: tools.Schema(nil, map[string][2]string{
+				"words":  {"string", "words to find"},
+				"who":    {"string", "speaker or sender"},
+				"source": {"string", "talk, mail, text or calendar"},
+				"from":   {"string", "RFC 3339 start"},
+				"to":     {"string", "RFC 3339 end"},
+			})},
+		C: tools.Read,
+		RunFunc: func(ctx context.Context, in json.RawMessage) (tools.Result, error) {
+			var q struct{ Words, Who, Source, From, To string }
+			if err := json.Unmarshal(in, &q); err != nil {
+				return tools.Result{Reading: []byte("bad input: " + err.Error()), Exit: 2}, nil
+			}
+			ids, err := underlay.Find(ctx, s, q.Words, q.Who, q.Source, q.From, q.To)
+			if err != nil {
+				return tools.Result{}, err
+			}
+			var b strings.Builder
+			fmt.Fprintf(&b, "rows: %d\n", len(ids))
+			for _, id := range ids {
+				fmt.Fprintf(&b, "%d\n", id)
+			}
+			return tools.Result{Reading: []byte(b.String())}, nil
+		},
 	}
 }
